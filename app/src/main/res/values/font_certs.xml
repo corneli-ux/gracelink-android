@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Certificates for the Google Fonts provider — these are well-known public
+        signing certs for the GMS Fonts service. Required by Compose's
+        GoogleFont provider when fetching Inter / Lora at runtime.
+        Source: https://developers.google.com/fonts/docs/android
+    -->
+    <array name="com_google_android_gms_fonts_certs">
+        <item>@array/com_google_android_gms_fonts_certs_dev</item>
+        <item>@array/com_google_android_gms_fonts_certs_prod</item>
+    </array>
+    <string-array name="com_google_android_gms_fonts_certs_dev">
+        <item>
+            MIIEqDCCA5CgAwIBAgIJANWFuGx90071MA0GCSqGSIb3DQEBBAUAMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEQMA4GA1UEChMHQW5kcm9pZDEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTAeFw0wODA0MTUyMzM2NTZaFw0zNTA5MDEyMzM2NTZaMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEQMA4GA1UEChMHQW5kcm9pZDEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEBANbOLggKv+IxTdGNs8/TGFy0PTP4DHKv8q5ms3IIhQwUKy1Z/lLAuhcAAkZd+WMvAaB0vMj5R5JwGZ8JyJhgwCxx7QjMwmlx0vX2ToGgSAlJQ5PJnvmJZmdwJsggk3MSpR6OylTJ/u0dBAqfapNDAa1VzUvNS2Ht+MoTbXf9FS2bB8Ah+j+S6QcRHaN2HlDrrXf+SG3lsZ0k4N0ykYB0NuhQ5uJjJXC1M7G6LauJ8M7qQkOQ2vMrg7c+ZJ4Zk7J+1n6V4e0zJFzbuv3o8spR6OM+a4r6xqREmUjVHlc4ydfnxxH7g2y7dU7Q8XHmxQ8TiJ4LUaaDg8uD5tRB1Ychor+zRCHV8J+LZXcNp5baaTFkVZI2scR6t5IVWI2zNzGinEzP+z8uR2LnQ8IQJhZx2pT5sqo0iunWFk1x9oc1xZ2Qyy5bIg5DnJq2pN8wmtWsm
+        </item>
+    </string-array>
+    <string-array name="com_google_android_gms_fonts_certs_prod">
+        <item>
+            MIIEQzCCAyugAwIBAgIJAMLgh0ZkSjCNMA0GCSqGSIb3DQEBBAUAMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDAeFw0wODA4MjEyMzEzMzRaFw0zNjAxMDcyMzEzMzRaMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKtWLgDYO6IIrgqWbxJOKdoR8qtW0I9Y4sypEwPpt1TTcvZApxsdyxMJZ2JORland2qSGT2y5b+3JKkedxiLDmpHpDsz2WCbdxgxRczfey5YZnTJ4VZbH0xqWVW/8lGmPav5xVwnIiJS6HXk+BVKZF+JcWjAsSbiPnYUNkB0Z5jv0A6kJITKgGyB3tJML3x9RkKHWdYi1QRqJSwGs9kGbJhvbCHxnfqf6NzJ7znbL+TsSOr3HjR9XK6jYyGd2WhyToIkYpQ2CQZ7wwZmu/UzoZ7CSUlnf5jllC0/aSpFOQbYcm+xuVx3I2bDjRjqH+CMlUbBHTZSAiMIc2JlNdFlSi3RQQgRCXX9XNDOnGLpZapprfH0mx1HW8zOH6tNtvj8zYyEJc7yVT8fLIYnu+jzpdo0CsH/FxX1WjyD7+4R9sXj5nJy1o0bR/vJ2T9J0=
+        </item>
+    </string-array>
+</resources>

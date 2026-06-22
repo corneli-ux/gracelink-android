@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GraceLink</string>
+    <string name="app_tagline">Christian Interactive Radio</string>
+
+    <!-- Bottom nav -->
+    <string name="nav_home">Home</string>
+    <string name="nav_library">Library</string>
+    <string name="nav_events">Events</string>
+    <string name="nav_prayer">Prayer</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Categories -->
+    <string name="cat_worship">Worship</string>
+    <string name="cat_teaching">Teaching</string>
+    <string name="cat_debates">Debates</string>
+    <string name="cat_regional">Regional</string>
+    <string name="cat_testimony">Testimony</string>
+    <string name="cat_youth">Youth</string>
+
+    <!-- Player -->
+    <string name="play_live">Listen Live</string>
+    <string name="join_conversation">Join Conversation</string>
+    <string name="playback_speed">Playback Speed</string>
+    <string name="sleep_timer">Sleep Timer</string>
+
+    <!-- Prayer -->
+    <string name="i_prayed">I Prayed</string>
+    <string name="encourage">Encourage</string>
+    <string name="submit_prayer">Submit Prayer</string>
+    <string name="post_anonymously">Post anonymously</string>
+
+    <!-- Profile -->
+    <string name="data_saver">Data Saver</string>
+    <string name="notifications">Notifications</string>
+    <string name="preferred_language">Preferred Language</string>
+    <string name="sign_out">Sign Out</string>
+
+    <!-- Common -->
+    <string name="cancel">Cancel</string>
+    <string name="see_all">See all</string>
+    <string name="recommended">Recommended for You</string>
+    <string name="continue_listening">Continue Listening</string>
+    <string name="live_now">Live Now</string>
+    <string name="upcoming">Upcoming</string>
+    <string name="notify_me">Notify Me</string>
+    <string name="join_queue">Join Queue</string>
+</resources>

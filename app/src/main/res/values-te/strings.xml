@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Telugu locale strings -->
+<resources>
+    <string name="app_name">GraceLink</string>
+    <string name="app_tagline">క్రైస్తవ ఇంటరాక్టివ్ రేడియో</string>
+
+    <string name="nav_home">హోమ్</string>
+    <string name="nav_library">లైబ్రరీ</string>
+    <string name="nav_events">కార్యక్రమాలు</string>
+    <string name="nav_prayer">ప్రార్థన</string>
+    <string name="nav_profile">ప్రొఫైల్</string>
+
+    <string name="cat_worship">కీర్తనలు</string>
+    <string name="cat_teaching">బోధలు</string>
+    <string name="cat_debates">చర్చలు</string>
+    <string name="cat_regional">ప్రాంతీయ</string>
+    <string name="cat_testimony">సాక్ష్యాలు</string>
+    <string name="cat_youth">యువత</string>
+
+    <string name="play_live">ప్రత్యక్షంగా వినండి</string>
+    <string name="join_conversation">సంభాషణలో చేరండి</string>
+    <string name="i_prayed">నేను ప్రార్థించాను</string>
+    <string name="encourage">ప్రోత్సహించండి</string>
+    <string name="submit_prayer">ప్రార్థన సమర్పించండి</string>
+    <string name="sign_out">సైన్ అవుట్</string>
+    <string name="see_all">అన్నీ చూడండి</string>
+    <string name="recommended">మీ కోసం సిఫార్సు</string>
+    <string name="continue_listening">కొనసాగించండి</string>
+    <string name="live_now">ప్రత్యక్షం</string>
+    <string name="upcoming">రాబోయే</string>
+    <string name="notify_me">నాకు తెలియజేయి</string>
+    <string name="join_queue">క్యూలో చేరండి</string>
+</resources>
