@@ -4,36 +4,24 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.googlefonts.Font as GoogleFontCtor
-import com.gracelink.android.R
 
 /**
- * Typography scale — uses Inter via the Compose Google Fonts provider so the
- * look is consistent without shipping font files. Falls back to system sans
- * if the network fetch fails.
+ * Typography scale — uses the device's bundled sans-serif + serif families
+ * instead of fetching Google Fonts at runtime.
+ *
+ * We deliberately avoid the Compose Google Fonts provider here because it
+ * depends on Google Play Services being available on the device — which is
+ * not guaranteed on emulators or AOSP-based ROMs, and a missing/old GMS
+ * package can cause font-resolution crashes during text rendering. Sticking
+ * to system FontFamily means the app boots reliably on every device and
+ * the visual difference (Inter vs system Sans) is minor for an MVP.
  *
  * Body minimum is 14sp per the spec ("min 14sp body").
  */
-private val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
-)
+val GraceFontFamily: FontFamily = FontFamily.SansSerif
 
-private val InterFont = GoogleFont("Inter")
-private val LoraFont = GoogleFont("Lora") // used for headings — warm serif accent
-
-// Google Fonts provider — falls back to system fonts automatically if the
-// provider is unavailable (e.g. on devices without Google Play Services).
-val GraceFontFamily = FontFamily(
-    GoogleFontCtor(googleFont = InterFont, fontProvider = provider)
-)
-
-val GraceDisplayFamily = FontFamily(
-    GoogleFontCtor(googleFont = LoraFont, fontProvider = provider, weight = FontWeight.W600)
-)
+val GraceDisplayFamily: FontFamily = FontFamily.Serif
 
 val GraceTypography = Typography(
     displayLarge = TextStyle(
