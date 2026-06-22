@@ -11,7 +11,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -38,10 +37,30 @@ class LibraryViewModel @Inject constructor(
     private val _items = MutableStateFlow<List<ContentItem>>(emptyList())
     private val _isLoading = MutableStateFlow(false)
 
+    // 5-arg combine is the maximum typed overload; wrap query+category into one
+    // pair to stay under the limit.
+    private data class Filters(
+        val query: String,
+        val category: ContentCategory?,
+        val language: ContentLanguage?,
+        val type: ContentType?,
+    )
+
     val state: StateFlow<LibraryUiState> = combine(
-        _query, _activeCategory, _activeLanguage, _activeType, _items, _isLoading
-    ) { query, cat, lang, type, items, loading ->
-        LibraryUiState(loading, query, items, cat, lang, type)
+        combine(_query, _activeCategory, _activeLanguage, _activeType) { q, c, l, t ->
+            Filters(q, c, l, t)
+        },
+        _items,
+        _isLoading,
+    ) { filters, items, loading ->
+        LibraryUiState(
+            isLoading = loading,
+            query = filters.query,
+            items = items,
+            activeCategory = filters.category,
+            activeLanguage = filters.language,
+            activeType = filters.type,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LibraryUiState())
 
     init { refresh() }

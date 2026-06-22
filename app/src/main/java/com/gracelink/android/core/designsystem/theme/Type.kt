@@ -25,14 +25,14 @@ private val provider = GoogleFont.Provider(
 private val InterFont = GoogleFont("Inter")
 private val LoraFont = GoogleFont("Lora") // used for headings — warm serif accent
 
+// Google Fonts provider — falls back to system fonts automatically if the
+// provider is unavailable (e.g. on devices without Google Play Services).
 val GraceFontFamily = FontFamily(
-    GoogleFontCtor(googleFont = InterFont, fontProvider = provider),
-    FontFamily.SansSerif
+    GoogleFontCtor(googleFont = InterFont, fontProvider = provider)
 )
 
 val GraceDisplayFamily = FontFamily(
-    GoogleFontCtor(googleFont = LoraFont, fontProvider = provider, weight = FontWeight.W600),
-    FontFamily.Serif
+    GoogleFontCtor(googleFont = LoraFont, fontProvider = provider, weight = FontWeight.W600)
 )
 
 val GraceTypography = Typography(

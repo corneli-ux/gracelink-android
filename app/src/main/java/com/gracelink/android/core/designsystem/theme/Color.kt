@@ -80,6 +80,14 @@ object GraceGradients {
     fun hero() = Brush.verticalGradient(HeroGradient)
     fun gold() = Brush.horizontalGradient(GoldGradient)
     fun playerScrim() = Brush.verticalGradient(PlayerScrim)
-    fun liveCard() = Brush.diagonalGradient(LiveCardGradient)
-    fun prayerCard() = Brush.diagonalGradient(PrayerCardGradient)
+    fun liveCard() = Brush.linearGradient(
+        colors = LiveCardGradient,
+        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+        end = androidx.compose.ui.geometry.Offset(Float.MAX_VALUE, Float.MAX_VALUE)
+    )
+    fun prayerCard() = Brush.linearGradient(
+        colors = PrayerCardGradient,
+        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+        end = androidx.compose.ui.geometry.Offset(Float.MAX_VALUE, Float.MAX_VALUE)
+    )
 }
