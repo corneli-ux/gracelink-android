@@ -41,6 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.gracelink.android.feature.audioconnect.AudioConnectScreen
 import com.gracelink.android.feature.articles.ArticlesScreen
+import com.gracelink.android.feature.churches.ChurchesScreen
 import com.gracelink.android.feature.faith.FaithScreen
 import com.gracelink.android.feature.registration.RegistrationScreen
 import com.gracelink.android.feature.auth.AuthScreen
@@ -85,10 +86,10 @@ fun GraceNavHost() {
         ) {
             NavHost(navController, startDestination = GraceRoute.Splash) {
                 composable<GraceRoute.Splash> {
-                    SplashScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Splash) { inclusive = true } } }
+                    SplashScreen { navController.navigate(GraceRoute.Onboarding) { popUpTo(GraceRoute.Splash) { inclusive = true } } }
                 }
                 composable<GraceRoute.Onboarding> {
-                    OnboardingScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Onboarding) { inclusive = true } } }
+                    OnboardingScreen { navController.navigate(GraceRoute.Auth) { popUpTo(GraceRoute.Onboarding) { inclusive = true } } }
                 }
                 composable<GraceRoute.Auth> {
                     AuthScreen(
@@ -116,12 +117,13 @@ fun GraceNavHost() {
                 composable<GraceRoute.AudioConnect> { AudioConnectScreen() }
                 composable<GraceRoute.Articles> { ArticlesScreen() }
                 composable<GraceRoute.Faith> { FaithScreen() }
+                composable<GraceRoute.Churches> { ChurchesScreen() }
                 composable<GraceRoute.Registration> { RegistrationScreen(onComplete = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Registration) { inclusive = true } } }) }
                 composable<GraceRoute.Profile> {
                     ProfileScreen(
                         onNavigateToFaith = { navController.navigate(GraceRoute.Faith) },
                         onNavigateToArticles = { navController.navigate(GraceRoute.Articles) },
-                        onNavigateToChurches = { navController.navigate(GraceRoute.Events) },
+                        onNavigateToChurches = { navController.navigate(GraceRoute.Churches) },
                     )
                 }
                 composable<GraceRoute.Player> { entry ->

@@ -15,6 +15,7 @@ sealed interface GraceRoute : java.io.Serializable {
     @Serializable data object Prayer : GraceRoute
     @Serializable data object Articles : GraceRoute
     @Serializable data object Faith : GraceRoute
+    @Serializable data object Churches : GraceRoute
     @Serializable data object Profile : GraceRoute
     @Serializable data class Player(val contentId: String) : GraceRoute
     @Serializable data class LiveSession(val sessionId: String) : GraceRoute
