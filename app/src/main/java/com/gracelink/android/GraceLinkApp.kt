@@ -26,22 +26,28 @@ import java.util.Locale
 @HiltAndroidApp
 class GraceLinkApp : Application() {
     override fun onCreate() {
+        Log.d("GraceLinkLaunch", "GraceLinkApp.onCreate: START")
         super.onCreate()
+        Log.d("GraceLinkLaunch", "GraceLinkApp.onCreate: after super (Hilt initialized)")
 
         // Crash logger — writes the full stack trace to logcat + a file
         // before the process dies. Replace with Crashlytics once Firebase is
         // wired in.
-        val previous = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            try {
-                Log.e("GraceLinkCrash", "Uncaught exception on ${thread.name}", throwable)
-                writeCrashToFile(thread.name, throwable)
-            } catch (_: Throwable) { /* never let logging itself throw */ }
-            previous?.uncaughtException(thread, throwable)
+        try {
+            val previous = Thread.getDefaultUncaughtExceptionHandler()
+            Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+                try {
+                    Log.e("GraceLinkCrash", "Uncaught exception on ${thread.name}", throwable)
+                    writeCrashToFile(thread.name, throwable)
+                } catch (_: Throwable) { /* never let logging itself throw */ }
+                previous?.uncaughtException(thread, throwable)
+            }
+            Log.d("GraceLinkLaunch", "GraceLinkApp.onCreate: crash logger installed")
+        } catch (e: Exception) {
+            Log.e("GraceLinkLaunch", "Failed to install crash logger", e)
         }
 
-        // Firebase.initializeApp(this)  // enable after google-services.json is in place
-        // WorkManager.initialize(...)   // enabled on-demand via Configuration.Provider
+        Log.d("GraceLinkLaunch", "GraceLinkApp.onCreate: DONE")
     }
 
     /**

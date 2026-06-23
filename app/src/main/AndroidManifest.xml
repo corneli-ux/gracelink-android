@@ -22,9 +22,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.GraceLink.Splash"
-        android:enableOnBackInvokedCallback="true"
-        tools:targetApi="34">
+        android:theme="@style/Theme.GraceLink.Splash">
 
         <activity
             android:name=".MainActivity"

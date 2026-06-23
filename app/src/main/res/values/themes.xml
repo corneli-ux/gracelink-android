@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-        Base theme — used as the launch theme (Splash) before Compose takes over.
-        All window chrome is dark to match the slate background and avoid a
-        white flash on cold start.
+        Launch theme — dark background to avoid white flash on cold start.
+        Uses android:Theme.DeviceDefault.NoActionBar which is always available
+        on API 26+ and provides a dark window background by default.
     -->
-    <style name="Theme.GraceLink.Splash" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.GraceLink.Splash" parent="android:Theme.DeviceDefault.NoActionBar">
         <item name="android:windowBackground">@color/grace_background</item>
         <item name="android:statusBarColor">@color/grace_background</item>
         <item name="android:navigationBarColor">@color/grace_background</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 
     <!-- Main Compose theme — this is just a shell; real theming lives in Compose. -->
-    <style name="Theme.GraceLink" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.GraceLink" parent="android:Theme.DeviceDefault.NoActionBar">
         <item name="android:windowBackground">@color/grace_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 </resources>

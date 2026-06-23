@@ -1,22 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--
-        Same as values/themes.xml — keep window chrome dark in night mode.
-        Provided for explicit night-qualifier parity.
-    -->
-    <style name="Theme.GraceLink.Splash" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.GraceLink.Splash" parent="android:Theme.DeviceDefault.NoActionBar">
         <item name="android:windowBackground">@color/grace_background</item>
         <item name="android:statusBarColor">@color/grace_background</item>
         <item name="android:navigationBarColor">@color/grace_background</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 
-    <style name="Theme.GraceLink" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.GraceLink" parent="android:Theme.DeviceDefault.NoActionBar">
         <item name="android:windowBackground">@color/grace_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 </resources>
