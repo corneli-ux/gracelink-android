@@ -35,6 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.gracelink.android.feature.auth.AuthScreen
 import com.gracelink.android.feature.events.EventsScreen
 import com.gracelink.android.feature.fm.FmScreen
 import com.gracelink.android.feature.home.HomeScreen
@@ -80,6 +81,7 @@ fun GraceNavHost() {
                 }
                 composable<GraceRoute.Onboarding> {
                     OnboardingScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Onboarding) { inclusive = true } } }
+                composable<GraceRoute.Auth> { AuthScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Auth) { inclusive = true } } } }
                 }
                 composable<GraceRoute.Home> {
                     HomeScreen(

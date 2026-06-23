@@ -1,5 +1,6 @@
 package com.gracelink.android.data.db
 
+import android.content.Context
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -25,15 +26,9 @@ import com.gracelink.android.data.db.entity.UserEntity
 
 @Database(
     entities = [
-        ContentEntity::class,
-        LiveSessionEntity::class,
-        PrayerEntity::class,
-        ChatMessageEntity::class,
-        UserEntity::class,
-        FavoriteEntity::class,
-        DownloadEntity::class,
-        HistoryEntity::class,
-        FmScheduleEntity::class,
+        ContentEntity::class, LiveSessionEntity::class, PrayerEntity::class,
+        ChatMessageEntity::class, UserEntity::class, FavoriteEntity::class,
+        DownloadEntity::class, HistoryEntity::class, FmScheduleEntity::class,
     ],
     version = 3,
     exportSchema = false,
@@ -49,4 +44,10 @@ abstract class GraceDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun historyDao(): HistoryDao
     abstract fun fmScheduleDao(): FmScheduleDao
+
+    companion object {
+        @Volatile private var INSTANCE: GraceDatabase? = null
+        fun getInstance(context: Context): GraceDatabase =
+            INSTANCE ?: synchronized(this) { INSTANCE ?: DatabaseProvider.get(context).also { INSTANCE = it } }
+    }
 }

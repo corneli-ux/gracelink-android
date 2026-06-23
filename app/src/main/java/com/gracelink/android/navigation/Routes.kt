@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 sealed interface GraceRoute : java.io.Serializable {
     @Serializable data object Splash : GraceRoute
     @Serializable data object Onboarding : GraceRoute
+    @Serializable data object Auth : GraceRoute
     @Serializable data object Home : GraceRoute
     @Serializable data object Library : GraceRoute
     @Serializable data object Fm : GraceRoute
