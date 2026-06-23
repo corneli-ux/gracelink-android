@@ -1,7 +1,5 @@
 package com.gracelink.android.core.components
 
-import androidx.compose.foundation.Indication
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -52,7 +50,7 @@ fun GoldButton(
             .background(bg)
             .clickable(
                 enabled = enabled,
-                indication = rememberRipple(color = fg),
+                indication = ripple(color = fg),
                 interactionSource = remember { MutableInteractionSource() },
                 onClick = onClick,
             )
@@ -81,7 +79,7 @@ fun GhostButton(
             .clip(RoundedCornerShape(16.dp))
             .background(Slate800.copy(alpha = 0.9f))
             .clickable(
-                indication = rememberRipple(),
+                indication = ripple(),
                 interactionSource = remember { MutableInteractionSource() },
                 onClick = onClick,
             )

@@ -2,6 +2,7 @@ package com.gracelink.android.di
 
 import android.content.Context
 import com.gracelink.android.data.db.GraceDatabase
+import com.gracelink.android.data.db.DatabaseProvider
 import com.gracelink.android.data.db.dao.ChatDao
 import com.gracelink.android.data.db.dao.ContentDao
 import com.gracelink.android.data.db.dao.DownloadDao
