@@ -3,7 +3,6 @@ package com.gracelink.android.data.db
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.gracelink.android.data.db.entity.ChatMessageEntity
 import com.gracelink.android.data.db.entity.ContentCategory
 import com.gracelink.android.data.db.entity.ContentEntity
@@ -19,49 +18,55 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Database provider with real data seeding from assets/gracelink_data.json.
+ * Database provider — seeds real data from assets on first access.
  *
- * On first launch, the app reads 41 real podcast episodes (from iTunes),
- * 3 live radio channels, 3 live sessions, 6 prayers, 5 chat messages, and
- * 1 demo user from the bundled JSON asset and inserts them into Room.
- *
- * This is REAL data — real audio URLs, real titles, real artwork from
- * publicly available Christian podcasts (Timothy Keller, John MacArthur,
- * Alistair Begg, Paul Washer, etc.).
+ * BUG FIX: The previous version used RoomDatabase.Callback.onCreate to
+ * seed, but INSTANCE was null when the callback fired (race condition).
+ * Now we seed synchronously after the database is built, checking if
+ * the content table is empty first.
  */
 object DatabaseProvider {
 
     @Volatile
     private var INSTANCE: GraceDatabase? = null
+    @Volatile
+    private var seeded = false
 
     fun get(context: Context): GraceDatabase = INSTANCE ?: synchronized(this) {
-        INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
-    }
-
-    private fun buildDatabase(context: Context): GraceDatabase {
-        val appContext = context.applicationContext
-        return Room.databaseBuilder(
-            appContext,
+        INSTANCE ?: Room.databaseBuilder(
+            context.applicationContext,
             GraceDatabase::class.java,
             "gracelink.db"
         )
-            .addCallback(object : RoomDatabase.Callback() {
-                override fun onCreate(db: SupportSQLiteDatabase) {
-                    super.onCreate(db)
-                    CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-                        seedFromAsset(appContext, INSTANCE ?: return@launch)
-                    }
-                }
-            })
             .fallbackToDestructiveMigration()
             .build()
+            .also { INSTANCE = it }
     }
 
-    private suspend fun seedFromAsset(context: Context, db: GraceDatabase) {
+    /**
+     * Seeds the database from the bundled JSON asset if it hasn't been
+     * seeded yet. Called from Application.onCreate.
+     */
+    fun seedIfNeeded(context: Context) {
+        if (seeded) return
+        synchronized(this) {
+            if (seeded) return
+            val db = get(context)
+            // Check if content table is empty
+            val count = db.contentDao().count()
+            if (count == 0) {
+                seedFromAsset(context.applicationContext, db)
+            }
+            seeded = true
+        }
+    }
+
+    private fun seedFromAsset(context: Context, db: GraceDatabase) {
         try {
             val json = context.assets.open("gracelink_data.json").bufferedReader().use { it.readText() }
             val data = JSONObject(json)
@@ -94,12 +99,12 @@ object DatabaseProvider {
             val sessions = (0 until sessionsArr.length()).map { i ->
                 val o = sessionsArr.getJSONObject(i)
                 val hostsArr = o.getJSONArray("hosts")
-                val hostsJson = (0 until hostsArr.length()).joinToString(",") { hostsArr.getString(it) }
+                val hostsJson = (0 until hostsArr.length()).joinToString(",") { "\"${hostsArr.getString(it)}\"" }
                 LiveSessionEntity(
                     id = o.getString("id"),
                     title = o.getString("title"),
                     description = o.optString("description", ""),
-                    hostsJson = "[${hostsJson}]",
+                    hostsJson = "[$hostsJson]",
                     startTime = o.optLong("startTime"),
                     endTime = o.optLong("endTime"),
                     status = LiveSessionStatus.valueOf(o.optString("status", "UPCOMING")),
@@ -171,7 +176,7 @@ object DatabaseProvider {
                 )
             )
 
-            // FM Schedule (24/7 program slots with preachers)
+            // FM Schedule
             try {
                 val scheduleJson = context.assets.open("fm_schedule.json").bufferedReader().use { it.readText() }
                 val scheduleArr = JSONArray(scheduleJson)

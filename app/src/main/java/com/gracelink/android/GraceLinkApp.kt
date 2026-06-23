@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.gracelink.android.data.db.DatabaseProvider
 import com.gracelink.android.data.repository.ContentRepository
 import com.gracelink.android.player.GraceMessagingService
 import dagger.hilt.android.HiltAndroidApp
@@ -11,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.PrintWriter
@@ -34,6 +36,14 @@ class GraceLinkApp : Application() {
             previous?.uncaughtException(thread, throwable)
         }
 
+        // Seed database SYNCHRONOUSLY before anything else runs.
+        // This fixes the race condition where the database was empty
+        // because the seeding callback fired before INSTANCE was set.
+        runBlocking(Dispatchers.IO) {
+            DatabaseProvider.seedIfNeeded(this@GraceLinkApp)
+        }
+
+        // Firebase auth + Firestore sync (best-effort, non-blocking)
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             try { Firebase.auth.signInAnonymously().await(); contentRepository.syncFromFirestore() } catch (e: Exception) { Log.e("GraceLink", "Auth/sync failed", e) }
         }

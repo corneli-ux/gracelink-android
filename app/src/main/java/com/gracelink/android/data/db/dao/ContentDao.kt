@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ContentDao {
 
+    @Query("SELECT COUNT(*) FROM content")
+    suspend fun count(): Int
+
     @Query("SELECT * FROM content WHERE type = 'LIVE_RADIO'")
     fun liveRadio(): Flow<List<ContentEntity>>
 
