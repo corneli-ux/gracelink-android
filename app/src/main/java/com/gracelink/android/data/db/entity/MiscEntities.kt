@@ -17,22 +17,6 @@ data class ChatMessageEntity(
     val isMine: Boolean,
 )
 
-@Entity(tableName = "users")
-data class UserEntity(
-    @PrimaryKey val uid: String,
-    val displayName: String,
-    val email: String,
-    val photoUrl: String?,
-    val preferredLanguage: ContentLanguage,
-    val createdAt: Long,
-    val totalMinutes: Int,
-    val completedItems: Int,
-    val prayersOffered: Int,
-    val streakDays: Int,
-    val dataSaverEnabled: Boolean,
-    val notificationsEnabled: Boolean,
-)
-
 @Entity(tableName = "favorites")
 data class FavoriteEntity(
     @PrimaryKey val contentId: String,

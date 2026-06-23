@@ -59,7 +59,7 @@ class ArticlesViewModel @Inject constructor(
             likeDao.remove(articleId, s.myId)
             articleDao.decrementLikes(articleId)
         } else {
-            likeDao.insert(ArticleLikeEntity("$articleId_${s.myId}", articleId, s.myId, System.currentTimeMillis()))
+            likeDao.insert(ArticleLikeEntity(articleId + "_" + s.myId, articleId, s.myId, System.currentTimeMillis()))
             articleDao.incrementLikes(articleId)
         }
     }
