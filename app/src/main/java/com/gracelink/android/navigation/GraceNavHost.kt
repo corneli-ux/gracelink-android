@@ -92,13 +92,13 @@ fun GraceNavHost() {
                     OnboardingScreen { navController.navigate(GraceRoute.Auth) { popUpTo(GraceRoute.Onboarding) { inclusive = true } } }
                 }
                 composable<GraceRoute.Auth> {
-                    var googleName by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
-                    var googleEmail by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+                    val googleName = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+                    val googleEmail = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
                     AuthScreen(
                         onSignInComplete = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Auth) { inclusive = true } } },
                         onNewUserNeedsRegistration = { name, email ->
-                            googleName = name
-                            googleEmail = email
+                            googleName.value = name
+                            googleEmail.value = email
                             navController.navigate(GraceRoute.Registration)
                         },
                         onRegister = { navController.navigate(GraceRoute.Registration) },
