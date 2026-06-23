@@ -111,7 +111,7 @@ fun GraceNavHost() {
                 composable<GraceRoute.AudioConnect> { AudioConnectScreen() }
                 composable<GraceRoute.Articles> { ArticlesScreen() }
                 composable<GraceRoute.Faith> { FaithScreen() }
-                composable<GraceRoute.Registration> { RegistrationScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Registration) { inclusive = true } } } }
+                composable<GraceRoute.Registration> { RegistrationScreen(onComplete = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Registration) { inclusive = true } } }) }
                 composable<GraceRoute.Profile> { ProfileScreen() }
                 composable<GraceRoute.Player> { entry ->
                     val route = entry.toRoute<GraceRoute.Player>()
