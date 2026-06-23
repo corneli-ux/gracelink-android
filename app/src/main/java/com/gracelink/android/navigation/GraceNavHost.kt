@@ -9,12 +9,14 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Podcasts
 import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material.icons.rounded.Spa
 import androidx.compose.material3.Icon
@@ -35,6 +37,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.gracelink.android.feature.audioconnect.AudioConnectScreen
 import com.gracelink.android.feature.auth.AuthScreen
 import com.gracelink.android.feature.events.EventsScreen
 import com.gracelink.android.feature.fm.FmScreen
@@ -100,6 +103,7 @@ fun GraceNavHost() {
                     EventsScreen(onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) })
                 }
                 composable<GraceRoute.Prayer> { PrayerWallScreen() }
+                composable<GraceRoute.AudioConnect> { AudioConnectScreen() }
                 composable<GraceRoute.Profile> { ProfileScreen() }
                 composable<GraceRoute.Player> { entry ->
                     val route = entry.toRoute<GraceRoute.Player>()
@@ -149,6 +153,7 @@ private fun GraceRoute.icons(): Triple<ImageVector, ImageVector, String> = when 
     GraceRoute.Library -> Triple(Icons.Rounded.LibraryMusic, Icons.Outlined.LibraryMusic, "Library")
     GraceRoute.Fm -> Triple(Icons.Rounded.Radio, Icons.Outlined.Radio, "FM")
     GraceRoute.Events -> Triple(Icons.Rounded.CalendarMonth, Icons.Outlined.CalendarMonth, "Events")
+    GraceRoute.AudioConnect -> Triple(Icons.Rounded.Podcasts, Icons.Outlined.Podcasts, "Connect")
     GraceRoute.Prayer -> Triple(Icons.Rounded.Spa, Icons.Outlined.Spa, "Prayer")
     GraceRoute.Profile -> Triple(Icons.Rounded.Person, Icons.Outlined.Person, "Profile")
     else -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "")

@@ -11,11 +11,12 @@ sealed interface GraceRoute : java.io.Serializable {
     @Serializable data object Fm : GraceRoute
     @Serializable data object Events : GraceRoute
     @Serializable data object Prayer : GraceRoute
+    @Serializable data object AudioConnect : GraceRoute
     @Serializable data object Profile : GraceRoute
     @Serializable data class Player(val contentId: String) : GraceRoute
     @Serializable data class LiveSession(val sessionId: String) : GraceRoute
 }
 
 val bottomNavRoutes = listOf(
-    GraceRoute.Home, GraceRoute.Library, GraceRoute.Fm, GraceRoute.Events, GraceRoute.Prayer, GraceRoute.Profile,
+    GraceRoute.Home, GraceRoute.Library, GraceRoute.Fm, GraceRoute.Events, GraceRoute.AudioConnect, GraceRoute.Prayer, GraceRoute.Profile,
 )
