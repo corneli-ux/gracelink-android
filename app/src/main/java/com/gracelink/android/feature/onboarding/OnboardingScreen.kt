@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.gracelink.android.core.components.FaithLinkLogo
 import com.gracelink.android.core.components.GoldButton
 import com.gracelink.android.core.components.GhostButton
 import com.gracelink.android.core.theme.Gold500
@@ -67,7 +66,11 @@ fun OnboardingScreen(onDone: () -> Unit) {
         ) {
             Spacer(Modifier.height(48.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                FaithLinkLogo(size = 28)
+                Image(
+                    painter = androidx.compose.ui.res.painterResource(id = com.gracelink.android.R.drawable.faith_link_logo),
+                    contentDescription = "Faith Link",
+                    modifier = Modifier.size(32.dp)
+                )
                 Spacer(Modifier.width(10.dp))
                 Text("Faith Link", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold))
             }

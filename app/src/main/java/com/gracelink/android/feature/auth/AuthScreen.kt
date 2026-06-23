@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
-import com.gracelink.android.core.components.FaithLinkLogo
 import com.gracelink.android.core.components.GoldButton
 import com.gracelink.android.core.components.GhostButton
 import com.gracelink.android.core.theme.Gold500
@@ -34,7 +33,11 @@ fun AuthScreen(onDone: () -> Unit) {
     var password by remember { mutableStateOf("") }
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Obsidian, Slate950, Slate800)))) {
         Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            FaithLinkLogo(size = 64)
+            Image(
+                painter = androidx.compose.ui.res.painterResource(id = com.gracelink.android.R.drawable.faith_link_logo),
+                contentDescription = "Faith Link",
+                modifier = Modifier.size(72.dp)
+            )
             Spacer(Modifier.height(16.dp))
             Text("Faith Link", style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(6.dp))

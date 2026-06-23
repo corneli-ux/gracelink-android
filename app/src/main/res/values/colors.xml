@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Logo colors: deep blue background, gold cross, emerald waves -->
-    <color name="grace_status_bar">#0F172A</color>
-    <color name="grace_nav_bar">#0F172A</color>
-    <color name="grace_accent_gold">#F59E0B</color>
-    <color name="grace_emerald">#10B981</color>
-    <color name="grace_background">#0F172A</color>
+    <!-- Logo colors: pure black bg, warm gold/cream #D1BE9B -->
+    <color name="grace_status_bar">#000000</color>
+    <color name="grace_nav_bar">#000000</color>
+    <color name="grace_accent_gold">#D1BE9B</color>
+    <color name="grace_emerald">#3FB88A</color>
+    <color name="grace_background">#000000</color>
 </resources>
