@@ -89,7 +89,12 @@ fun GraceNavHost() {
                 }
                 composable<GraceRoute.Onboarding> {
                     OnboardingScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Onboarding) { inclusive = true } } }
-                composable<GraceRoute.Auth> { AuthScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Auth) { inclusive = true } } } }
+                }
+                composable<GraceRoute.Auth> {
+                    AuthScreen(
+                        onDone = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Auth) { inclusive = true } } },
+                        onRegister = { navController.navigate(GraceRoute.Registration) },
+                    )
                 }
                 composable<GraceRoute.Home> {
                     HomeScreen(
@@ -112,7 +117,13 @@ fun GraceNavHost() {
                 composable<GraceRoute.Articles> { ArticlesScreen() }
                 composable<GraceRoute.Faith> { FaithScreen() }
                 composable<GraceRoute.Registration> { RegistrationScreen(onComplete = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Registration) { inclusive = true } } }) }
-                composable<GraceRoute.Profile> { ProfileScreen() }
+                composable<GraceRoute.Profile> {
+                    ProfileScreen(
+                        onNavigateToFaith = { navController.navigate(GraceRoute.Faith) },
+                        onNavigateToArticles = { navController.navigate(GraceRoute.Articles) },
+                        onNavigateToChurches = { navController.navigate(GraceRoute.Events) },
+                    )
+                }
                 composable<GraceRoute.Player> { entry ->
                     val route = entry.toRoute<GraceRoute.Player>()
                     PlayerScreen(
