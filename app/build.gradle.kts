@@ -7,8 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
-    // Apply google-services ONLY after you drop a real google-services.json into /app.
-    // alias(libs.plugins.google.services)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -123,6 +122,7 @@ dependencies {
     // Serialization & Coroutines
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
 
     // Image loading
     implementation(libs.coil.compose)
@@ -134,14 +134,11 @@ dependencies {
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
 
-    // Firebase — uncomment after adding google-services.json
-    // implementation(platform(libs.firebase.bom))
-    // implementation(libs.firebase.auth)
-    // implementation(libs.firebase.firestore)
-    // implementation(libs.firebase.storage)
-    // implementation(libs.firebase.messaging)
-    // implementation(libs.firebase.analytics)
-    // implementation(libs.firebase.crashlytics)
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
 
     // Desugaring for java.time on older API levels
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")

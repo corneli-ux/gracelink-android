@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "755996957801",
+    "project_id": "black94-board-resolutions",
+    "storage_bucket": "black94-board-resolutions.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755996957801:android:35f11d2cb5e2c05484d6f8",
+        "android_client_info": {
+          "package_name": "com.gracelink.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "755996957801-33j458gvmmfphuv1bombb09vtra01pm3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2ndzO-IqEaUdWjxK-TQlufn1WiD5EgbA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "755996957801-33j458gvmmfphuv1bombb09vtra01pm3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,18 +2,33 @@ package com.gracelink.android
 
 import android.app.Application
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.gracelink.android.data.repository.ContentRepository
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
 @HiltAndroidApp
 class GraceLinkApp : Application() {
+
+    @Inject lateinit var contentRepository: ContentRepository
+
     override fun onCreate() {
         super.onCreate()
+
+        // Install crash logger
         val previous = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             try {
@@ -21,6 +36,18 @@ class GraceLinkApp : Application() {
                 writeCrash(thread.name, throwable)
             } catch (_: Throwable) {}
             previous?.uncaughtException(thread, throwable)
+        }
+
+        // Sign in anonymously + sync content from Firestore
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            try {
+                Firebase.auth.signInAnonymously().await()
+                Log.d("GraceLink", "Anonymous auth success")
+                contentRepository.syncFromFirestore()
+                Log.d("GraceLink", "Firestore sync complete")
+            } catch (e: Exception) {
+                Log.e("GraceLink", "Auth/sync failed", e)
+            }
         }
     }
 
