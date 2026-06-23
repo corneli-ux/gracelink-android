@@ -3,6 +3,7 @@ package com.gracelink.android.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.gracelink.android.data.db.converter.EnumConverters
 import com.gracelink.android.data.db.dao.ChatDao
 import com.gracelink.android.data.db.dao.ContentDao
 import com.gracelink.android.data.db.dao.DownloadDao
@@ -31,9 +32,10 @@ import com.gracelink.android.data.db.entity.UserEntity
         DownloadEntity::class,
         HistoryEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
+@TypeConverters(EnumConverters::class)
 abstract class GraceDatabase : RoomDatabase() {
     abstract fun contentDao(): ContentDao
     abstract fun liveSessionDao(): LiveSessionDao

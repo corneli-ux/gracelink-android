@@ -2,9 +2,6 @@ package com.gracelink.android.player
 
 import android.app.PendingIntent
 import android.content.Intent
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.gracelink.android.MainActivity
@@ -12,15 +9,15 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 /**
- * Real background-playback service.
+ * Background-playback service.
  *
- * Owns a single ExoPlayer instance and exposes it to the system media
- * notification + Bluetooth/Android-Auto controllers via MediaSession.
+ * Exposes the singleton ExoPlayer (owned by [GracePlayerController]) to the
+ * system via MediaSession, enabling the media notification + Bluetooth /
+ * Android Auto controls.
  *
- * Lifecycle:
- *  - Started on demand when playback begins (see [GracePlayerController.play]).
- *  - The system shows a media notification with play/pause controls.
- *  - Stops itself when playback ends and no controllers are connected.
+ * IMPORTANT: We do NOT release the player in onDestroy — it's a Hilt
+ * @Singleton owned by the app, not the service. Releasing it here would
+ * kill playback for the entire app when the service stops.
  */
 @AndroidEntryPoint
 class GraceMediaService : MediaSessionService() {
@@ -31,14 +28,13 @@ class GraceMediaService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        val player = playerController.player
         val sessionIntent = packageManager.getLaunchIntentForPackage(packageName)
             ?: Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this, 0, sessionIntent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        mediaSession = MediaSession.Builder(this, player)
+        mediaSession = MediaSession.Builder(this, playerController.player)
             .setSessionActivity(pendingIntent)
             .build()
     }
@@ -53,10 +49,9 @@ class GraceMediaService : MediaSessionService() {
     }
 
     override fun onDestroy() {
-        mediaSession?.run {
-            player.release()
-            release()
-        }
+        // Release only the MediaSession — NOT the player.
+        // The player is a Hilt @Singleton owned by GracePlayerController.
+        mediaSession?.release()
         mediaSession = null
         super.onDestroy()
     }

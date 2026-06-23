@@ -10,7 +10,7 @@ import com.gracelink.android.data.db.entity.ContentType
 import com.gracelink.android.data.db.entity.FavoriteEntity
 import com.gracelink.android.data.db.entity.HistoryEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,8 +39,8 @@ class ContentRepository @Inject constructor(
     fun isFavorite(id: String): Flow<Boolean> = favoriteDao.isFavorite(id)
 
     suspend fun toggleFavorite(id: String) {
-        val exists = favoriteDao.isFavorite(id)
-        // We can't synchronously read a Flow here cleanly — read once via first()
+        val exists = favoriteDao.isFavorite(id).first()
+        if (exists) favoriteDao.removeById(id) else favoriteDao.add(FavoriteEntity(id, System.currentTimeMillis()))
     }
 
     suspend fun addFavorite(id: String) = favoriteDao.add(FavoriteEntity(id, System.currentTimeMillis()))
