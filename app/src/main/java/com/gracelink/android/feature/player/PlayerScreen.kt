@@ -83,7 +83,7 @@ fun PlayerScreen(
             Brush.verticalGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.background))
         )
     ) {
-        Column(Modifier.fillMaxSize().statusBarsPadding().padding(bottom = 32.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState()).statusBarsPadding().padding(bottom = 32.dp)) {
             // Top bar
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Slate800).clickable(onClick = onBack), contentAlignment = Alignment.Center) {

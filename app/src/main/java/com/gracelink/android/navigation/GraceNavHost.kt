@@ -92,8 +92,15 @@ fun GraceNavHost() {
                     OnboardingScreen { navController.navigate(GraceRoute.Auth) { popUpTo(GraceRoute.Onboarding) { inclusive = true } } }
                 }
                 composable<GraceRoute.Auth> {
+                    var googleName by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+                    var googleEmail by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
                     AuthScreen(
-                        onDone = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Auth) { inclusive = true } } },
+                        onSignInComplete = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Auth) { inclusive = true } } },
+                        onNewUserNeedsRegistration = { name, email ->
+                            googleName = name
+                            googleEmail = email
+                            navController.navigate(GraceRoute.Registration)
+                        },
                         onRegister = { navController.navigate(GraceRoute.Registration) },
                     )
                 }
@@ -118,7 +125,9 @@ fun GraceNavHost() {
                 composable<GraceRoute.Articles> { ArticlesScreen() }
                 composable<GraceRoute.Faith> { FaithScreen() }
                 composable<GraceRoute.Churches> { ChurchesScreen() }
-                composable<GraceRoute.Registration> { RegistrationScreen(onComplete = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Registration) { inclusive = true } } }) }
+                composable<GraceRoute.Registration> { RegistrationScreen(
+                    onComplete = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Registration) { inclusive = true } } },
+                ) }
                 composable<GraceRoute.Profile> {
                     ProfileScreen(
                         onNavigateToFaith = { navController.navigate(GraceRoute.Faith) },

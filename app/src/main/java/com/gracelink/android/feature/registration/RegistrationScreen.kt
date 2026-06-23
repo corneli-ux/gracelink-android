@@ -3,9 +3,11 @@ package com.gracelink.android.feature.registration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Church
 import androidx.compose.material.icons.rounded.Person
@@ -28,16 +30,21 @@ import com.gracelink.android.data.db.entity.BeliefSystem
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-fun RegistrationScreen(onComplete: () -> Unit, vm: RegistrationViewModel = hiltViewModel()) {
+fun RegistrationScreen(
+    onComplete: () -> Unit,
+    prefillName: String = "",
+    prefillEmail: String = "",
+    vm: RegistrationViewModel = hiltViewModel(),
+) {
     var accountType by remember { mutableStateOf<AccountType?>(null) }
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(prefillName) }
+    var email by remember { mutableStateOf(prefillEmail) }
     var pastorName by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var selectedBelief by remember { mutableStateOf(BeliefSystem.NONDENOMINATIONAL) }
 
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Obsidian, Slate800)))) {
-        Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(Modifier.height(40.dp))
             Text("Create Account", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(6.dp))

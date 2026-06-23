@@ -1,15 +1,18 @@
 package com.gracelink.android.feature.auth
 
 import android.app.Activity
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
@@ -40,7 +43,8 @@ import com.google.firebase.auth.GoogleAuthProvider
 
 @Composable
 fun AuthScreen(
-    onDone: () -> Unit,
+    onSignInComplete: () -> Unit,
+    onNewUserNeedsRegistration: (String, String) -> Unit,
     onRegister: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -56,15 +60,37 @@ fun AuthScreen(
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
                 val account = task.getResult(ApiException::class.java)
+                Log.d("FaithLinkAuth", "Google account: ${account.email} ${account.displayName}")
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                isLoading = true
                 FirebaseAuth.getInstance().signInWithCredential(credential)
                     .addOnCompleteListener { task2 ->
-                        if (task2.isSuccessful) onDone()
-                        else errorMsg = "Google sign-in failed"
+                        isLoading = false
+                        if (task2.isSuccessful) {
+                            val fbUser = task2.result?.user
+                            val is_new = task2.result?.additionalUserInfo?.isNewUser ?: false
+                            Log.d("FaithLinkAuth", "Firebase auth success. New user: $is_new")
+                            if (is_new) {
+                                // New Google user — go to Registration to collect
+                                // name, account type, belief system
+                                val name = account.displayName ?: fbUser?.displayName ?: "Friend"
+                                val email = account.email ?: fbUser?.email ?: ""
+                                onNewUserNeedsRegistration(name, email)
+                            } else {
+                                // Returning user — go straight to Home
+                                onSignInComplete()
+                            }
+                        } else {
+                            errorMsg = "Firebase auth failed: ${task2.exception?.message}"
+                            Log.e("FaithLinkAuth", "Firebase auth failed", task2.exception)
+                        }
                     }
-            } catch (e: Exception) {
-                errorMsg = "Google sign-in failed: ${e.message}"
+            } catch (e: ApiException) {
+                errorMsg = "Google sign-in failed: ${e.statusCode} ${e.message}"
+                Log.e("FaithLinkAuth", "Google sign-in API exception", e)
             }
+        } else {
+            Log.d("FaithLinkAuth", "Google sign-in cancelled, result code: ${result.resultCode}")
         }
     }
 
@@ -74,11 +100,20 @@ fun AuthScreen(
             return
         }
         isLoading = true
+        errorMsg = null
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 isLoading = false
-                if (task.isSuccessful) onDone()
-                else errorMsg = task.exception?.message ?: "Sign-in failed"
+                if (task.isSuccessful) {
+                    val is_new = task.result?.additionalUserInfo?.isNewUser ?: false
+                    if (is_new) {
+                        onNewUserNeedsRegistration("", email)
+                    } else {
+                        onSignInComplete()
+                    }
+                } else {
+                    errorMsg = task.exception?.message ?: "Sign-in failed"
+                }
             }
     }
 
@@ -86,13 +121,25 @@ fun AuthScreen(
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken("755996957801-33j458gvmmfphuv1bombb09vtra01pm3.apps.googleusercontent.com")
             .requestEmail()
+            .requestProfile()
             .build()
         val client = GoogleSignIn.getClient(context, gso)
-        googleSignInLauncher.launch(client.signInIntent)
+        // Sign out first to force the account picker every time
+        client.signOut().addOnCompleteListener {
+            googleSignInLauncher.launch(client.signInIntent)
+        }
     }
 
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Obsidian, Slate950, Slate800)))) {
-        Column(Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Spacer(Modifier.height(40.dp))
             Image(painter = painterResource(id = R.drawable.faith_link_logo), contentDescription = "Faith Link", modifier = Modifier.size(72.dp))
             Spacer(Modifier.height(16.dp))
             Text("Faith Link", style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
@@ -123,6 +170,7 @@ fun AuthScreen(
             GhostButton("Sign in with Google", onClick = { signInWithGoogle() }, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(16.dp))
             Text("Don't have an account? Sign up", style = MaterialTheme.typography.bodySmall, color = Gold400, modifier = Modifier.clickable { onRegister() })
+            Spacer(Modifier.height(40.dp))
         }
     }
 }

@@ -32,7 +32,7 @@ fun FaithScreen(vm: FaithViewModel = hiltViewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
     val progress = state.progress
 
-    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
+    Column(Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState()).background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
         Text("Faith Journey", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 4.dp))
         Text("Track your sanctification progress", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 20.dp, bottom = 16.dp))
 
