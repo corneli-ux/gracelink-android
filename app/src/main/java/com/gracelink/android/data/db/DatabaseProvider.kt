@@ -52,21 +52,18 @@ object DatabaseProvider {
      * Seeds the database from the bundled JSON asset if it hasn't been
      * seeded yet. Called from Application.onCreate.
      */
-    fun seedIfNeeded(context: Context) {
+    suspend fun seedIfNeeded(context: Context) {
         if (seeded) return
-        synchronized(this) {
-            if (seeded) return
-            val db = get(context)
-            // Check if content table is empty
-            val count = db.contentDao().count()
-            if (count == 0) {
-                seedFromAsset(context.applicationContext, db)
-            }
-            seeded = true
+        val db = get(context)
+        // Check if content table is empty
+        val count = db.contentDao().count()
+        if (count == 0) {
+            seedFromAsset(context.applicationContext, db)
         }
+        seeded = true
     }
 
-    private fun seedFromAsset(context: Context, db: GraceDatabase) {
+    private suspend fun seedFromAsset(context: Context, db: GraceDatabase) {
         try {
             val json = context.assets.open("gracelink_data.json").bufferedReader().use { it.readText() }
             val data = JSONObject(json)
