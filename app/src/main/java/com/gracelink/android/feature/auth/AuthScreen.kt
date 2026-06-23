@@ -71,10 +71,10 @@ fun AuthScreen(
                             val is_new = task2.result?.additionalUserInfo?.isNewUser ?: false
                             Log.d("FaithLinkAuth", "Firebase auth success. New user: $is_new")
                             if (is_new) {
-                                // New Google user — go to Registration to collect
-                                // name, account type, belief system
+                                // New Google user — save data and go to Registration
                                 val name = account.displayName ?: fbUser?.displayName ?: "Friend"
                                 val email = account.email ?: fbUser?.email ?: ""
+                                GoogleAuthData.set(name, email)
                                 onNewUserNeedsRegistration(name, email)
                             } else {
                                 // Returning user — go straight to Home

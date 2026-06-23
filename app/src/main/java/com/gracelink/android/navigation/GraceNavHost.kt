@@ -92,14 +92,12 @@ fun GraceNavHost() {
                     OnboardingScreen { navController.navigate(GraceRoute.Auth) { popUpTo(GraceRoute.Onboarding) { inclusive = true } } }
                 }
                 composable<GraceRoute.Auth> {
-                    val googleName = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
-                    val googleEmail = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
                     AuthScreen(
                         onSignInComplete = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Auth) { inclusive = true } } },
                         onNewUserNeedsRegistration = { name, email ->
-                            googleName.value = name
-                            googleEmail.value = email
-                            navController.navigate(GraceRoute.Registration)
+                            navController.navigate(GraceRoute.Registration) {
+                                popUpTo(GraceRoute.Auth) { inclusive = false }
+                            }
                         },
                         onRegister = { navController.navigate(GraceRoute.Registration) },
                     )
@@ -125,9 +123,16 @@ fun GraceNavHost() {
                 composable<GraceRoute.Articles> { ArticlesScreen() }
                 composable<GraceRoute.Faith> { FaithScreen() }
                 composable<GraceRoute.Churches> { ChurchesScreen() }
-                composable<GraceRoute.Registration> { RegistrationScreen(
-                    onComplete = { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Registration) { inclusive = true } } },
-                ) }
+                composable<GraceRoute.Registration> {
+                    RegistrationScreen(
+                        onComplete = {
+                            com.gracelink.android.feature.auth.GoogleAuthData.clear()
+                            navController.navigate(GraceRoute.Home) {
+                                popUpTo(GraceRoute.Registration) { inclusive = true }
+                            }
+                        },
+                    )
+                }
                 composable<GraceRoute.Profile> {
                     ProfileScreen(
                         onNavigateToFaith = { navController.navigate(GraceRoute.Faith) },

@@ -27,6 +27,7 @@ import com.gracelink.android.core.theme.Obsidian
 import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.BeliefSystem
+import com.gracelink.android.feature.auth.GoogleAuthData
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
@@ -36,9 +37,13 @@ fun RegistrationScreen(
     prefillEmail: String = "",
     vm: RegistrationViewModel = hiltViewModel(),
 ) {
+    // Read Google auth data if available (set by AuthScreen after Google sign-in)
+    val googleName = if (GoogleAuthData.name.isNotBlank()) GoogleAuthData.name else prefillName
+    val googleEmail = if (GoogleAuthData.email.isNotBlank()) GoogleAuthData.email else prefillEmail
+
     var accountType by remember { mutableStateOf<AccountType?>(null) }
-    var name by remember { mutableStateOf(prefillName) }
-    var email by remember { mutableStateOf(prefillEmail) }
+    var name by remember { mutableStateOf(googleName) }
+    var email by remember { mutableStateOf(googleEmail) }
     var pastorName by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var selectedBelief by remember { mutableStateOf(BeliefSystem.NONDENOMINATIONAL) }
@@ -48,7 +53,11 @@ fun RegistrationScreen(
             Spacer(Modifier.height(40.dp))
             Text("Create Account", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(6.dp))
-            Text("Choose your account type", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (googleName.isNotBlank()) {
+                Text("Welcome, $googleName! Complete your profile to continue.", style = MaterialTheme.typography.bodyMedium, color = Gold400)
+            } else {
+                Text("Choose your account type", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Spacer(Modifier.height(24.dp))
 
             if (accountType == null) {
