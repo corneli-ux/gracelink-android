@@ -145,7 +145,7 @@ fun PlayerScreen(
             // Secondary
             Row(Modifier.fillMaxWidth().padding(horizontal = 28.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
                 Secondary(if (state.isFavorite) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder, "Favorite", if (state.isFavorite) Gold500 else MaterialTheme.colorScheme.onSurfaceVariant) { vm.toggleFavorite() }
-                Secondary(Icons.Rounded.Download, "Download", MaterialTheme.colorScheme.onSurfaceVariant) { }
+                Secondary(Icons.Rounded.Download, if (state.isDownloaded) "Downloaded" else "Download", if (state.isDownloaded) Emerald500 else MaterialTheme.colorScheme.onSurfaceVariant) { vm.download() }
             }
 
             Spacer(Modifier.weight(1f))
