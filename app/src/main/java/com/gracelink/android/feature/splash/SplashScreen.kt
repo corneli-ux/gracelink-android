@@ -77,7 +77,7 @@ fun SplashScreen(onComplete: () -> Unit) {
             Spacer(Modifier.height(28.dp))
             AnimatedVisibility(visible = true, enter = fadeIn(tween(800))) {
                 Text(
-                    "GraceLink",
+                    "Faith Link",
                     style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onBackground,
                 )

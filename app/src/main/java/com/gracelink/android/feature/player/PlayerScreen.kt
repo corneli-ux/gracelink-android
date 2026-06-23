@@ -108,7 +108,7 @@ fun PlayerScreen(
             Column(Modifier.fillMaxWidth().padding(horizontal = 28.dp)) {
                 Text(content?.title ?: "", style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onBackground, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.height(6.dp))
-                Text(content?.speaker ?: "GraceLink Radio", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(content?.speaker ?: "Faith Link Radio", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(20.dp))
 

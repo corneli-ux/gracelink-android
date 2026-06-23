@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Status bar / nav bar tint (matches deep slate background) -->
+    <!-- Logo colors: deep blue background, gold cross, emerald waves -->
     <color name="grace_status_bar">#0F172A</color>
     <color name="grace_nav_bar">#0F172A</color>
     <color name="grace_accent_gold">#F59E0B</color>

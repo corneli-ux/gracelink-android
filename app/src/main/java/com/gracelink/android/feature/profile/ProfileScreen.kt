@@ -150,7 +150,7 @@ fun ProfileScreen(vm: ProfileViewModel = hiltViewModel()) {
         }
         item {
             Spacer(Modifier.height(16.dp))
-            Text("GraceLink v1.0.0-mvp\nBuilt with care for the body of Christ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(24.dp), textAlign = TextAlign.Center)
+            Text("Faith Link v1.0.0-mvp\nBuilt with care for the body of Christ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(24.dp), textAlign = TextAlign.Center)
         }
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Telugu locale strings -->
 <resources>
-    <string name="app_name">GraceLink</string>
+    <string name="app_name">Faith Link</string>
     <string name="app_tagline">క్రైస్తవ ఇంటరాక్టివ్ రేడియో</string>
 
     <string name="nav_home">హోమ్</string>

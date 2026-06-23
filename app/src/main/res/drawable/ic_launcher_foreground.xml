@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    GraceLink launcher icon — a stylized gold cross + sound wave on deep slate.
-    The cross is the brand's primary symbol; the wave represents radio/audio.
-    Designed to read clearly at 48dp (smallest display) and pixel-perfect at 192dp.
+    Faith Link launcher icon — gold cross with sound waves on deep blue.
+    Logo colors: deep blue #0F172A background, gold #F59E0B cross,
+    emerald #10B981 sound waves. These colors are used throughout the app.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -11,14 +11,13 @@
     android:viewportHeight="108">
 
     <!-- Cross (gold) -->
-    <group android:scaleX="0.55" android:scaleY="0.55" android:translateX="24.3" android:translateY="22.0">
-        <!-- Vertical bar -->
+    <group android:scaleX="0.50" android:scaleY="0.50" android:translateX="27.0" android:translateY="22.0">
         <path
             android:fillColor="#F59E0B"
             android:pathData="M48,16 L60,16 L60,40 L84,40 L84,52 L60,52 L60,92 L48,92 L48,52 L24,52 L24,40 L48,40 Z"/>
     </group>
 
-    <!-- Sound waves on the right -->
+    <!-- Sound waves (emerald) -->
     <group android:scaleX="1" android:scaleY="1">
         <path
             android:strokeColor="#10B981"

@@ -68,7 +68,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.AutoAwesome, null, tint = Gold500, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("GraceLink", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold))
+                Text("Faith Link", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold))
             }
             Spacer(Modifier.height(40.dp))
 
