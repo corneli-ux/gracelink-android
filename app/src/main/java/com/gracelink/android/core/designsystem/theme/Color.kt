@@ -80,14 +80,9 @@ object GraceGradients {
     fun hero() = Brush.verticalGradient(HeroGradient)
     fun gold() = Brush.horizontalGradient(GoldGradient)
     fun playerScrim() = Brush.verticalGradient(PlayerScrim)
-    fun liveCard() = Brush.linearGradient(
-        colors = LiveCardGradient,
-        start = androidx.compose.ui.geometry.Offset(0f, 0f),
-        end = androidx.compose.ui.geometry.Offset(Float.MAX_VALUE, Float.MAX_VALUE)
-    )
-    fun prayerCard() = Brush.linearGradient(
-        colors = PrayerCardGradient,
-        start = androidx.compose.ui.geometry.Offset(0f, 0f),
-        end = androidx.compose.ui.geometry.Offset(Float.MAX_VALUE, Float.MAX_VALUE)
-    )
+    // Use the default linearGradient (top-left to bottom-right) instead of
+    // explicit Float.MAX_VALUE offsets — those overflow to Infinity in the
+    // Skia shader and can crash the render thread on some GPU drivers.
+    fun liveCard() = Brush.linearGradient(LiveCardGradient)
+    fun prayerCard() = Brush.linearGradient(PrayerCardGradient)
 }

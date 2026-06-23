@@ -40,7 +40,6 @@ import com.gracelink.android.core.designsystem.theme.Gold500
 import com.gracelink.android.core.designsystem.theme.GraceGradients
 import com.gracelink.android.core.designsystem.theme.Slate800
 import com.gracelink.android.core.designsystem.theme.Slate950
-import kotlinx.coroutines.launch
 
 private data class OnboardPage(
     val icon: ImageVector,

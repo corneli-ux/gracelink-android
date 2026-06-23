@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.GraceLink.Splash" parent="android:Theme.DeviceDefault.NoActionBar">
+    <style name="Theme.GraceLink.Splash" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/grace_background</item>
         <item name="android:statusBarColor">@color/grace_background</item>
         <item name="android:navigationBarColor">@color/grace_background</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
 
-    <style name="Theme.GraceLink" parent="android:Theme.DeviceDefault.NoActionBar">
+    <style name="Theme.GraceLink" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/grace_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

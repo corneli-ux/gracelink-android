@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
                 ),
             )
             Log.d("GraceLinkLaunch", "MainActivity.onCreate: after enableEdgeToEdge")
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e("GraceLinkLaunch", "enableEdgeToEdge failed", e)
         }
 
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
             Log.d("GraceLinkLaunch", "MainActivity.onCreate: after setContent")
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e("GraceLinkLaunch", "setContent failed", e)
             throw e
         }
