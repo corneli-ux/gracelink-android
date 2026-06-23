@@ -1,4 +1,4 @@
-package com.gracelink.android.core.designsystem.components
+package com.gracelink.android.core.components
 
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -24,13 +24,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.gracelink.android.core.designsystem.theme.LiveRed
+import com.gracelink.android.core.theme.LiveRed
 
-/**
- * Pulsing LIVE badge used on live banners, player headers, and chat indicators.
- *
- * The dot pulses gently (~1.4s cycle) to draw attention without being annoying.
- */
 @Composable
 fun LiveBadge(
     modifier: Modifier = Modifier,
@@ -38,36 +33,28 @@ fun LiveBadge(
     color: Color = LiveRed,
 ) {
     val transition = rememberInfiniteTransition(label = "live-pulse")
-    val alpha by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0.3f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(900),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "live-alpha"
+    val pulseAlpha by transition.animateFloat(
+        initialValue = 1f, targetValue = 0.25f,
+        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse),
+        label = "pulse"
     )
 
     Row(
         modifier = modifier
             .clip(CircleShape)
-            .background(color.copy(alpha = 0.18f))
+            .background(color.copy(alpha = 0.22f))
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
         Box(
-            modifier = Modifier
+            Modifier
                 .size(7.dp)
-                .alpha(alpha)
+                .alpha(pulseAlpha)
                 .clip(CircleShape)
                 .background(color)
         )
         Spacer(Modifier.width(6.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = color,
-        )
+        Text(text, style = MaterialTheme.typography.labelSmall, color = color)
     }
 }

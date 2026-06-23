@@ -1,0 +1,36 @@
+package com.gracelink.android.di
+
+import android.content.Context
+import com.gracelink.android.data.db.GraceDatabase
+import com.gracelink.android.data.db.dao.ChatDao
+import com.gracelink.android.data.db.dao.ContentDao
+import com.gracelink.android.data.db.dao.DownloadDao
+import com.gracelink.android.data.db.dao.FavoriteDao
+import com.gracelink.android.data.db.dao.HistoryDao
+import com.gracelink.android.data.db.dao.LiveSessionDao
+import com.gracelink.android.data.db.dao.PrayerDao
+import com.gracelink.android.data.db.dao.UserDao
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DatabaseModule {
+
+    @Provides
+    @Singleton
+    fun provideDatabase(@ApplicationContext ctx: Context): GraceDatabase = DatabaseProvider.get(ctx)
+
+    @Provides fun contentDao(db: GraceDatabase): ContentDao = db.contentDao()
+    @Provides fun liveSessionDao(db: GraceDatabase): LiveSessionDao = db.liveSessionDao()
+    @Provides fun prayerDao(db: GraceDatabase): PrayerDao = db.prayerDao()
+    @Provides fun chatDao(db: GraceDatabase): ChatDao = db.chatDao()
+    @Provides fun userDao(db: GraceDatabase): UserDao = db.userDao()
+    @Provides fun favoriteDao(db: GraceDatabase): FavoriteDao = db.favoriteDao()
+    @Provides fun downloadDao(db: GraceDatabase): DownloadDao = db.downloadDao()
+    @Provides fun historyDao(db: GraceDatabase): HistoryDao = db.historyDao()
+}

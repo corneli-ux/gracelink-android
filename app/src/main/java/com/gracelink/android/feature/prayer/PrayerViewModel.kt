@@ -2,64 +2,57 @@ package com.gracelink.android.feature.prayer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gracelink.android.data.model.PrayerRequest
+import com.gracelink.android.data.db.entity.PrayerEntity
 import com.gracelink.android.data.repository.PrayerRepository
+import com.gracelink.android.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class PrayerTab(val label: String) {
-    ALL("All"),
-    MINE("My Prayers"),
-    ANSWERED("Answered")
-}
+enum class PrayerTab(val label: String) { ALL("All"), MINE("My Prayers"), ANSWERED("Answered") }
 
-data class PrayerUiState(
-    val isLoading: Boolean = false,
-    val prayers: List<PrayerRequest> = emptyList(),
-    val activeTab: PrayerTab = PrayerTab.ALL,
-    val showSubmitSheet: Boolean = false,
+data class PrayerState(
+    val tab: PrayerTab = PrayerTab.ALL,
+    val prayers: List<PrayerEntity> = emptyList(),
+    val showSheet: Boolean = false,
+    val myName: String = "You",
 )
 
 @HiltViewModel
 class PrayerViewModel @Inject constructor(
-    private val repository: PrayerRepository,
+    private val repo: PrayerRepository,
+    userRepo: UserRepository,
 ) : ViewModel() {
 
-    private val _activeTab = MutableStateFlow(PrayerTab.ALL)
-    private val _showSheet = MutableStateFlow(false)
+    private val tab = MutableStateFlow(PrayerTab.ALL)
+    private val showSheet = MutableStateFlow(false)
 
-    val state: StateFlow<PrayerUiState> = combine(
-        repository.prayers,
-        _activeTab,
-        _showSheet,
-    ) { prayers, tab, sheet ->
-        val filtered = when (tab) {
-            PrayerTab.ALL -> prayers
-            PrayerTab.MINE -> prayers.filter { it.isMine }
-            PrayerTab.ANSWERED -> prayers.filter { it.isAnswered }
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val prayersFlow = tab.flatMapLatest { t ->
+        when (t) {
+            PrayerTab.ALL -> repo.approved()
+            PrayerTab.MINE -> repo.mine()
+            PrayerTab.ANSWERED -> repo.answered()
         }
-        PrayerUiState(false, filtered, tab, sheet)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PrayerUiState())
-
-    init { refresh() }
-
-    fun setTab(tab: PrayerTab) { _activeTab.value = tab }
-    fun showSubmitSheet(show: Boolean) { _showSheet.value = show }
-    fun submitPrayer(text: String, anonymous: Boolean) {
-        repository.submitPrayer(text, anonymous)
-        _showSheet.value = false
     }
-    fun togglePrayed(id: String) = repository.togglePrayed(id)
-    fun markAnswered(id: String) = repository.markAnswered(id)
-    fun addEncouragement(id: String, text: String) = repository.addEncouragement(id, text)
 
-    private fun refresh() {
-        viewModelScope.launch { repository.fetchPrayers() }
+    val state: StateFlow<PrayerState> = combine(tab, prayersFlow, showSheet, userRepo.current()) { t, prayers, sheet, user ->
+        PrayerState(t, prayers, sheet, user?.displayName ?: "You")
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PrayerState())
+
+    fun setTab(t: PrayerTab) { tab.value = t }
+    fun showSheet(show: Boolean) { showSheet.value = show }
+    fun submit(text: String, anonymous: Boolean) = viewModelScope.launch {
+        repo.submit(text, anonymous, state.value.myName)
+        showSheet.value = false
     }
+    fun togglePrayed(id: String) = viewModelScope.launch { repo.togglePrayed(id) }
+    fun markAnswered(id: String) = viewModelScope.launch { repo.markAnswered(id) }
+    fun encourage(id: String, text: String) = viewModelScope.launch { repo.addEncouragement(id, text, state.value.myName) }
 }

@@ -1,12 +1,16 @@
 package com.gracelink.android.player
 
+import android.content.ComponentName
 import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.gracelink.android.data.model.ContentItem
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
+import com.gracelink.android.data.db.entity.ContentEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -15,39 +19,30 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.guava.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Wrapper around Media3 ExoPlayer that exposes the player state as a [StateFlow]
- * so Compose can observe it cleanly.
+ * Wrapper around Media3 ExoPlayer.
  *
- * Spec §5: "Audio: ExoPlayer (Media3) — best for live HLS + offline + background"
- *
- * Supports:
- *  - HLS live streams (.m3u8)
- *  - On-demand MP3/MP4 playback
- *  - Playback speed (0.5x–2x)
- *  - Seek
- *  - Sleep timer (fire-and-forget, see [setSleepTimerMinutes])
- *
- * For full background playback + notification media controls, host this player
- * inside a MediaSessionService. We've declared the service in the manifest
- * already — wire MediaSession in Phase 1.5.
+ * For the MVP we use ExoPlayer directly (no MediaController) — the
+ * [GraceMediaService] owns the same player instance via Hilt @Singleton.
+ * When the app is in the foreground we control playback directly; when it
+ * goes to the background, the service's MediaSession keeps the player alive
+ * and shows the system media notification.
  */
 @Singleton
 class GracePlayerController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-
     data class PlayerUiState(
         val isPlaying: Boolean = false,
         val isLoading: Boolean = false,
         val currentPositionMs: Long = 0L,
         val durationMs: Long = 0L,
         val playbackSpeed: Float = 1.0f,
-        val current: ContentItem? = null,
+        val current: ContentEntity? = null,
         val errorMessage: String? = null,
     )
 
@@ -80,7 +75,7 @@ class GracePlayerController @Inject constructor(
 
     private var sleepTimerJob: Job? = null
 
-    fun play(content: ContentItem) {
+    fun play(content: ContentEntity) {
         val media = MediaItem.Builder()
             .setUri(content.audioUrl)
             .setMediaId(content.id)
@@ -90,7 +85,8 @@ class GracePlayerController @Inject constructor(
                     .setArtist(content.speaker ?: "GraceLink")
                     .setArtworkUri(content.thumbnailUrl?.let { android.net.Uri.parse(it) })
                     .setMediaType(
-                        if (content.isLiveRadio) MediaMetadata.MEDIA_TYPE_RADIO_STATION
+                        if (content.type == com.gracelink.android.data.db.entity.ContentType.LIVE_RADIO)
+                            MediaMetadata.MEDIA_TYPE_RADIO_STATION
                         else MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE
                     )
                     .build()
@@ -103,25 +99,17 @@ class GracePlayerController @Inject constructor(
         _state.update { it.copy(current = content) }
     }
 
-    fun togglePlayPause() {
-        player.playWhenReady = !player.playWhenReady
-    }
-
-    fun seekTo(positionMs: Long) {
-        player.seekTo(positionMs)
-    }
-
+    fun togglePlayPause() { player.playWhenReady = !player.playWhenReady }
+    fun seekTo(positionMs: Long) { player.seekTo(positionMs) }
     fun setSpeed(speed: Float) {
         player.playbackParameters = PlaybackParameters(speed)
         _state.update { it.copy(playbackSpeed = speed) }
     }
-
     fun stop() {
         player.stop()
         _state.update { it.copy(current = null, isPlaying = false, currentPositionMs = 0L, durationMs = 0L) }
     }
 
-    /** Polls ExoPlayer for current position — call from a coroutine in the ViewModel. */
     suspend fun pollPosition() {
         while (true) {
             val pos = if (player.duration > 0) player.currentPosition else 0L
@@ -130,7 +118,7 @@ class GracePlayerController @Inject constructor(
         }
     }
 
-    fun setSleepTimerMinutes(minutes: Int, scope: CoroutineScope) {
+    fun setSleepTimer(minutes: Int, scope: CoroutineScope) {
         sleepTimerJob?.cancel()
         sleepTimerJob = scope.launch {
             delay(minutes * 60_000L)
@@ -143,4 +131,7 @@ class GracePlayerController @Inject constructor(
         player.removeListener(listener)
         player.release()
     }
+
+    private fun CoroutineScope.launch(block: suspend CoroutineScope.() -> Unit): Job =
+        kotlinx.coroutines.launch(block = block)
 }

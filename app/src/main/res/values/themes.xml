@@ -1,20 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--
-        Launch theme — dark background to avoid white flash on cold start.
-        Uses android:Theme.Material.NoActionBar (API 21+) which is the
-        standard, well-tested Material framework theme. We avoid
-        Theme.DeviceDefault because it varies by manufacturer and can
-        missing expected attributes.
-    -->
     <style name="Theme.GraceLink.Splash" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/grace_background</item>
         <item name="android:statusBarColor">@color/grace_background</item>
         <item name="android:navigationBarColor">@color/grace_background</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
-
-    <!-- Main Compose theme — just a shell; real theming lives in Compose. -->
     <style name="Theme.GraceLink" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/grace_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

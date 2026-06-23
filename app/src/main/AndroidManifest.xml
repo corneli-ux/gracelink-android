@@ -2,16 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Network for streaming + API -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- Background audio + foreground service (will be re-enabled when
-         GraceLinkMediaService is implemented in Phase 1.5). -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <!-- Downloads use scoped storage via MediaStore / app-specific dirs.
-         No WRITE_EXTERNAL_STORAGE needed since minSdk = 26 and we target 35. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".GraceLinkApp"
@@ -36,12 +32,16 @@
             </intent-filter>
         </activity>
 
-        <!--
-            Background playback service will be declared here once we ship a
-            concrete GraceLinkMediaService subclass that extends Media3's
-            MediaSessionService. The base class is abstract and CANNOT be
-            instantiated directly by Android, so we don't declare it yet.
-        -->
+        <service
+            android:name=".player.GraceMediaService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

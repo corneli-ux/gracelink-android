@@ -2,84 +2,51 @@ package com.gracelink.android.feature.library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gracelink.android.data.model.ContentCategory
-import com.gracelink.android.data.model.ContentItem
-import com.gracelink.android.data.model.ContentLanguage
-import com.gracelink.android.data.model.ContentType
+import com.gracelink.android.data.db.entity.ContentCategory
+import com.gracelink.android.data.db.entity.ContentEntity
+import com.gracelink.android.data.db.entity.ContentLanguage
+import com.gracelink.android.data.db.entity.ContentType
 import com.gracelink.android.data.repository.ContentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class LibraryUiState(
-    val isLoading: Boolean = false,
+data class LibraryState(
     val query: String = "",
-    val items: List<ContentItem> = emptyList(),
-    val activeCategory: ContentCategory? = null,
-    val activeLanguage: ContentLanguage? = null,
-    val activeType: ContentType? = null,
+    val category: ContentCategory? = null,
+    val language: ContentLanguage? = null,
+    val type: ContentType? = null,
+    val items: List<ContentEntity> = emptyList(),
 )
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val repository: ContentRepository,
+    private val repo: ContentRepository,
 ) : ViewModel() {
 
-    private val _query = MutableStateFlow("")
-    private val _activeCategory = MutableStateFlow<ContentCategory?>(null)
-    private val _activeLanguage = MutableStateFlow<ContentLanguage?>(null)
-    private val _activeType = MutableStateFlow<ContentType?>(null)
-    private val _items = MutableStateFlow<List<ContentItem>>(emptyList())
-    private val _isLoading = MutableStateFlow(false)
+    private val query = MutableStateFlow("")
+    private val category = MutableStateFlow<ContentCategory?>(null)
+    private val language = MutableStateFlow<ContentLanguage?>(null)
+    private val type = MutableStateFlow<ContentType?>(null)
 
-    // 5-arg combine is the maximum typed overload; wrap query+category into one
-    // pair to stay under the limit.
-    private data class Filters(
-        val query: String,
-        val category: ContentCategory?,
-        val language: ContentLanguage?,
-        val type: ContentType?,
-    )
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val itemsFlow = combine(query, category, language, type) { q, c, l, t ->
+        FilterState(q, c, l, t)
+    }.flatMapLatest { f -> repo.search(f.query, f.category, f.language, f.type) }
 
-    val state: StateFlow<LibraryUiState> = combine(
-        combine(_query, _activeCategory, _activeLanguage, _activeType) { q, c, l, t ->
-            Filters(q, c, l, t)
-        },
-        _items,
-        _isLoading,
-    ) { filters, items, loading ->
-        LibraryUiState(
-            isLoading = loading,
-            query = filters.query,
-            items = items,
-            activeCategory = filters.category,
-            activeLanguage = filters.language,
-            activeType = filters.type,
-        )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LibraryUiState())
+    val state: StateFlow<LibraryState> = combine(query, category, language, type, itemsFlow) { q, c, l, t, items ->
+        LibraryState(q, c, l, t, items)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LibraryState())
 
-    init { refresh() }
+    private data class FilterState(val query: String, val category: ContentCategory?, val language: ContentLanguage?, val type: ContentType?)
 
-    fun setQuery(q: String) { _query.value = q; refresh() }
-    fun setCategory(c: ContentCategory?) { _activeCategory.value = c; refresh() }
-    fun setLanguage(l: ContentLanguage?) { _activeLanguage.value = l; refresh() }
-    fun setType(t: ContentType?) { _activeType.value = t; refresh() }
-
-    private fun refresh() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _items.value = repository.searchLibrary(
-                query = _query.value,
-                category = _activeCategory.value,
-                language = _activeLanguage.value,
-                type = _activeType.value,
-            )
-            _isLoading.value = false
-        }
-    }
+    fun setQuery(q: String) { query.value = q }
+    fun setCategory(c: ContentCategory?) { category.value = c }
+    fun setLanguage(l: ContentLanguage?) { language.value = l }
+    fun setType(t: ContentType?) { type.value = t }
 }

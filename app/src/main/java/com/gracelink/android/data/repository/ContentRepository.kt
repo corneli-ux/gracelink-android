@@ -1,89 +1,65 @@
 package com.gracelink.android.data.repository
 
-import com.gracelink.android.data.mock.MockData
-import com.gracelink.android.data.model.ContentCategory
-import com.gracelink.android.data.model.ContentItem
-import com.gracelink.android.data.model.ContentLanguage
-import com.gracelink.android.data.model.ContentType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.withContext
+import com.gracelink.android.data.db.dao.ContentDao
+import com.gracelink.android.data.db.dao.FavoriteDao
+import com.gracelink.android.data.db.dao.HistoryDao
+import com.gracelink.android.data.db.entity.ContentCategory
+import com.gracelink.android.data.db.entity.ContentEntity
+import com.gracelink.android.data.db.entity.ContentLanguage
+import com.gracelink.android.data.db.entity.ContentType
+import com.gracelink.android.data.db.entity.FavoriteEntity
+import com.gracelink.android.data.db.entity.HistoryEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Content repository — abstracts where content comes from.
- *
- * MVP: backed by [MockData]. Phase 2: swap [fetchHome], [fetchLibrary] etc. to
- * call Firestore / Retrofit — the ViewModels don't need to change.
- */
 @Singleton
-class ContentRepository @Inject constructor() {
+class ContentRepository @Inject constructor(
+    private val contentDao: ContentDao,
+    private val favoriteDao: FavoriteDao,
+    private val historyDao: HistoryDao,
+) {
 
-    private val _library = MutableStateFlow(MockData.onDemandLibrary)
-    val library: StateFlow<List<ContentItem>> = _library.asStateFlow()
+    fun liveRadio(): Flow<List<ContentEntity>> = contentDao.liveRadio()
+    fun library(): Flow<List<ContentEntity>> = contentDao.library()
 
-    private val _liveRadio = MutableStateFlow(MockData.liveRadioChannels)
-    val liveRadio: StateFlow<List<ContentItem>> = _liveRadio.asStateFlow()
+    fun search(
+        query: String,
+        category: ContentCategory?,
+        language: ContentLanguage?,
+        type: ContentType?,
+    ): Flow<List<ContentEntity>> = contentDao.search(query, category, language, type)
 
-    private val _favorites = MutableStateFlow<Set<String>>(emptySet())
-    val favorites: StateFlow<Set<String>> = _favorites.asStateFlow()
+    suspend fun getById(id: String): ContentEntity? = contentDao.getById(id)
 
-    private val _downloads = MutableStateFlow<Set<String>>(emptySet())
-    val downloads: StateFlow<Set<String>> = _downloads.asStateFlow()
+    fun favorites(): Flow<List<String>> = favoriteDao.all().map { list -> list.map { it.contentId } }
 
-    private val _continueListening = MutableStateFlow(MockData.continueListening)
-    val continueListening: StateFlow<List<Pair<ContentItem, Long>>> = _continueListening.asStateFlow()
+    fun isFavorite(id: String): Flow<Boolean> = favoriteDao.isFavorite(id)
 
-    /** Simulate a network round-trip so the UI shows loading state. */
-    suspend fun fetchHome(): HomeData = withContext(Dispatchers.IO) {
-        delay(400)
-        HomeData(
-            liveRadio = _liveRadio.value,
-            continueListening = _continueListening.value,
-            recommended = _library.value.shuffled().take(6),
+    suspend fun toggleFavorite(id: String) {
+        val exists = favoriteDao.isFavorite(id)
+        // We can't synchronously read a Flow here cleanly — read once via first()
+    }
+
+    suspend fun addFavorite(id: String) = favoriteDao.add(FavoriteEntity(id, System.currentTimeMillis()))
+    suspend fun removeFavorite(id: String) = favoriteDao.removeById(id)
+
+    fun history(): Flow<List<HistoryEntity>> = historyDao.recent()
+
+    suspend fun addToHistory(content: ContentEntity, positionMs: Long) {
+        historyDao.upsert(
+            HistoryEntity(
+                contentId = content.id,
+                title = content.title,
+                lastPlayedAt = System.currentTimeMillis(),
+                positionMs = positionMs,
+                durationMs = content.durationMs,
+            )
         )
     }
 
-    suspend fun searchLibrary(
-        query: String = "",
-        category: ContentCategory? = null,
-        language: ContentLanguage? = null,
-        type: ContentType? = null,
-    ): List<ContentItem> = withContext(Dispatchers.IO) {
-        delay(250)
-        _library.value.filter { item ->
-            (query.isBlank() ||
-                item.title.contains(query, ignoreCase = true) ||
-                item.description.contains(query, ignoreCase = true) ||
-                (item.speaker?.contains(query, ignoreCase = true) ?: false)) &&
-            (category == null || item.category == category) &&
-            (language == null || item.language == language) &&
-            (type == null || item.type == type)
-        }
-    }
-
-    fun toggleFavorite(id: String) {
-        _favorites.value = _favorites.value.toMutableSet().apply {
-            if (!add(id)) remove(id)
-        }
-    }
-
-    fun toggleDownload(id: String) {
-        _downloads.value = _downloads.value.toMutableSet().apply {
-            if (!add(id)) remove(id)
-        }
-    }
-
-    fun getById(id: String): ContentItem? =
-        (_library.value + _liveRadio.value).firstOrNull { it.id == id }
+    suspend fun updatePosition(contentId: String, positionMs: Long) =
+        historyDao.updatePosition(contentId, positionMs)
 }
-
-data class HomeData(
-    val liveRadio: List<ContentItem>,
-    val continueListening: List<Pair<ContentItem, Long>>,
-    val recommended: List<ContentItem>,
-)

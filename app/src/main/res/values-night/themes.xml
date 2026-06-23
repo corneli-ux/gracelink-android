@@ -6,7 +6,6 @@
         <item name="android:navigationBarColor">@color/grace_background</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
-
     <style name="Theme.GraceLink" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/grace_background</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

@@ -21,9 +21,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Equalizer
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.rounded.Equalizer
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,182 +39,145 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.gracelink.android.core.designsystem.components.GraceCard
-import com.gracelink.android.core.designsystem.components.GraceSectionHeader
-import com.gracelink.android.core.designsystem.components.LiveBadge
-import com.gracelink.android.core.designsystem.theme.Emerald500
-import com.gracelink.android.core.designsystem.theme.Gold500
-import com.gracelink.android.core.designsystem.theme.GraceGradients
-import com.gracelink.android.core.designsystem.theme.LiveRed
-import com.gracelink.android.core.designsystem.theme.Slate800
-import com.gracelink.android.data.model.ContentCategory
-import com.gracelink.android.data.model.ContentItem
-import com.gracelink.android.data.model.ContentLanguage
+import com.gracelink.android.core.components.LiveBadge
+import com.gracelink.android.core.theme.Emerald500
+import com.gracelink.android.core.theme.EmberGradient
+import com.gracelink.android.core.theme.Gold500
+import com.gracelink.android.core.theme.LiveRed
+import com.gracelink.android.core.theme.Slate800
+import com.gracelink.android.core.theme.Slate900
+import com.gracelink.android.data.db.entity.ContentEntity
+import com.gracelink.android.data.db.entity.ContentLanguage
 
-/**
- * Home / Discover — spec §4.2.
- *
- * Layout:
- *   1. Personalized greeting (top, large)
- *   2. Live Now banner (prominent — gold-bordered, pulsing)
- *   3. Horizontal category chips (Worship, Sermons, Debates, Regional, Youth, Testimony)
- *   4. Continue Listening horizontal list (with progress bars)
- *   5. Recommended section (vertical cards)
- */
 @Composable
 fun HomeScreen(
     onPlayContent: (String) -> Unit,
     onOpenLiveSession: (String) -> Unit,
     onSeeAll: () -> Unit,
-    viewModel: HomeViewModel = hiltViewModel(),
+    vm: HomeViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by vm.state.collectAsStateWithLifecycle()
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding(),
-        contentPadding = PaddingValues(bottom = 24.dp),
+        contentPadding = PaddingValues(bottom = 32.dp),
     ) {
-        // ── Greeting header ──────────────────────────────────────────────────
+        // ── Greeting ─────────────────────────────────────────────────────────
         item {
             Row(
-                modifier = Modifier
+                Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f)) {
+                    Text(state.greeting, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        text = state.greeting,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = state.userName.ifBlank { "Welcome to GraceLink" },
-                        style = MaterialTheme.typography.headlineMedium,
+                        state.userName.ifBlank { "Welcome to GraceLink" },
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onBackground,
                     )
                 }
                 Box(
-                    modifier = Modifier
+                    Modifier
                         .size(44.dp)
                         .clip(CircleShape)
                         .background(Brush.horizontalGradient(listOf(Gold500, Emerald500))),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = state.userName.firstOrNull()?.uppercase() ?: "G",
-                        color = Color(0xFF1A1206),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        state.userName.firstOrNull()?.uppercase() ?: "G",
+                        color = Color(0xFF1A0F00), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold
                     )
                 }
             }
         }
 
-        // ── Live Now banner ──────────────────────────────────────────────────
+        // ── Live Now hero ────────────────────────────────────────────────────
         item {
-            val liveChannel = state.home.liveRadio.firstOrNull { it.isLive }
-            if (liveChannel != null) {
-                LiveNowBanner(
-                    channel = liveChannel,
-                    onClick = { onPlayContent(liveChannel.id) },
-                    onJoinConversation = state.liveSessionId?.let { { onOpenLiveSession(it) } }
+            val live = state.liveRadio.firstOrNull { it.isLive }
+            if (live != null) {
+                LiveHero(
+                    channel = live,
+                    hasLiveSession = state.liveSession != null,
+                    onPlay = { onPlayContent(live.id) },
+                    onJoinConversation = { state.liveSession?.let { onOpenLiveSession(it.id) } },
                 )
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(28.dp))
             }
-        }
-
-        // ── Category chips ───────────────────────────────────────────────────
-        item {
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(ContentCategory.values()) { cat ->
-                    CategoryChip(category = cat) { onSeeAll() }
-                }
-            }
-            Spacer(Modifier.height(24.dp))
         }
 
         // ── Continue Listening ───────────────────────────────────────────────
-        if (state.home.continueListening.isNotEmpty()) {
+        if (state.continueListening.isNotEmpty()) {
             item {
-                GraceSectionHeader(
-                    title = "Continue Listening",
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    trailingText = "See all",
-                    onTrailingClick = onSeeAll
-                )
+                SectionHeader("Continue Listening", Modifier.padding(horizontal = 24.dp))
                 Spacer(Modifier.height(12.dp))
             }
             item {
                 LazyRow(
-                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(state.home.continueListening) { (item, progressMs) ->
-                        ContinueListeningCard(
-                            item = item,
-                            progressMs = progressMs,
-                            onClick = { onPlayContent(item.id) }
-                        )
+                    items(state.continueListening) { item ->
+                        ContinueCard(item) { onPlayContent(item.id) }
                     }
                 }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(28.dp))
             }
         }
 
         // ── Recommended ──────────────────────────────────────────────────────
         item {
-            GraceSectionHeader(
-                title = "Recommended for You",
-                modifier = Modifier.padding(horizontal = 20.dp),
-                subtitle = "Curated based on your listening history"
-            )
+            SectionHeader("Recommended", Modifier.padding(horizontal = 24.dp), "Curated based on your history")
             Spacer(Modifier.height(12.dp))
         }
-        items(state.home.recommended) { item ->
-            RecommendedCard(item = item, onClick = { onPlayContent(item.id) })
-            Spacer(Modifier.height(12.dp))
+        items(state.recommended) { item ->
+            RecommendedRow(item) { onPlayContent(item.id) }
+            Spacer(Modifier.height(10.dp))
         }
     }
 }
 
 @Composable
-private fun LiveNowBanner(
-    channel: ContentItem,
-    onClick: () -> Unit,
-    onJoinConversation: (() -> Unit)?,
+private fun SectionHeader(title: String, modifier: Modifier = Modifier, subtitle: String? = null) {
+    Column(modifier) {
+        Text(title, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onBackground)
+        if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun LiveHero(
+    channel: ContentEntity,
+    hasLiveSession: Boolean,
+    onPlay: () -> Unit,
+    onJoinConversation: () -> Unit,
 ) {
     Box(
-        modifier = Modifier
+        Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .height(180.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(GraceGradients.liveCard())
-            .clickable(onClick = onClick)
+            .padding(horizontal = 24.dp)
+            .height(200.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Brush.linearGradient(EmberGradient))
+            .clickable(onClick = onPlay)
     ) {
-        // Cover image
         AsyncImage(
             model = channel.thumbnailUrl,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
         )
-        // Scrim for legibility
         Box(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.3f), Color.Black.copy(alpha = 0.85f))))
+                .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.25f), Color.Black.copy(alpha = 0.85f))))
         )
-
         Column(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
                 .padding(20.dp),
             verticalArrangement = Arrangement.SpaceBetween
@@ -223,57 +185,48 @@ private fun LiveNowBanner(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 LiveBadge()
                 Spacer(Modifier.width(8.dp))
-                Text(
-                    text = "${channel.listenerCount} listening",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White
-                )
+                Text("${channel.listenerCount} listening", style = MaterialTheme.typography.labelMedium, color = Color.White)
             }
-
             Column {
                 Text(
-                    text = channel.title,
+                    channel.title,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = channel.description,
+                    channel.description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.8f),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    color = Color.White.copy(alpha = 0.85f),
+                    maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(14.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        modifier = Modifier
+                        Modifier
                             .clip(CircleShape)
                             .background(Gold500)
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
-                            .clickable(onClick = onClick),
-                        contentAlignment = Alignment.Center
+                            .clickable(onClick = onPlay)
+                            .padding(horizontal = 16.dp, vertical = 9.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = Color(0xFF1A1206), modifier = Modifier.size(16.dp))
+                            Icon(Icons.Rounded.PlayArrow, null, tint = Color(0xFF1A0F00), modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Listen Live", color = Color(0xFF1A1206), style = MaterialTheme.typography.labelLarge)
+                            Text("Listen Live", color = Color(0xFF1A0F00), style = MaterialTheme.typography.labelLarge)
                         }
                     }
-                    if (onJoinConversation != null) {
+                    if (hasLiveSession) {
                         Spacer(Modifier.width(10.dp))
                         Box(
-                            modifier = Modifier
+                            Modifier
                                 .clip(CircleShape)
                                 .background(Color.White.copy(alpha = 0.18f))
                                 .clickable(onClick = onJoinConversation)
-                                .padding(horizontal = 14.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.Center
+                                .padding(horizontal = 14.dp, vertical = 9.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Filled.Equalizer, contentDescription = null, tint = LiveRed, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Rounded.Equalizer, null, tint = LiveRed, modifier = Modifier.size(14.dp))
                                 Spacer(Modifier.width(4.dp))
                                 Text("Join Conversation", color = Color.White, style = MaterialTheme.typography.labelMedium)
                             }
@@ -286,174 +239,92 @@ private fun LiveNowBanner(
 }
 
 @Composable
-private fun CategoryChip(category: ContentCategory, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(Slate800)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                Icons.Filled.AutoAwesome,
-                contentDescription = null,
-                tint = Gold500,
-                modifier = Modifier.size(14.dp)
-            )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = category.name.lowercase().replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Composable
-private fun ContinueListeningCard(
-    item: ContentItem,
-    progressMs: Long,
-    onClick: () -> Unit,
-) {
+private fun ContinueCard(item: ContentEntity, onClick: () -> Unit) {
     Column(
-        modifier = Modifier
+        Modifier
             .width(160.dp)
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(Slate800)
             .clickable(onClick = onClick)
     ) {
         Box {
             AsyncImage(
-                model = item.thumbnailUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
+                model = item.thumbnailUrl, contentDescription = null,
+                modifier = Modifier.fillMaxWidth().height(120.dp),
                 contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-            )
-            // Progress bar overlay
-            val progress = if (item.durationMs > 0) (progressMs.toFloat() / item.durationMs).coerceIn(0f, 1f) else 0f
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(3.dp)
-                    .align(Alignment.BottomStart)
-                    .background(Gold500.copy(alpha = progress))
             )
         }
         Column(Modifier.padding(12.dp)) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Text(item.title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(4.dp))
-            Text(
-                text = item.speaker ?: "GraceLink",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Text(item.speaker ?: "GraceLink", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
 
 @Composable
-private fun RecommendedCard(
-    item: ContentItem,
-    onClick: () -> Unit,
-) {
-    GraceCard(
-        modifier = Modifier
+private fun RecommendedRow(item: ContentEntity, onClick: () -> Unit) {
+    Row(
+        Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .clickable(onClick = onClick),
-        cornerRadius = 16.dp,
+            .padding(horizontal = 24.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Slate800)
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row {
-            AsyncImage(
-                model = item.thumbnailUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(84.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-            )
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    LanguageTag(item.language)
-                    Spacer(Modifier.width(6.dp))
-                    TypeTag(item.type.name)
-                }
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = item.speaker ?: "GraceLink",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        AsyncImage(
+            model = item.thumbnailUrl, contentDescription = null,
+            modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)),
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                LangTag(item.language)
+                Spacer(Modifier.width(6.dp))
+                TypeTag(item.type.name)
             }
-            Spacer(Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Gold500.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Filled.PlayArrow, contentDescription = "Play", tint = Gold500, modifier = Modifier.size(20.dp))
-            }
+            Spacer(Modifier.height(6.dp))
+            Text(item.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(2.dp))
+            Text(item.speaker ?: "GraceLink", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        Spacer(Modifier.width(8.dp))
+        Box(
+            Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(Gold500.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Rounded.PlayArrow, "Play", tint = Gold500, modifier = Modifier.size(20.dp))
         }
     }
 }
 
 @Composable
-private fun LanguageTag(language: ContentLanguage) {
+private fun LangTag(language: ContentLanguage) {
+    val color = if (language == ContentLanguage.TE) Gold500 else Emerald500
     Box(
-        modifier = Modifier
+        Modifier
             .clip(RoundedCornerShape(4.dp))
-            .background(when (language) {
-                ContentLanguage.EN -> Emerald500.copy(alpha = 0.15f)
-                ContentLanguage.TE -> Gold500.copy(alpha = 0.15f)
-            })
+            .background(color.copy(alpha = 0.15f))
             .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
-        Text(
-            text = language.name,
-            style = MaterialTheme.typography.labelSmall,
-            color = when (language) {
-                ContentLanguage.EN -> Emerald500
-                ContentLanguage.TE -> Gold500
-            }
-        )
+        Text(language.name, style = MaterialTheme.typography.labelSmall, color = color)
     }
 }
 
 @Composable
 private fun TypeTag(type: String) {
     Box(
-        modifier = Modifier
+        Modifier
             .clip(RoundedCornerShape(4.dp))
-            .background(Slate800)
+            .background(Slate900)
             .padding(horizontal = 6.dp, vertical = 2.dp)
     ) {
-        Text(
-            text = type.lowercase().replaceFirstChar { it.uppercase() },
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Text(type.lowercase().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

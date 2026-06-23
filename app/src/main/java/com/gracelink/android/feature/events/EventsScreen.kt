@@ -17,12 +17,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Login
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Login
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,82 +38,43 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.gracelink.android.core.designsystem.components.LiveBadge
-import com.gracelink.android.core.designsystem.theme.Emerald500
-import com.gracelink.android.core.designsystem.theme.Gold500
-import com.gracelink.android.core.designsystem.theme.Slate800
-import com.gracelink.android.data.model.LiveSession
-import com.gracelink.android.data.model.LiveSessionStatus
+import com.gracelink.android.core.components.LiveBadge
+import com.gracelink.android.core.theme.Emerald500
+import com.gracelink.android.core.theme.Gold500
+import com.gracelink.android.core.theme.Slate800
+import com.gracelink.android.data.db.entity.LiveSessionEntity
+import com.gracelink.android.data.db.entity.LiveSessionStatus
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * Live Events / Debates screen — spec §4.5.
- * Calendar list of upcoming sessions. Tap to see details + Notify Me or Join Queue.
- */
 @Composable
-fun EventsScreen(
-    onOpenLiveSession: (String) -> Unit,
-    viewModel: EventsViewModel = hiltViewModel(),
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+fun EventsScreen(onOpenLiveSession: (String) -> Unit, vm: EventsViewModel = hiltViewModel()) {
+    val sessions by vm.sessions.collectAsStateWithLifecycle()
 
     Column(
-        modifier = Modifier
+        Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
-        Text(
-            text = "Live Events",
-            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 8.dp)
-        )
-        Text(
-            text = "Debates • Q&A • Worship nights",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 20.dp, bottom = 16.dp)
-        )
+        Text("Live Events", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(start = 24.dp, top = 16.dp, bottom = 4.dp))
+        Text("Debates • Q&A • Worship nights", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 24.dp, bottom = 16.dp))
 
         LazyColumn(
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Live now (if any) first
-            val live = state.sessions.filter { it.status == LiveSessionStatus.LIVE }
-            val upcoming = state.sessions.filter { it.status == LiveSessionStatus.UPCOMING }
-                .sortedBy { it.startTime }
+            val live = sessions.filter { it.status == LiveSessionStatus.LIVE }
+            val upcoming = sessions.filter { it.status == LiveSessionStatus.UPCOMING }.sortedBy { it.startTime }
 
             if (live.isNotEmpty()) {
-                item {
-                    SectionLabel("Live Now")
-                    Spacer(Modifier.height(8.dp))
-                }
-                items(live, key = { it.id }) { session ->
-                    EventCard(
-                        session = session,
-                        onJoin = { onOpenLiveSession(session.id) },
-                        onRemind = { viewModel.toggleRemindMe(session.id) },
-                        onQueue = { viewModel.toggleJoinQueue(session.id) },
-                    )
-                }
+                item { SectionLabel("Live Now") }
+                items(live, key = { it.id }) { EventCard(it, { onOpenLiveSession(it.id) }, { vm.toggleRemind(it.id) }, { vm.toggleQueue(it.id) }) }
             }
             if (upcoming.isNotEmpty()) {
-                item {
-                    SectionLabel("Upcoming")
-                    Spacer(Modifier.height(8.dp))
-                }
-                items(upcoming, key = { it.id }) { session ->
-                    EventCard(
-                        session = session,
-                        onJoin = { onOpenLiveSession(session.id) },
-                        onRemind = { viewModel.toggleRemindMe(session.id) },
-                        onQueue = { viewModel.toggleJoinQueue(session.id) },
-                    )
-                }
+                item { Spacer(Modifier.height(8.dp)); SectionLabel("Upcoming") }
+                items(upcoming, key = { it.id }) { EventCard(it, { onOpenLiveSession(it.id) }, { vm.toggleRemind(it.id) }, { vm.toggleQueue(it.id) }) }
             }
         }
     }
@@ -122,143 +82,73 @@ fun EventsScreen(
 
 @Composable
 private fun SectionLabel(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-        color = MaterialTheme.colorScheme.onSurface
-    )
+    Text(text, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(vertical = 4.dp))
 }
 
 @Composable
-private fun EventCard(
-    session: LiveSession,
-    onJoin: () -> Unit,
-    onRemind: () -> Unit,
-    onQueue: () -> Unit,
-) {
-    val isLive = session.status == LiveSessionStatus.LIVE
+private fun EventCard(s: LiveSessionEntity, onJoin: () -> Unit, onRemind: () -> Unit, onQueue: () -> Unit) {
+    val isLive = s.status == LiveSessionStatus.LIVE
     Box(
-        modifier = Modifier
+        Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(Slate800)
             .clickable(onClick = onJoin)
     ) {
         AsyncImage(
-            model = session.coverImageUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp),
+            model = s.coverImageUrl, contentDescription = null,
+            modifier = Modifier.fillMaxWidth().height(140.dp),
             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
         )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.Black.copy(alpha = 0.25f), Color.Black.copy(alpha = 0.85f))
-                    )
-                )
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Bottom
-        ) {
+        Box(Modifier.fillMaxWidth().height(140.dp).background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.25f), Color.Black.copy(alpha = 0.88f)))))
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.Bottom) {
             if (isLive) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     LiveBadge()
                     Spacer(Modifier.width(8.dp))
-                    Text(
-                        "${session.participantCount} in conversation",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White
-                    )
+                    Text("${s.participantCount} in conversation", style = MaterialTheme.typography.labelMedium, color = Color.White)
                 }
                 Spacer(Modifier.height(8.dp))
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.CalendarMonth, contentDescription = null, tint = Gold500, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Rounded.CalendarMonth, null, tint = Gold500, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = formatDate(session.startTime),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Text(fmtDate(s.startTime), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.height(8.dp))
             }
-            Text(
-                text = session.title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Color.White,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Text(s.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(4.dp))
-            Text(
-                text = "Hosted by ${session.hosts.joinToString(", ")}",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.75f)
-            )
+            Text("Hosted by ${parseHosts(s.hostsJson).joinToString(", ")}", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.75f))
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isLive) {
                     Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Gold500)
-                            .clickable(onClick = onJoin)
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                        Modifier.clip(RoundedCornerShape(20.dp)).background(Gold500).clickable(onClick = onJoin).padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Login, contentDescription = null, tint = Color(0xFF1A1206), modifier = Modifier.size(14.dp))
+                            Icon(Icons.Rounded.Login, null, tint = Color(0xFF1A0F00), modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Join Now", color = Color(0xFF1A1206), style = MaterialTheme.typography.labelLarge)
+                            Text("Join Now", color = Color(0xFF1A0F00), style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 } else {
-                    // Notify me toggle
                     Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(if (session.remindMe) Gold500.copy(alpha = 0.2f) else Slate800.copy(alpha = 0.6f))
-                            .clickable(onClick = onRemind)
-                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        Modifier.clip(RoundedCornerShape(20.dp)).background(if (s.remindMe) Gold500.copy(alpha = 0.2f) else Slate800.copy(alpha = 0.6f)).clickable(onClick = onRemind).padding(horizontal = 14.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Filled.Notifications,
-                                contentDescription = null,
-                                tint = if (session.remindMe) Gold500 else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(14.dp)
-                            )
+                            Icon(Icons.Rounded.Notifications, null, tint = if (s.remindMe) Gold500 else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text(
-                                text = if (session.remindMe) "Notifying" else "Notify Me",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = if (session.remindMe) Gold500 else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Text(if (s.remindMe) "Notifying" else "Notify Me", style = MaterialTheme.typography.labelMedium, color = if (s.remindMe) Gold500 else MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Spacer(Modifier.width(8.dp))
                     Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(if (session.joinedQueue) Emerald500.copy(alpha = 0.2f) else Slate800.copy(alpha = 0.6f))
-                            .clickable(onClick = onQueue)
-                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        Modifier.clip(RoundedCornerShape(20.dp)).background(if (s.joinedQueue) Emerald500.copy(alpha = 0.2f) else Slate800.copy(alpha = 0.6f)).clickable(onClick = onQueue).padding(horizontal = 14.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = if (session.joinedQueue) "In Queue" else "Join Queue",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (session.joinedQueue) Emerald500 else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text(if (s.joinedQueue) "In Queue" else "Join Queue", style = MaterialTheme.typography.labelMedium, color = if (s.joinedQueue) Emerald500 else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -266,7 +156,10 @@ private fun EventCard(
     }
 }
 
-private fun formatDate(epoch: Long): String {
-    val fmt = SimpleDateFormat("EEE, MMM d • h:mm a", Locale.getDefault())
-    return fmt.format(Date(epoch))
+private fun fmtDate(epoch: Long): String = SimpleDateFormat("EEE, MMM d • h:mm a", Locale.getDefault()).format(Date(epoch))
+
+private fun parseHosts(json: String): List<String> {
+    return try {
+        org.json.JSONArray(json).let { arr -> (0 until arr.length()).map { arr.getString(it) } }
+    } catch (_: Exception) { emptyList() }
 }

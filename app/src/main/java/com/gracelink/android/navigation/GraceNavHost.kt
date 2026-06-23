@@ -5,11 +5,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Spa
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.LibraryMusic
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Spa
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.LibraryMusic
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Spa
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -38,30 +43,20 @@ import com.gracelink.android.feature.prayer.PrayerWallScreen
 import com.gracelink.android.feature.profile.ProfileScreen
 import com.gracelink.android.feature.splash.SplashScreen
 
-/**
- * Root composable rendered by MainActivity. Owns the NavController + Scaffold.
- */
 @Composable
-fun GraceLinkApp() {
+fun GraceNavHost() {
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
 
-    // Hide bottom bar on splash / onboarding / player screens.
-    val showBottomBar = currentRoute in setOf(
-        GraceDestination.Home::class.qualifiedName,
-        GraceDestination.Library::class.qualifiedName,
-        GraceDestination.Events::class.qualifiedName,
-        GraceDestination.Prayer::class.qualifiedName,
-        GraceDestination.Profile::class.qualifiedName,
-    )
+    val showBottomBar = currentRoute in bottomNavRoutes.map { it::class.qualifiedName }.toSet()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (showBottomBar) {
-                GraceBottomBar(currentRoute = currentRoute) { dest ->
-                    navController.navigate(dest) {
+                GraceBottomBar(currentRoute) { route ->
+                    navController.navigate(route) {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
@@ -71,66 +66,44 @@ fun GraceLinkApp() {
         }
     ) { padding ->
         Box(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
         ) {
-            NavHost(
-                navController = navController,
-                startDestination = GraceDestination.Splash,
-            ) {
-                composable<GraceDestination.Splash> {
-                    SplashScreen(onComplete = {
-                        navController.navigate(GraceDestination.Home) {
-                            popUpTo(GraceDestination.Splash) { inclusive = true }
-                        }
-                    })
+            NavHost(navController, startDestination = GraceRoute.Splash) {
+                composable<GraceRoute.Splash> {
+                    SplashScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Splash) { inclusive = true } } }
                 }
-                composable<GraceDestination.Onboarding> {
-                    OnboardingScreen(onDone = {
-                        navController.navigate(GraceDestination.Home) {
-                            popUpTo(GraceDestination.Onboarding) { inclusive = true }
-                        }
-                    })
+                composable<GraceRoute.Onboarding> {
+                    OnboardingScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Onboarding) { inclusive = true } } }
                 }
-                composable<GraceDestination.Home> {
+                composable<GraceRoute.Home> {
                     HomeScreen(
-                        onPlayContent = { id -> navController.navigate(GraceDestination.Player(id)) },
-                        onOpenLiveSession = { id -> navController.navigate(GraceDestination.LiveSession(id)) },
-                        onSeeAll = { navController.navigate(GraceDestination.Library) },
+                        onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) },
+                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) },
+                        onSeeAll = { navController.navigate(GraceRoute.Library) },
                     )
                 }
-                composable<GraceDestination.Library> {
-                    LibraryScreen(
-                        onPlayContent = { id -> navController.navigate(GraceDestination.Player(id)) },
-                    )
+                composable<GraceRoute.Library> {
+                    LibraryScreen(onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) })
                 }
-                composable<GraceDestination.Events> {
-                    EventsScreen(
-                        onOpenLiveSession = { id -> navController.navigate(GraceDestination.LiveSession(id)) },
-                    )
+                composable<GraceRoute.Events> {
+                    EventsScreen(onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) })
                 }
-                composable<GraceDestination.Prayer> {
-                    PrayerWallScreen()
-                }
-                composable<GraceDestination.Profile> {
-                    ProfileScreen()
-                }
-                composable<GraceDestination.Player> { backStackEntry ->
-                    val route: GraceDestination.Player = backStackEntry.toRoute()
+                composable<GraceRoute.Prayer> { PrayerWallScreen() }
+                composable<GraceRoute.Profile> { ProfileScreen() }
+                composable<GraceRoute.Player> { entry ->
+                    val route = entry.toRoute<GraceRoute.Player>()
                     PlayerScreen(
                         contentId = route.contentId,
                         onBack = { navController.popBackStack() },
-                        onOpenLiveSession = { id -> navController.navigate(GraceDestination.LiveSession(id)) },
+                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) },
                     )
                 }
-                composable<GraceDestination.LiveSession> { backStackEntry ->
-                    val route: GraceDestination.LiveSession = backStackEntry.toRoute()
-                    LiveSessionScreen(
-                        sessionId = route.sessionId,
-                        onBack = { navController.popBackStack() },
-                    )
+                composable<GraceRoute.LiveSession> { entry ->
+                    val route = entry.toRoute<GraceRoute.LiveSession>()
+                    LiveSessionScreen(sessionId = route.sessionId, onBack = { navController.popBackStack() })
                 }
             }
         }
@@ -138,40 +111,36 @@ fun GraceLinkApp() {
 }
 
 @Composable
-private fun GraceBottomBar(
-    currentRoute: String?,
-    onNavigate: (GraceDestination) -> Unit,
-) {
+private fun GraceBottomBar(currentRoute: String?, onNavigate: (GraceRoute) -> Unit) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
     ) {
-        bottomNavDestinations.forEach { dest ->
-            val (icon, label) = dest.iconAndLabel()
-            val selected = currentRoute == dest::class.qualifiedName
+        bottomNavRoutes.forEach { route ->
+            val (selectedIcon, unselectedIcon, label) = route.icons()
+            val selected = currentRoute == route::class.qualifiedName
             NavigationBarItem(
                 selected = selected,
-                onClick = { onNavigate(dest) },
-                icon = { Icon(icon, contentDescription = label) },
+                onClick = { onNavigate(route) },
+                icon = { Icon(if (selected) selectedIcon else unselectedIcon, contentDescription = label) },
                 label = { Text(label, style = MaterialTheme.typography.labelSmall) },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                 )
             )
         }
     }
 }
 
-private fun GraceDestination.iconAndLabel(): Pair<ImageVector, String> = when (this) {
-    GraceDestination.Home    -> Icons.Filled.Home to "Home"
-    GraceDestination.Library -> Icons.Filled.LibraryMusic to "Library"
-    GraceDestination.Events  -> Icons.Filled.CalendarMonth to "Events"
-    GraceDestination.Prayer  -> Icons.Filled.Spa to "Prayer"
-    GraceDestination.Profile -> Icons.Filled.Person to "Profile"
-    else -> Icons.Filled.Home to ""
+private fun GraceRoute.icons(): Triple<ImageVector, ImageVector, String> = when (this) {
+    GraceRoute.Home -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "Home")
+    GraceRoute.Library -> Triple(Icons.Rounded.LibraryMusic, Icons.Outlined.LibraryMusic, "Library")
+    GraceRoute.Events -> Triple(Icons.Rounded.CalendarMonth, Icons.Outlined.CalendarMonth, "Events")
+    GraceRoute.Prayer -> Triple(Icons.Rounded.Spa, Icons.Outlined.Spa, "Prayer")
+    GraceRoute.Profile -> Triple(Icons.Rounded.Person, Icons.Outlined.Person, "Profile")
+    else -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "")
 }
-
