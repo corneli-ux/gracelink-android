@@ -68,91 +68,114 @@ object DatabaseProvider {
             val json = context.assets.open("gracelink_data.json").bufferedReader().use { it.readText() }
             val data = JSONObject(json)
 
-            // Content
+            // Content — parse each item individually so one bad item
+            // doesn't kill the entire batch
             val contentArr = data.getJSONArray("content")
-            val contentItems = (0 until contentArr.length()).map { i ->
-                val o = contentArr.getJSONObject(i)
-                ContentEntity(
-                    id = o.getString("id"),
-                    title = o.getString("title"),
-                    description = o.optString("description", ""),
-                    speaker = if (o.isNull("speaker")) null else o.optString("speaker"),
-                    durationMs = o.optLong("durationMs", 0),
-                    audioUrl = o.getString("audioUrl"),
-                    type = ContentType.valueOf(o.optString("type", "PODCAST")),
-                    language = ContentLanguage.valueOf(o.optString("language", "EN")),
-                    category = ContentCategory.valueOf(o.optString("category", "TEACHING")),
-                    thumbnailUrl = if (o.isNull("thumbnailUrl")) null else o.optString("thumbnailUrl"),
-                    isDownloadable = o.optBoolean("isDownloadable", true),
-                    publishedAt = o.optLong("publishedAt", 0),
-                    isLive = o.optBoolean("isLive", false),
-                    listenerCount = o.optInt("listenerCount", 0),
-                )
+            val contentItems = mutableListOf<ContentEntity>()
+            for (i in 0 until contentArr.length()) {
+                try {
+                    val o = contentArr.getJSONObject(i)
+                    contentItems.add(
+                        ContentEntity(
+                            id = o.getString("id"),
+                            title = o.getString("title"),
+                            description = o.optString("description", ""),
+                            speaker = if (o.isNull("speaker")) null else o.optString("speaker"),
+                            durationMs = o.optLong("durationMs", 0),
+                            audioUrl = o.getString("audioUrl"),
+                            type = ContentType.valueOf(o.optString("type", "PODCAST")),
+                            language = ContentLanguage.valueOf(o.optString("language", "EN")),
+                            category = ContentCategory.valueOf(o.optString("category", "TEACHING")),
+                            thumbnailUrl = if (o.isNull("thumbnailUrl")) null else o.optString("thumbnailUrl"),
+                            isDownloadable = o.optBoolean("isDownloadable", true),
+                            publishedAt = o.optLong("publishedAt", 0),
+                            isLive = o.optBoolean("isLive", false),
+                            listenerCount = o.optInt("listenerCount", 0),
+                        )
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.w("GraceLink", "Skipped content item $i: ${e.message}")
+                }
             }
-            db.contentDao().insertAll(contentItems)
+            if (contentItems.isNotEmpty()) db.contentDao().insertAll(contentItems)
 
             // Live sessions
             val sessionsArr = data.getJSONArray("liveSessions")
-            val sessions = (0 until sessionsArr.length()).map { i ->
-                val o = sessionsArr.getJSONObject(i)
-                val hostsArr = o.getJSONArray("hosts")
-                val hostsJson = (0 until hostsArr.length()).joinToString(",") { "\"${hostsArr.getString(it)}\"" }
-                LiveSessionEntity(
-                    id = o.getString("id"),
-                    title = o.getString("title"),
-                    description = o.optString("description", ""),
-                    hostsJson = "[$hostsJson]",
-                    startTime = o.optLong("startTime"),
-                    endTime = o.optLong("endTime"),
-                    status = LiveSessionStatus.valueOf(o.optString("status", "UPCOMING")),
-                    participantCount = o.optInt("participantCount", 0),
-                    streamUrl = if (o.isNull("streamUrl")) null else o.optString("streamUrl"),
-                    chatEnabled = o.optBoolean("chatEnabled", true),
-                    language = ContentLanguage.valueOf(o.optString("language", "EN")),
-                    category = ContentCategory.valueOf(o.optString("category", "DEBATES")),
-                    coverImageUrl = if (o.isNull("coverImageUrl")) null else o.optString("coverImageUrl"),
-                )
+            val sessions = mutableListOf<LiveSessionEntity>()
+            for (i in 0 until sessionsArr.length()) {
+                try {
+                    val o = sessionsArr.getJSONObject(i)
+                    val hostsArr = o.getJSONArray("hosts")
+                    val hostsJson = (0 until hostsArr.length()).joinToString(",") { "\"${hostsArr.getString(it)}\"" }
+                    sessions.add(LiveSessionEntity(
+                        id = o.getString("id"),
+                        title = o.getString("title"),
+                        description = o.optString("description", ""),
+                        hostsJson = "[$hostsJson]",
+                        startTime = o.optLong("startTime"),
+                        endTime = o.optLong("endTime"),
+                        status = LiveSessionStatus.valueOf(o.optString("status", "UPCOMING")),
+                        participantCount = o.optInt("participantCount", 0),
+                        streamUrl = if (o.isNull("streamUrl")) null else o.optString("streamUrl"),
+                        chatEnabled = o.optBoolean("chatEnabled", true),
+                        language = ContentLanguage.valueOf(o.optString("language", "EN")),
+                        category = ContentCategory.valueOf(o.optString("category", "DEBATES")),
+                        coverImageUrl = if (o.isNull("coverImageUrl")) null else o.optString("coverImageUrl"),
+                    ))
+                } catch (e: Exception) {
+                    android.util.Log.w("GraceLink", "Skipped session $i: ${e.message}")
+                }
             }
-            db.liveSessionDao().insertAll(sessions)
+            if (sessions.isNotEmpty()) db.liveSessionDao().insertAll(sessions)
 
             // Prayers
             val prayersArr = data.getJSONArray("prayers")
-            val prayers = (0 until prayersArr.length()).map { i ->
-                val o = prayersArr.getJSONObject(i)
-                PrayerEntity(
-                    id = o.getString("id"),
-                    userId = if (o.isNull("userId")) null else o.optString("userId"),
-                    displayName = if (o.isNull("displayName")) null else o.optString("displayName"),
-                    text = o.getString("text"),
-                    timestamp = o.optLong("timestamp"),
-                    prayedCount = o.optInt("prayedCount", 0),
-                    isAnswered = o.optBoolean("isAnswered", false),
-                    isMine = o.optBoolean("isMine", false),
-                    userPrayedThis = o.optBoolean("userPrayedThis", false),
-                    status = PrayerStatus.valueOf(o.optString("status", "APPROVED")),
-                    encouragementsJson = o.getJSONArray("encouragements").toString(),
-                )
+            val prayers = mutableListOf<PrayerEntity>()
+            for (i in 0 until prayersArr.length()) {
+                try {
+                    val o = prayersArr.getJSONObject(i)
+                    prayers.add(PrayerEntity(
+                        id = o.getString("id"),
+                        userId = if (o.isNull("userId")) null else o.optString("userId"),
+                        displayName = if (o.isNull("displayName")) null else o.optString("displayName"),
+                        text = o.getString("text"),
+                        timestamp = o.optLong("timestamp"),
+                        prayedCount = o.optInt("prayedCount", 0),
+                        isAnswered = o.optBoolean("isAnswered", false),
+                        isMine = o.optBoolean("isMine", false),
+                        userPrayedThis = o.optBoolean("userPrayedThis", false),
+                        status = PrayerStatus.valueOf(o.optString("status", "APPROVED")),
+                        encouragementsJson = o.getJSONArray("encouragements").toString(),
+                    ))
+                } catch (e: Exception) {
+                    android.util.Log.w("GraceLink", "Skipped prayer $i: ${e.message}")
+                }
             }
-            db.prayerDao().insertAll(prayers)
+            if (prayers.isNotEmpty()) db.prayerDao().insertAll(prayers)
 
             // Chat messages
             val chatsArr = data.getJSONArray("chatMessages")
-            val chats = (0 until chatsArr.length()).map { i ->
-                val o = chatsArr.getJSONObject(i)
-                ChatMessageEntity(
-                    id = o.getString("id"),
-                    sessionId = o.getString("sessionId"),
-                    userId = if (o.isNull("userId")) null else o.optString("userId"),
-                    displayName = o.getString("displayName"),
-                    text = o.getString("text"),
-                    timestamp = o.optLong("timestamp"),
-                    isModerator = o.optBoolean("isModerator", false),
-                    isHost = o.optBoolean("isHost", false),
-                    isQuestion = o.optBoolean("isQuestion", false),
-                    isMine = o.optBoolean("isMine", false),
-                )
+            val chats = mutableListOf<ChatMessageEntity>()
+            for (i in 0 until chatsArr.length()) {
+                try {
+                    val o = chatsArr.getJSONObject(i)
+                    chats.add(ChatMessageEntity(
+                        id = o.getString("id"),
+                        sessionId = o.getString("sessionId"),
+                        userId = if (o.isNull("userId")) null else o.optString("userId"),
+                        displayName = o.getString("displayName"),
+                        text = o.getString("text"),
+                        timestamp = o.optLong("timestamp"),
+                        isModerator = o.optBoolean("isModerator", false),
+                        isHost = o.optBoolean("isHost", false),
+                        isQuestion = o.optBoolean("isQuestion", false),
+                        isMine = o.optBoolean("isMine", false),
+                    ))
+                } catch (e: Exception) {
+                    android.util.Log.w("GraceLink", "Skipped chat $i: ${e.message}")
+                }
             }
-            db.chatDao().insertAll(chats)
+            if (chats.isNotEmpty()) db.chatDao().insertAll(chats)
 
             // User
             val userObj = data.getJSONObject("user")

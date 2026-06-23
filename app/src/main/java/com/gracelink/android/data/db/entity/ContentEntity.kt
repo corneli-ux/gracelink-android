@@ -3,8 +3,8 @@ package com.gracelink.android.data.db.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-enum class ContentType { LIVE_RADIO, SERMON, PODCAST, DEBATE }
-enum class ContentLanguage { EN, TE }
+enum class ContentType { LIVE_RADIO, SERMON, PODCAST, DEBATE, WORSHIP }
+enum class ContentLanguage { EN, TE, HI, TA, ML, KN }
 enum class ContentCategory { WORSHIP, TEACHING, DEBATES, REGIONAL, TESTIMONY, YOUTH }
 
 @Entity(tableName = "content")

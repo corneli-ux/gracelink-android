@@ -30,7 +30,7 @@ import com.gracelink.android.data.db.entity.UserEntity
         ChatMessageEntity::class, UserEntity::class, FavoriteEntity::class,
         DownloadEntity::class, HistoryEntity::class, FmScheduleEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 @TypeConverters(EnumConverters::class)
