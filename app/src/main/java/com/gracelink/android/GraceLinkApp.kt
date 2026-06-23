@@ -2,13 +2,11 @@ package com.gracelink.android
 
 import android.app.Application
 import android.util.Log
-import androidx.work.Configuration
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.gracelink.android.data.repository.ContentRepository
 import com.gracelink.android.player.GraceMessagingService
 import dagger.hilt.android.HiltAndroidApp
-import dagger.hilt.work.HiltWorkerFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,13 +21,9 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
-class GraceLinkApp : Application(), Configuration.Provider {
+class GraceLinkApp : Application() {
 
     @Inject lateinit var contentRepository: ContentRepository
-    @Inject lateinit var workerFactory: HiltWorkerFactory
-
-    override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
 
     override fun onCreate() {
         super.onCreate()
