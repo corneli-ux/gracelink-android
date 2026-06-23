@@ -42,12 +42,10 @@ import com.gracelink.android.feature.splash.SplashScreen
  * Root composable rendered by MainActivity. Owns the NavController + Scaffold.
  */
 @Composable
-fun GraceLinkApp(onContentReady: () -> Unit = {}) {
+fun GraceLinkApp() {
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
-
-    onContentReady()
 
     // Hide bottom bar on splash / onboarding / player screens.
     val showBottomBar = currentRoute in setOf(

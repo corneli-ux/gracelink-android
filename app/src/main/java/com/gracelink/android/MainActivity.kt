@@ -16,13 +16,20 @@ import dagger.hilt.android.AndroidEntryPoint
  * - Installs the Android 12+ system splash screen and hands off to Compose.
  * - Enables edge-to-edge so the deep slate background bleeds under the status bar.
  * - Delegates all rendering to [GraceLinkApp] (NavHost + scaffold).
+ *
+ * We deliberately do NOT use [SplashScreen.setKeepOnScreenCondition] here —
+ * that API is fragile because if composition throws before the "ready" flag
+ * is set, the splash screen never dismisses and the app ANRs. Instead, the
+ * system splash dismisses as soon as the first Compose frame is drawn, and
+ * the [SplashScreen] composable shows its own 1.5s breathing animation before
+ * navigating to Home.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Must be called *before* super.onCreate to hook into the system splash.
-        val splash = installSplashScreen()
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         // Edge-to-edge: status bar transparent, content draws behind it.
@@ -37,13 +44,9 @@ class MainActivity : ComponentActivity() {
             ),
         )
 
-        // Keep splash visible while the first frame of Compose prepares.
-        var contentReady = false
-        splash.setKeepOnScreenCondition { !contentReady }
-
         setContent {
             GraceLinkTheme {
-                GraceLinkApp(onContentReady = { contentReady = true })
+                GraceLinkApp()
             }
         }
     }

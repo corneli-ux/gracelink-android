@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
     // Apply google-services ONLY after you drop a real google-services.json into /app.
     // alias(libs.plugins.google.services)
@@ -97,9 +97,9 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
-    // Hilt
+    // Hilt (KSP — required for Kotlin 2.x; KAPT has known runtime issues)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
     // Media3 ExoPlayer
@@ -113,7 +113,7 @@ dependencies {
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     // Networking
     implementation(libs.retrofit)
@@ -146,8 +146,4 @@ dependencies {
 
     // Desugaring for java.time on older API levels
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
-}
-
-kapt {
-    correctErrorTypes = true
 }
