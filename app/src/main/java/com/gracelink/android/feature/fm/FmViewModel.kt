@@ -18,7 +18,7 @@ data class FmState(
     val schedule: List<FmScheduleEntity> = emptyList(),
     val currentSlot: FmScheduleEntity? = null,
     val isPlaying: Boolean = false,
-    val selectedDay: String = today(),
+    val selectedDay: String = "",
 )
 
 @HiltViewModel
