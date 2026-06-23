@@ -200,20 +200,27 @@ object DatabaseProvider {
             try {
                 val scheduleJson = context.assets.open("fm_schedule.json").bufferedReader().use { it.readText() }
                 val scheduleArr = JSONArray(scheduleJson)
-                val scheduleItems = (0 until scheduleArr.length()).map { i ->
-                    val o = scheduleArr.getJSONObject(i)
-                    val slot = o.getString("slot")
-                    val startHour = slot.substring(0, 2).toInt()
-                    FmScheduleEntity(
-                        day = o.getString("day"),
-                        timeSlot = slot,
-                        startHour = startHour,
-                        preacher = o.getString("preacher"),
-                        description = o.optString("description", ""),
-                        category = ContentCategory.valueOf(o.optString("category", "TEACHING")),
-                    )
+                val scheduleItems = mutableListOf<FmScheduleEntity>()
+                for (i in 0 until scheduleArr.length()) {
+                    try {
+                        val o = scheduleArr.getJSONObject(i)
+                        val slot = o.getString("slot")
+                        val startHour = slot.substring(0, 2).toInt()
+                        val day = o.getString("day")
+                        scheduleItems.add(FmScheduleEntity(
+                            id = "${day}_${startHour}",  // composite key: "MON_6"
+                            day = day,
+                            timeSlot = slot,
+                            startHour = startHour,
+                            preacher = o.getString("preacher"),
+                            description = o.optString("description", ""),
+                            category = ContentCategory.valueOf(o.optString("category", "TEACHING")),
+                        ))
+                    } catch (e: Exception) {
+                        android.util.Log.w("GraceLink", "Skipped FM slot $i: ${e.message}")
+                    }
                 }
-                db.fmScheduleDao().insertAll(scheduleItems)
+                if (scheduleItems.isNotEmpty()) db.fmScheduleDao().insertAll(scheduleItems)
             } catch (_: Exception) { }
 
             android.util.Log.d("GraceLink", "Seeded ${contentItems.size} content, ${sessions.size} sessions, ${prayers.size} prayers, ${chats.size} chats from asset")
