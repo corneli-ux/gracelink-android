@@ -1,19 +1,9 @@
 package com.gracelink.android.data.db.converter
 
 import androidx.room.TypeConverter
-import com.gracelink.android.data.db.entity.ContentCategory
-import com.gracelink.android.data.db.entity.ContentLanguage
-import com.gracelink.android.data.db.entity.ContentType
-import com.gracelink.android.data.db.entity.LiveSessionStatus
-import com.gracelink.android.data.db.entity.PrayerStatus
+import com.gracelink.android.data.db.entity.*
 
-/**
- * Type converters so Room stores enums as their string names instead of
- * ordinals. This makes SQL queries like `WHERE type = 'LIVE_RADIO'` work
- * correctly and is more robust across schema changes.
- */
 class EnumConverters {
-
     @TypeConverter fun contentTypeToString(t: ContentType?): String? = t?.name
     @TypeConverter fun stringToContentType(s: String?): ContentType? = s?.let { ContentType.valueOf(it) }
 
@@ -28,4 +18,13 @@ class EnumConverters {
 
     @TypeConverter fun prayerStatusToString(s: PrayerStatus?): String? = s?.name
     @TypeConverter fun stringToPrayerStatus(s: String?): PrayerStatus? = s?.let { PrayerStatus.valueOf(it) }
+
+    @TypeConverter fun accountTypeToString(t: AccountType?): String? = t?.name
+    @TypeConverter fun stringToAccountType(s: String?): AccountType? = s?.let { AccountType.valueOf(it) }
+
+    @TypeConverter fun beliefSystemToString(b: BeliefSystem?): String? = b?.name
+    @TypeConverter fun stringToBeliefSystem(s: String?): BeliefSystem? = s?.let { BeliefSystem.valueOf(it) }
+
+    @TypeConverter fun verificationStatusToString(v: VerificationStatus?): String? = v?.name
+    @TypeConverter fun stringToVerificationStatus(s: String?): VerificationStatus? = s?.let { VerificationStatus.valueOf(it) }
 }

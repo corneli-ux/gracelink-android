@@ -64,7 +64,7 @@ fun AudioConnectScreen(vm: AudioConnectViewModel = hiltViewModel()) {
 
     if (state.activeSpace != null) {
         ActiveSpaceView(
-            space = state.activeSpace!!,
+            space = state.activeSpace ?: return,
             isMicOn = state.isMicOn,
             isHandRaised = state.isHandRaised,
             onMicToggle = { vm.toggleMic() },

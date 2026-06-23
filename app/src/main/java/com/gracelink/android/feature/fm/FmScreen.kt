@@ -131,8 +131,8 @@ private fun ScheduleCard(slot: FmScheduleEntity, isNow: Boolean) {
             Column(Modifier.width(80.dp)) {
                 Icon(Icons.Rounded.Schedule, null, tint = if (isNow) Gold500 else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.height(4.dp))
-                Text(slot.timeSlot.substring(0, 5), style = MaterialTheme.typography.labelLarge, color = if (isNow) Gold500 else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
-                Text(slot.timeSlot.substring(8, 13), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(if (slot.timeSlot.length >= 5) slot.timeSlot.substring(0, 5) else slot.timeSlot, style = MaterialTheme.typography.labelLarge, color = if (isNow) Gold500 else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
+                Text(if (slot.timeSlot.length >= 13) slot.timeSlot.substring(8, 13) else "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             // Preacher info

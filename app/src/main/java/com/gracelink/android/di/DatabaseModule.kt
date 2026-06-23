@@ -1,17 +1,9 @@
 package com.gracelink.android.di
 
 import android.content.Context
-import com.gracelink.android.data.db.GraceDatabase
 import com.gracelink.android.data.db.DatabaseProvider
-import com.gracelink.android.data.db.dao.ChatDao
-import com.gracelink.android.data.db.dao.ContentDao
-import com.gracelink.android.data.db.dao.DownloadDao
-import com.gracelink.android.data.db.dao.FavoriteDao
-import com.gracelink.android.data.db.dao.FmScheduleDao
-import com.gracelink.android.data.db.dao.HistoryDao
-import com.gracelink.android.data.db.dao.LiveSessionDao
-import com.gracelink.android.data.db.dao.PrayerDao
-import com.gracelink.android.data.db.dao.UserDao
+import com.gracelink.android.data.db.GraceDatabase
+import com.gracelink.android.data.db.dao.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,8 +15,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    @Provides
-    @Singleton
+    @Provides @Singleton
     fun provideDatabase(@ApplicationContext ctx: Context): GraceDatabase = DatabaseProvider.get(ctx)
 
     @Provides fun contentDao(db: GraceDatabase): ContentDao = db.contentDao()
@@ -36,4 +27,11 @@ object DatabaseModule {
     @Provides fun downloadDao(db: GraceDatabase): DownloadDao = db.downloadDao()
     @Provides fun historyDao(db: GraceDatabase): HistoryDao = db.historyDao()
     @Provides fun fmScheduleDao(db: GraceDatabase): FmScheduleDao = db.fmScheduleDao()
+    @Provides fun churchDao(db: GraceDatabase): ChurchDao = db.churchDao()
+    @Provides fun churchMemberDao(db: GraceDatabase): ChurchMemberDao = db.churchMemberDao()
+    @Provides fun articleDao(db: GraceDatabase): ArticleDao = db.articleDao()
+    @Provides fun articleCommentDao(db: GraceDatabase): ArticleCommentDao = db.articleCommentDao()
+    @Provides fun articleLikeDao(db: GraceDatabase): ArticleLikeDao = db.articleLikeDao()
+    @Provides fun churchEventDao(db: GraceDatabase): ChurchEventDao = db.churchEventDao()
+    @Provides fun faithProgressDao(db: GraceDatabase): FaithProgressDao = db.faithProgressDao()
 }

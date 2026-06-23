@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Podcasts
 import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material.icons.outlined.Spa
+import androidx.compose.material.icons.rounded.Article
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LibraryMusic
@@ -38,6 +40,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.gracelink.android.feature.audioconnect.AudioConnectScreen
+import com.gracelink.android.feature.articles.ArticlesScreen
+import com.gracelink.android.feature.faith.FaithScreen
+import com.gracelink.android.feature.registration.RegistrationScreen
 import com.gracelink.android.feature.auth.AuthScreen
 import com.gracelink.android.feature.events.EventsScreen
 import com.gracelink.android.feature.fm.FmScreen
@@ -104,6 +109,9 @@ fun GraceNavHost() {
                 }
                 composable<GraceRoute.Prayer> { PrayerWallScreen() }
                 composable<GraceRoute.AudioConnect> { AudioConnectScreen() }
+                composable<GraceRoute.Articles> { ArticlesScreen() }
+                composable<GraceRoute.Faith> { FaithScreen() }
+                composable<GraceRoute.Registration> { RegistrationScreen { navController.navigate(GraceRoute.Home) { popUpTo(GraceRoute.Registration) { inclusive = true } } } }
                 composable<GraceRoute.Profile> { ProfileScreen() }
                 composable<GraceRoute.Player> { entry ->
                     val route = entry.toRoute<GraceRoute.Player>()
@@ -152,9 +160,9 @@ private fun GraceRoute.icons(): Triple<ImageVector, ImageVector, String> = when 
     GraceRoute.Home -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "Home")
     GraceRoute.Library -> Triple(Icons.Rounded.LibraryMusic, Icons.Outlined.LibraryMusic, "Library")
     GraceRoute.Fm -> Triple(Icons.Rounded.Radio, Icons.Outlined.Radio, "FM")
-    GraceRoute.Events -> Triple(Icons.Rounded.CalendarMonth, Icons.Outlined.CalendarMonth, "Events")
     GraceRoute.AudioConnect -> Triple(Icons.Rounded.Podcasts, Icons.Outlined.Podcasts, "Connect")
     GraceRoute.Prayer -> Triple(Icons.Rounded.Spa, Icons.Outlined.Spa, "Prayer")
+    GraceRoute.Articles -> Triple(Icons.Rounded.Article, Icons.Outlined.Article, "Articles")
     GraceRoute.Profile -> Triple(Icons.Rounded.Person, Icons.Outlined.Person, "Profile")
     else -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "")
 }
