@@ -8,6 +8,7 @@ import com.gracelink.android.data.db.dao.ChatDao
 import com.gracelink.android.data.db.dao.ContentDao
 import com.gracelink.android.data.db.dao.DownloadDao
 import com.gracelink.android.data.db.dao.FavoriteDao
+import com.gracelink.android.data.db.dao.FmScheduleDao
 import com.gracelink.android.data.db.dao.HistoryDao
 import com.gracelink.android.data.db.dao.LiveSessionDao
 import com.gracelink.android.data.db.dao.PrayerDao
