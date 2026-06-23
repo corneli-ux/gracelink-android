@@ -16,6 +16,7 @@ import com.gracelink.android.data.db.entity.ChatMessageEntity
 import com.gracelink.android.data.db.entity.ContentEntity
 import com.gracelink.android.data.db.entity.DownloadEntity
 import com.gracelink.android.data.db.entity.FavoriteEntity
+import com.gracelink.android.data.db.entity.FmScheduleEntity
 import com.gracelink.android.data.db.entity.HistoryEntity
 import com.gracelink.android.data.db.entity.LiveSessionEntity
 import com.gracelink.android.data.db.entity.PrayerEntity
@@ -31,8 +32,9 @@ import com.gracelink.android.data.db.entity.UserEntity
         FavoriteEntity::class,
         DownloadEntity::class,
         HistoryEntity::class,
+        FmScheduleEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 @TypeConverters(EnumConverters::class)
@@ -45,4 +47,5 @@ abstract class GraceDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao
     abstract fun downloadDao(): DownloadDao
     abstract fun historyDao(): HistoryDao
+    abstract fun fmScheduleDao(): FmScheduleDao
 }

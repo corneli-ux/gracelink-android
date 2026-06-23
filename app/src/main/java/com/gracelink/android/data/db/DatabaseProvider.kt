@@ -9,6 +9,7 @@ import com.gracelink.android.data.db.entity.ContentCategory
 import com.gracelink.android.data.db.entity.ContentEntity
 import com.gracelink.android.data.db.entity.ContentLanguage
 import com.gracelink.android.data.db.entity.ContentType
+import com.gracelink.android.data.db.entity.FmScheduleEntity
 import com.gracelink.android.data.db.entity.LiveSessionEntity
 import com.gracelink.android.data.db.entity.LiveSessionStatus
 import com.gracelink.android.data.db.entity.PrayerEntity
@@ -169,6 +170,26 @@ object DatabaseProvider {
                     notificationsEnabled = userObj.optBoolean("notificationsEnabled"),
                 )
             )
+
+            // FM Schedule (24/7 program slots with preachers)
+            try {
+                val scheduleJson = context.assets.open("fm_schedule.json").bufferedReader().use { it.readText() }
+                val scheduleArr = JSONArray(scheduleJson)
+                val scheduleItems = (0 until scheduleArr.length()).map { i ->
+                    val o = scheduleArr.getJSONObject(i)
+                    val slot = o.getString("slot")
+                    val startHour = slot.substring(0, 2).toInt()
+                    FmScheduleEntity(
+                        day = o.getString("day"),
+                        timeSlot = slot,
+                        startHour = startHour,
+                        preacher = o.getString("preacher"),
+                        description = o.optString("description", ""),
+                        category = ContentCategory.valueOf(o.optString("category", "TEACHING")),
+                    )
+                }
+                db.fmScheduleDao().insertAll(scheduleItems)
+            } catch (_: Exception) { }
 
             android.util.Log.d("GraceLink", "Seeded ${contentItems.size} content, ${sessions.size} sessions, ${prayers.size} prayers, ${chats.size} chats from asset")
         } catch (e: Exception) {

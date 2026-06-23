@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.gracelink.android.data.repository.ContentRepository
+import com.gracelink.android.player.GraceMessagingService
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +50,10 @@ class GraceLinkApp : Application() {
                 Log.e("GraceLink", "Auth/sync failed", e)
             }
         }
+
+        // Create notification channels + subscribe to FCM topics
+        GraceMessagingService.createChannels(this)
+        GraceMessagingService.subscribeToTopics()
     }
 
     private fun writeCrash(thread: String, t: Throwable) {

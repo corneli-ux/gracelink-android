@@ -7,6 +7,7 @@ import com.gracelink.android.data.db.dao.ChatDao
 import com.gracelink.android.data.db.dao.ContentDao
 import com.gracelink.android.data.db.dao.DownloadDao
 import com.gracelink.android.data.db.dao.FavoriteDao
+import com.gracelink.android.data.db.dao.FmScheduleDao
 import com.gracelink.android.data.db.dao.HistoryDao
 import com.gracelink.android.data.db.dao.LiveSessionDao
 import com.gracelink.android.data.db.dao.PrayerDao
@@ -34,4 +35,5 @@ object DatabaseModule {
     @Provides fun favoriteDao(db: GraceDatabase): FavoriteDao = db.favoriteDao()
     @Provides fun downloadDao(db: GraceDatabase): DownloadDao = db.downloadDao()
     @Provides fun historyDao(db: GraceDatabase): HistoryDao = db.historyDao()
+    @Provides fun fmScheduleDao(db: GraceDatabase): FmScheduleDao = db.fmScheduleDao()
 }

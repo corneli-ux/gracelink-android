@@ -9,11 +9,13 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material.icons.rounded.Spa
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +36,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.gracelink.android.feature.events.EventsScreen
+import com.gracelink.android.feature.fm.FmScreen
 import com.gracelink.android.feature.home.HomeScreen
 import com.gracelink.android.feature.library.LibraryScreen
 import com.gracelink.android.feature.onboarding.OnboardingScreen
@@ -88,6 +91,9 @@ fun GraceNavHost() {
                 composable<GraceRoute.Library> {
                     LibraryScreen(onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) })
                 }
+                composable<GraceRoute.Fm> {
+                    FmScreen()
+                }
                 composable<GraceRoute.Events> {
                     EventsScreen(onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) })
                 }
@@ -139,6 +145,7 @@ private fun GraceBottomBar(currentRoute: String?, onNavigate: (GraceRoute) -> Un
 private fun GraceRoute.icons(): Triple<ImageVector, ImageVector, String> = when (this) {
     GraceRoute.Home -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "Home")
     GraceRoute.Library -> Triple(Icons.Rounded.LibraryMusic, Icons.Outlined.LibraryMusic, "Library")
+    GraceRoute.Fm -> Triple(Icons.Rounded.Radio, Icons.Outlined.Radio, "FM")
     GraceRoute.Events -> Triple(Icons.Rounded.CalendarMonth, Icons.Outlined.CalendarMonth, "Events")
     GraceRoute.Prayer -> Triple(Icons.Rounded.Spa, Icons.Outlined.Spa, "Prayer")
     GraceRoute.Profile -> Triple(Icons.Rounded.Person, Icons.Outlined.Person, "Profile")

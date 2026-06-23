@@ -7,6 +7,7 @@ sealed interface GraceRoute : java.io.Serializable {
     @Serializable data object Onboarding : GraceRoute
     @Serializable data object Home : GraceRoute
     @Serializable data object Library : GraceRoute
+    @Serializable data object Fm : GraceRoute
     @Serializable data object Events : GraceRoute
     @Serializable data object Prayer : GraceRoute
     @Serializable data object Profile : GraceRoute
@@ -15,5 +16,5 @@ sealed interface GraceRoute : java.io.Serializable {
 }
 
 val bottomNavRoutes = listOf(
-    GraceRoute.Home, GraceRoute.Library, GraceRoute.Events, GraceRoute.Prayer, GraceRoute.Profile,
+    GraceRoute.Home, GraceRoute.Library, GraceRoute.Fm, GraceRoute.Events, GraceRoute.Prayer, GraceRoute.Profile,
 )
