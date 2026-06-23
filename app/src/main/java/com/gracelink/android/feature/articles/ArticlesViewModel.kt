@@ -80,6 +80,7 @@ class ArticleDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     val article = MutableStateFlow<ArticleEntity?>(null)
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val comments: StateFlow<List<ArticleCommentEntity>> = article.flatMapLatest { a ->
         if (a != null) commentDao.forArticle(a.id) else flowOf(emptyList())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

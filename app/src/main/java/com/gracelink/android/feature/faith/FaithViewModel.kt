@@ -26,6 +26,7 @@ class FaithViewModel @Inject constructor(
     private val userDao: UserDao,
 ) : ViewModel() {
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val state: StateFlow<FaithState> = userDao.current()
         .flatMapLatest { user ->
             if (user != null) {
