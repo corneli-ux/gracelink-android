@@ -25,7 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.HandBackLeft
+import androidx.compose.material.icons.rounded.PanTool
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MicOff
 import androidx.compose.material.icons.rounded.People
@@ -263,7 +263,7 @@ private fun ActiveSpaceView(
                         .clickable(onClick = onHandRaise),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Rounded.HandBackLeft, "Raise hand", tint = if (isHandRaised) Color(0xFF00211A) else MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+                    Icon(Icons.Rounded.PanTool, "Raise hand", tint = if (isHandRaised) Color(0xFF00211A) else MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
                 }
                 Spacer(Modifier.height(6.dp))
                 Text(if (isHandRaised) "Hand Raised" else "Raise Hand", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
