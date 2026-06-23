@@ -70,7 +70,7 @@ fun HomeScreen(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f)) {
@@ -106,14 +106,14 @@ fun HomeScreen(
                     onPlay = { onPlayContent(live.id) },
                     onJoinConversation = { state.liveSession?.let { onOpenLiveSession(it.id) } },
                 )
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(16.dp))
             }
         }
 
         // ── Continue Listening ───────────────────────────────────────────────
         if (state.continueListening.isNotEmpty()) {
             item {
-                SectionHeader("Continue Listening", Modifier.padding(horizontal = 24.dp))
+                SectionHeader("Continue Listening", Modifier.padding(horizontal = 20.dp))
                 Spacer(Modifier.height(12.dp))
             }
             item {
@@ -125,13 +125,13 @@ fun HomeScreen(
                         ContinueCard(item) { onPlayContent(item.id) }
                     }
                 }
-                Spacer(Modifier.height(28.dp))
+                Spacer(Modifier.height(16.dp))
             }
         }
 
         // ── Recommended ──────────────────────────────────────────────────────
         item {
-            SectionHeader("Recommended", Modifier.padding(horizontal = 24.dp), "Curated based on your history")
+            SectionHeader("Recommended", Modifier.padding(horizontal = 20.dp), "Curated based on your history")
             Spacer(Modifier.height(12.dp))
         }
         items(state.recommended) { item ->
@@ -159,8 +159,8 @@ private fun LiveHero(
     Box(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .height(200.dp)
+            .padding(horizontal = 20.dp)
+            .height(180.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(Brush.linearGradient(EmberGradient))
             .clickable(onClick = onPlay)
@@ -179,7 +179,7 @@ private fun LiveHero(
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(20.dp),
+                .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -201,7 +201,7 @@ private fun LiveHero(
                     color = Color.White.copy(alpha = 0.85f),
                     maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         Modifier
@@ -267,7 +267,7 @@ private fun RecommendedRow(item: ContentEntity, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(Slate800)
             .clickable(onClick = onClick)

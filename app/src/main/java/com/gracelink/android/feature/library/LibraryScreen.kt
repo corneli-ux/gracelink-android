@@ -65,20 +65,20 @@ fun LibraryScreen(onPlayContent: (String) -> Unit, vm: LibraryViewModel = hiltVi
             "Library",
             style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(start = 24.dp, top = 16.dp, bottom = 4.dp)
+            modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp)
         )
         Text(
             "Sermons • Podcasts • Debates",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 24.dp, bottom = 12.dp)
+            modifier = Modifier.padding(start = 20.dp, bottom = 8.dp)
         )
 
         // Search
         Box(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 6.dp)
+                .padding(horizontal = 20.dp, vertical = 4.dp)
                 .clip(RoundedCornerShape(14.dp))
                 .background(Slate800)
         ) {

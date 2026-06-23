@@ -58,11 +58,11 @@ fun EventsScreen(onOpenLiveSession: (String) -> Unit, vm: EventsViewModel = hilt
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
-        Text("Live Events", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(start = 24.dp, top = 16.dp, bottom = 4.dp))
-        Text("Debates • Q&A • Worship nights", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 24.dp, bottom = 16.dp))
+        Text("Live Events", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp))
+        Text("Debates • Q&A • Worship nights", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 20.dp, bottom = 8.dp))
 
         LazyColumn(
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             val live = sessions.filter { it.status == LiveSessionStatus.LIVE }

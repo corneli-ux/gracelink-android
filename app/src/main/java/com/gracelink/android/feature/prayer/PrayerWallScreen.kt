@@ -67,7 +67,7 @@ fun PrayerWallScreen(vm: PrayerViewModel = hiltViewModel()) {
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             // Header
-            Row(Modifier.fillMaxWidth().padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Prayer Wall", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
                     Text("Stand in the gap for one another", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -82,7 +82,7 @@ fun PrayerWallScreen(vm: PrayerViewModel = hiltViewModel()) {
 
             // Tabs
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 24.dp).clip(RoundedCornerShape(14.dp)).background(Slate800).padding(4.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(14.dp)).background(Slate800).padding(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 PrayerTab.values().forEach { t ->

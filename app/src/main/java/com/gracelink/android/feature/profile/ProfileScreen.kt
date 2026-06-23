@@ -67,7 +67,7 @@ fun ProfileScreen(vm: ProfileViewModel = hiltViewModel()) {
     ) {
         // Header
         item {
-            Row(Modifier.fillMaxWidth().padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier.size(72.dp).clip(CircleShape).background(Brush.horizontalGradient(listOf(Gold500, Emerald500))),
                     contentAlignment = Alignment.Center
@@ -84,7 +84,7 @@ fun ProfileScreen(vm: ProfileViewModel = hiltViewModel()) {
 
         // Stats
         item {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Stat(Icons.Rounded.GraphicEq, "Minutes", "${user?.totalMinutes ?: 0}", Gold500, Modifier.weight(1f))
                 Stat(Icons.Rounded.TrendingUp, "Streak", "${user?.streakDays ?: 0}d", Emerald500, Modifier.weight(1f))
                 Stat(Icons.Rounded.Bookmark, "Saved", "${state.favoritesCount}", Gold500, Modifier.weight(1f))
@@ -96,7 +96,7 @@ fun ProfileScreen(vm: ProfileViewModel = hiltViewModel()) {
         // Prayers offered
         item {
             Box(
-                Modifier.fillMaxWidth().padding(horizontal = 24.dp).clip(RoundedCornerShape(20.dp))
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(20.dp))
                     .background(Brush.horizontalGradient(listOf(Emerald500.copy(alpha = 0.25f), Slate800))).padding(20.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -113,7 +113,7 @@ fun ProfileScreen(vm: ProfileViewModel = hiltViewModel()) {
         }
 
         // Settings
-        item { Text("Settings", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = 24.dp)); Spacer(Modifier.height(8.dp)) }
+        item { Text("Settings", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = 20.dp)); Spacer(Modifier.height(8.dp)) }
         item {
             SettingsCard {
                 var notif by remember { mutableStateOf(user?.notificationsEnabled ?: true) }
@@ -138,7 +138,7 @@ fun ProfileScreen(vm: ProfileViewModel = hiltViewModel()) {
         }
         item {
             Box(
-                Modifier.fillMaxWidth().padding(horizontal = 24.dp).clip(RoundedCornerShape(14.dp)).background(Slate800).clickable { }.padding(vertical = 14.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(14.dp)).background(Slate800).clickable { }.padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -150,7 +150,7 @@ fun ProfileScreen(vm: ProfileViewModel = hiltViewModel()) {
         }
         item {
             Spacer(Modifier.height(16.dp))
-            Text("Faith Link v1.0.0-mvp\nBuilt with care for the body of Christ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(24.dp), textAlign = TextAlign.Center)
+            Text("Faith Link v1.0.0-mvp\nBuilt with care for the body of Christ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(20.dp), textAlign = TextAlign.Center)
         }
     }
 }
@@ -167,7 +167,7 @@ private fun Stat(icon: ImageVector, label: String, value: String, tint: Color, m
 
 @Composable
 private fun SettingsCard(content: @Composable () -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).clip(RoundedCornerShape(14.dp)).background(Slate800).padding(vertical = 4.dp)) { content() }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(14.dp)).background(Slate800).padding(vertical = 4.dp)) { content() }
 }
 
 @Composable

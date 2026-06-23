@@ -63,7 +63,7 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
@@ -75,7 +75,7 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
 
         // Day selector
         LazyRow(
-            contentPadding = PaddingValues(horizontal = 24.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")) { day ->

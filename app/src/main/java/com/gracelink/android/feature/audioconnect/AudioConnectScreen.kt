@@ -102,7 +102,7 @@ private fun SpacesListView(
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
@@ -122,7 +122,7 @@ private fun SpacesListView(
         }
 
         LazyColumn(
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(state.spaces, key = { it.id }) { space ->
@@ -212,7 +212,7 @@ private fun ActiveSpaceView(
         Spacer(Modifier.weight(1f))
 
         // Participant circle (visual)
-        Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
             Box(
                 Modifier
                     .size(120.dp)
@@ -230,7 +230,7 @@ private fun ActiveSpaceView(
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
+                .padding(20.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(Slate900)
                 .padding(20.dp),
@@ -300,7 +300,7 @@ private fun CreateSpaceDialog(onCreate: (String, String) -> Unit, onDismiss: () 
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
                 .background(Slate900)
-                .padding(24.dp)
+                .padding(20.dp)
                 .clickable(enabled = false) {}
         ) {
             Column {
