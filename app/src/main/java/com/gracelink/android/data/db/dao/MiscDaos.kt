@@ -35,6 +35,9 @@ interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(user: UserEntity)
 
+    @Query("DELETE FROM users")
+    suspend fun deleteAll()
+
     @Query("UPDATE users SET preferredLanguage = :lang WHERE uid = :uid")
     suspend fun setLanguage(uid: String, lang: com.gracelink.android.data.db.entity.ContentLanguage)
 

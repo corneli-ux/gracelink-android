@@ -7,6 +7,7 @@ import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.BeliefSystem
 import com.gracelink.android.data.db.entity.ContentLanguage
 import com.gracelink.android.data.db.entity.UserEntity
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,11 +18,19 @@ class RegistrationViewModel @Inject constructor(
 ) : ViewModel() {
 
     fun registerPersonal(name: String, email: String, belief: BeliefSystem, onComplete: () -> Unit) = viewModelScope.launch {
+        // Use Firebase UID if available, otherwise generate one
+        val firebaseUser = FirebaseAuth.getInstance().currentUser
+        val uid = firebaseUser?.uid ?: "u_${System.currentTimeMillis()}"
+        val userEmail = firebaseUser?.email ?: email
+
+        // Delete any existing demo user first
+        userDao.deleteAll()
+
         val user = UserEntity(
-            uid = "u_${System.currentTimeMillis()}",
+            uid = uid,
             displayName = name,
-            email = email,
-            photoUrl = null,
+            email = userEmail,
+            photoUrl = firebaseUser?.photoUrl?.toString(),
             preferredLanguage = ContentLanguage.EN,
             createdAt = System.currentTimeMillis(),
             totalMinutes = 0,
@@ -41,11 +50,17 @@ class RegistrationViewModel @Inject constructor(
     }
 
     fun registerChurch(name: String, pastorName: String, location: String, belief: BeliefSystem, email: String, onComplete: () -> Unit) = viewModelScope.launch {
+        val firebaseUser = FirebaseAuth.getInstance().currentUser
+        val uid = firebaseUser?.uid ?: "church_${System.currentTimeMillis()}"
+        val userEmail = firebaseUser?.email ?: email
+
+        userDao.deleteAll()
+
         val user = UserEntity(
-            uid = "church_${System.currentTimeMillis()}",
+            uid = uid,
             displayName = name,
-            email = email,
-            photoUrl = null,
+            email = userEmail,
+            photoUrl = firebaseUser?.photoUrl?.toString(),
             preferredLanguage = ContentLanguage.EN,
             createdAt = System.currentTimeMillis(),
             totalMinutes = 0,

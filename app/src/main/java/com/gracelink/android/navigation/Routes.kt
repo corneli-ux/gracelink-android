@@ -21,7 +21,7 @@ sealed interface GraceRoute : java.io.Serializable {
     @Serializable data class LiveSession(val sessionId: String) : GraceRoute
 }
 
-// 7 main tabs — Events and Faith accessible from Home/Profile
+// 7 main tabs
 val bottomNavRoutes = listOf(
     GraceRoute.Home, GraceRoute.Library, GraceRoute.Fm,
     GraceRoute.AudioConnect, GraceRoute.Prayer,
