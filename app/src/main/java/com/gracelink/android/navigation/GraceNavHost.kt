@@ -42,6 +42,8 @@ import androidx.navigation.toRoute
 import com.gracelink.android.feature.audioconnect.AudioConnectScreen
 import com.gracelink.android.feature.articles.ArticlesScreen
 import com.gracelink.android.feature.churches.ChurchesScreen
+import com.gracelink.android.feature.churches.ChurchDetailScreen
+import com.gracelink.android.feature.churches.ChurchProfileScreen
 import com.gracelink.android.feature.faith.FaithScreen
 import com.gracelink.android.feature.registration.RegistrationScreen
 import com.gracelink.android.feature.auth.AuthScreen
@@ -123,6 +125,13 @@ fun GraceNavHost() {
                 composable<GraceRoute.Articles> { ArticlesScreen() }
                 composable<GraceRoute.Faith> { FaithScreen() }
                 composable<GraceRoute.Churches> { ChurchesScreen() }
+                composable<GraceRoute.ChurchDetail> { entry ->
+                    val route = entry.toRoute<GraceRoute.ChurchDetail>()
+                    ChurchDetailScreen(churchId = route.churchId, onBack = { navController.popBackStack() })
+                }
+                composable<GraceRoute.ChurchProfile> {
+                    ChurchProfileScreen(onBack = { navController.popBackStack() })
+                }
                 composable<GraceRoute.Registration> {
                     RegistrationScreen(
                         onComplete = {
@@ -138,6 +147,7 @@ fun GraceNavHost() {
                         onNavigateToFaith = { navController.navigate(GraceRoute.Faith) },
                         onNavigateToArticles = { navController.navigate(GraceRoute.Articles) },
                         onNavigateToChurches = { navController.navigate(GraceRoute.Churches) },
+                        onNavigateToChurchProfile = { navController.navigate(GraceRoute.ChurchProfile) },
                     )
                 }
                 composable<GraceRoute.Player> { entry ->

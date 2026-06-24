@@ -46,6 +46,7 @@ fun ProfileScreen(
     onNavigateToFaith: () -> Unit = {},
     onNavigateToArticles: () -> Unit = {},
     onNavigateToChurches: () -> Unit = {},
+    onNavigateToChurchProfile: () -> Unit = {},
     vm: ProfileViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -102,7 +103,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(24.dp))
         }
 
-        // Quick actions: Faith Journey + Articles + Churches
+        // Quick actions: Faith Journey + Articles + Churches + Church Dashboard
         item {
             Text("My Faith", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = 20.dp))
             Spacer(Modifier.height(8.dp))
@@ -112,6 +113,10 @@ fun ProfileScreen(
                 Clickable(Icons.Rounded.Article, "My Articles", "Write and manage your articles", onNavigateToArticles)
                 Divider()
                 Clickable(Icons.Rounded.Church, "Find Churches", "Join a church & become a member", onNavigateToChurches)
+                if (user?.accountType == AccountType.CHURCH) {
+                    Divider()
+                    Clickable(Icons.Rounded.Church, "Church Dashboard", "Manage members, events & articles", onNavigateToChurchProfile)
+                }
             }
             Spacer(Modifier.height(12.dp))
         }
