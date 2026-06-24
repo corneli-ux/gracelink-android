@@ -27,4 +27,7 @@ class EnumConverters {
 
     @TypeConverter fun verificationStatusToString(v: VerificationStatus?): String? = v?.name
     @TypeConverter fun stringToVerificationStatus(s: String?): VerificationStatus? = s?.let { VerificationStatus.valueOf(it) }
+
+    @TypeConverter fun memberStatusToString(s: MemberStatus?): String? = s?.name
+    @TypeConverter fun stringToMemberStatus(s: String?): MemberStatus? = s?.let { MemberStatus.valueOf(it) }
 }

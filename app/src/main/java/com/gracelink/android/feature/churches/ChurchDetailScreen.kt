@@ -30,6 +30,7 @@ import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.data.db.entity.ChurchEventEntity
 import com.gracelink.android.data.db.entity.ArticleEntity
 import com.gracelink.android.data.db.entity.VerificationStatus
+import com.gracelink.android.data.db.entity.MemberStatus
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -83,12 +84,24 @@ fun ChurchDetailScreen(
                                 Spacer(Modifier.width(6.dp))
                                 Text("${state.members.size} members", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(Modifier.weight(1f))
-                                if (state.isMember) {
-                                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Emerald500.copy(alpha = 0.2f)).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                                        Text("Member", style = MaterialTheme.typography.labelMedium, color = Emerald500, fontWeight = FontWeight.SemiBold)
+                                val membership = state.myMembership
+                                when {
+                                    membership == null -> {
+                                        GoldButton("Request Membership", onClick = { vm.joinChurch() })
                                     }
-                                } else {
-                                    GoldButton("Join Church", onClick = { vm.joinChurch() })
+                                    membership.status == MemberStatus.PENDING -> {
+                                        Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Gold400.copy(alpha = 0.2f)).padding(horizontal = 16.dp, vertical = 8.dp)) {
+                                            Text("⏳ Pending Approval", style = MaterialTheme.typography.labelMedium, color = Gold400, fontWeight = FontWeight.SemiBold)
+                                        }
+                                    }
+                                    membership.status == MemberStatus.APPROVED -> {
+                                        Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Emerald500.copy(alpha = 0.2f)).padding(horizontal = 16.dp, vertical = 8.dp)) {
+                                            Text("✓ Member", style = MaterialTheme.typography.labelMedium, color = Emerald500, fontWeight = FontWeight.SemiBold)
+                                        }
+                                    }
+                                    membership.status == MemberStatus.REJECTED -> {
+                                        GoldButton("Request Again", onClick = { vm.joinChurch() })
+                                    }
                                 }
                             }
                             if (c.verificationStatus == VerificationStatus.PENDING) {

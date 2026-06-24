@@ -126,7 +126,34 @@ fun ChurchProfileScreen(
                 }
             }
 
-            // Members
+            // Pending membership requests
+            if (state.pendingMembers.isNotEmpty()) {
+                item { Text("Membership Requests (${state.pendingMembers.size})", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = Gold400) }
+                items(state.pendingMembers) { member ->
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Slate800).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                            Text(member.displayName.firstOrNull()?.uppercase() ?: "?", style = MaterialTheme.typography.labelLarge, color = Gold400, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(member.displayName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                            Text("Requested ${SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(member.joinedAt))}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Belief: ${member.beliefSystem.displayName}", style = MaterialTheme.typography.labelSmall, color = Gold400)
+                        }
+                        // Approve button
+                        Box(Modifier.clip(RoundedCornerShape(8.dp)).background(Emerald500).clickable { vm.approveMember(member.id) }.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                            Text("✓", color = Color(0xFF002218), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.width(6.dp))
+                        // Reject button
+                        Box(Modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.error).clickable { vm.rejectMember(member.id) }.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                            Text("✗", color = Color.White, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            // Approved members
             item { Text("Members (${state.members.size})", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface) }
             items(state.members) { member ->
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Slate800).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {

@@ -14,7 +14,7 @@ data class ChurchDetailState(
     val members: List<ChurchMemberEntity> = emptyList(),
     val events: List<ChurchEventEntity> = emptyList(),
     val articles: List<ArticleEntity> = emptyList(),
-    val isMember: Boolean = false,
+    val myMembership: ChurchMemberEntity? = null,
     val myId: String = "u_demo",
 )
 
@@ -51,7 +51,7 @@ class ChurchDetailViewModel @Inject constructor(
                 members = members,
                 events = events,
                 articles = articles,
-                isMember = members.any { it.userId == uid && it.isActive },
+                myMembership = members.firstOrNull { it.userId == uid },
                 myId = uid,
             )
         }
@@ -62,15 +62,26 @@ class ChurchDetailViewModel @Inject constructor(
     fun joinChurch() = viewModelScope.launch {
         val church = state.value.church ?: return@launch
         val uid = myId.value
+        val user = userDao.currentOnce()
         memberDao.insert(ChurchMemberEntity(
             id = "${church.id}_$uid",
             churchId = church.id,
             userId = uid,
-            displayName = userDao.currentOnce()?.displayName ?: "Member",
+            displayName = user?.displayName ?: "Member",
             joinedAt = System.currentTimeMillis(),
-            beliefSystem = userDao.currentOnce()?.beliefSystem ?: BeliefSystem.NONDENOMINATIONAL,
-            isActive = true,
+            beliefSystem = user?.beliefSystem ?: BeliefSystem.NONDENOMINATIONAL,
+            isActive = false,  // inactive until approved
+            status = MemberStatus.PENDING,
+            approvedAt = null,
         ))
+    }
+
+    fun approveMember(memberId: String) = viewModelScope.launch {
+        memberDao.approve(memberId, System.currentTimeMillis())
+    }
+
+    fun rejectMember(memberId: String) = viewModelScope.launch {
+        memberDao.reject(memberId)
     }
 
     fun createEvent(title: String, description: String, startTime: Long, isOnline: Boolean, meetingLink: String?, location: String?) = viewModelScope.launch {
@@ -114,6 +125,7 @@ data class ChurchProfileState(
     val user: UserEntity? = null,
     val church: ChurchEntity? = null,
     val members: List<ChurchMemberEntity> = emptyList(),
+    val pendingMembers: List<ChurchMemberEntity> = emptyList(),
     val events: List<ChurchEventEntity> = emptyList(),
     val articles: List<ArticleEntity> = emptyList(),
     val showCreateEvent: Boolean = false,
@@ -140,15 +152,17 @@ class ChurchProfileViewModel @Inject constructor(
         if (churchId == null) flowOf(ChurchProfileState(user = user))
         else combine(
             flowOf(churchDao.getById(churchId)),
-            memberDao.forChurch(churchId),
+            memberDao.approvedForChurch(churchId),
+            memberDao.pendingForChurch(churchId),
             eventDao.forChurch(churchId),
             articleDao.forChurch(churchId),
             combine(_showCreateEvent, _showWriteArticle, _showVerification) { e, a, v -> Triple(e, a, v) }
-        ) { church, members, events, articles, flags ->
+        ) { church, members, pending, events, articles, flags ->
             ChurchProfileState(
                 user = user,
                 church = church,
                 members = members,
+                pendingMembers = pending,
                 events = events,
                 articles = articles,
                 showCreateEvent = flags.first,
@@ -207,5 +221,13 @@ class ChurchProfileViewModel @Inject constructor(
             verificationStatus = VerificationStatus.PENDING,
         ))
         _showVerification.value = false
+    }
+
+    fun approveMember(memberId: String) = viewModelScope.launch {
+        memberDao.approve(memberId, System.currentTimeMillis())
+    }
+
+    fun rejectMember(memberId: String) = viewModelScope.launch {
+        memberDao.reject(memberId)
     }
 }

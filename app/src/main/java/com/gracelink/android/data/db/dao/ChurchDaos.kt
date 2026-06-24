@@ -31,14 +31,29 @@ interface ChurchMemberDao {
     @Query("SELECT * FROM church_members WHERE churchId = :churchId ORDER BY joinedAt DESC")
     fun forChurch(churchId: String): Flow<List<ChurchMemberEntity>>
 
+    @Query("SELECT * FROM church_members WHERE churchId = :churchId AND status = 'APPROVED' ORDER BY joinedAt DESC")
+    fun approvedForChurch(churchId: String): Flow<List<ChurchMemberEntity>>
+
+    @Query("SELECT * FROM church_members WHERE churchId = :churchId AND status = 'PENDING' ORDER BY joinedAt DESC")
+    fun pendingForChurch(churchId: String): Flow<List<ChurchMemberEntity>>
+
     @Query("SELECT * FROM church_members WHERE userId = :userId")
     fun forUser(userId: String): Flow<List<ChurchMemberEntity>>
 
-    @Query("SELECT COUNT(*) FROM church_members WHERE churchId = :churchId AND isActive = 1")
-    suspend fun countForChurch(churchId: String): Int
+    @Query("SELECT COUNT(*) FROM church_members WHERE churchId = :churchId AND status = 'APPROVED'")
+    suspend fun countApproved(churchId: String): Int
+
+    @Query("SELECT COUNT(*) FROM church_members WHERE churchId = :churchId AND status = 'PENDING'")
+    suspend fun countPending(churchId: String): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(member: ChurchMemberEntity)
+
+    @Query("UPDATE church_members SET status = 'APPROVED', approvedAt = :now, isActive = 1 WHERE id = :memberId")
+    suspend fun approve(memberId: String, now: Long)
+
+    @Query("UPDATE church_members SET status = 'REJECTED', isActive = 0 WHERE id = :memberId")
+    suspend fun reject(memberId: String)
 
     @Query("UPDATE church_members SET isActive = 0 WHERE churchId = :churchId AND userId = :userId")
     suspend fun deactivate(churchId: String, userId: String)

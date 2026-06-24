@@ -22,6 +22,8 @@ enum class BeliefSystem(val displayName: String) {
 
 enum class VerificationStatus { UNVERIFIED, PENDING, VERIFIED, SUSPENDED }
 
+enum class MemberStatus { PENDING, APPROVED, REJECTED }
+
 @Entity(tableName = "churches")
 data class ChurchEntity(
     @PrimaryKey val id: String,
@@ -49,6 +51,8 @@ data class ChurchMemberEntity(
     val joinedAt: Long,
     val beliefSystem: BeliefSystem,
     val isActive: Boolean,
+    val status: MemberStatus = MemberStatus.PENDING,  // PENDING → APPROVED/REJECTED
+    val approvedAt: Long? = null,
 )
 
 @Entity(tableName = "articles")
