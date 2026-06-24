@@ -124,7 +124,9 @@ fun GraceNavHost() {
                 composable<GraceRoute.AudioConnect> { AudioConnectScreen() }
                 composable<GraceRoute.Articles> { ArticlesScreen() }
                 composable<GraceRoute.Faith> { FaithScreen() }
-                composable<GraceRoute.Churches> { ChurchesScreen() }
+                composable<GraceRoute.Churches> {
+                    ChurchesScreen(onChurchClick = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) })
+                }
                 composable<GraceRoute.ChurchDetail> { entry ->
                     val route = entry.toRoute<GraceRoute.ChurchDetail>()
                     ChurchDetailScreen(churchId = route.churchId, onBack = { navController.popBackStack() })

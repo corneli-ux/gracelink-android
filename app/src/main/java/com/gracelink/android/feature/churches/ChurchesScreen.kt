@@ -35,7 +35,10 @@ import com.gracelink.android.data.db.entity.ChurchEntity
 import com.gracelink.android.data.db.entity.VerificationStatus
 
 @Composable
-fun ChurchesScreen(vm: ChurchesViewModel = hiltViewModel()) {
+fun ChurchesScreen(
+    onChurchClick: (String) -> Unit = {},
+    vm: ChurchesViewModel = hiltViewModel(),
+) {
     val state by vm.state.collectAsStateWithLifecycle()
     var showCreate by remember { mutableStateOf(false) }
 
@@ -52,7 +55,7 @@ fun ChurchesScreen(vm: ChurchesViewModel = hiltViewModel()) {
 
         LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(state.churches, key = { it.id }) { church ->
-                ChurchCard(church, state.myChurchId == church.id) { vm.joinChurch(church) }
+                ChurchCard(church, state.myChurchId == church.id, { vm.joinChurch(church) }, { onChurchClick(church.id) })
             }
         }
     }
@@ -63,9 +66,9 @@ fun ChurchesScreen(vm: ChurchesViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun ChurchCard(church: ChurchEntity, isMember: Boolean, onJoin: () -> Unit) {
+private fun ChurchCard(church: ChurchEntity, isMember: Boolean, onJoin: () -> Unit, onClick: () -> Unit) {
     val isVerified = church.verificationStatus == VerificationStatus.VERIFIED
-    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Brush.horizontalGradient(listOf(Gold400.copy(alpha = 0.1f), Slate800))).padding(16.dp)) {
+    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Brush.horizontalGradient(listOf(Gold400.copy(alpha = 0.1f), Slate800))).clickable(onClick = onClick).padding(16.dp)) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
