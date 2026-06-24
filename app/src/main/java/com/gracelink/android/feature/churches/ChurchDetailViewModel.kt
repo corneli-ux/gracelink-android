@@ -150,25 +150,31 @@ class ChurchProfileViewModel @Inject constructor(
     val state: StateFlow<ChurchProfileState> = userDao.current().flatMapLatest { user ->
         val churchId = user?.churchId ?: user?.uid
         if (churchId == null) flowOf(ChurchProfileState(user = user))
-        else combine(
-            flowOf(churchDao.getById(churchId)),
-            memberDao.approvedForChurch(churchId),
-            memberDao.pendingForChurch(churchId),
-            eventDao.forChurch(churchId),
-            articleDao.forChurch(churchId),
-            combine(_showCreateEvent, _showWriteArticle, _showVerification) { e, a, v -> Triple(e, a, v) }
-        ) { church, members, pending, events, articles, flags ->
-            ChurchProfileState(
-                user = user,
-                church = church,
-                members = members,
-                pendingMembers = pending,
-                events = events,
-                articles = articles,
-                showCreateEvent = flags.first,
-                showWriteArticle = flags.second,
-                showVerification = flags.third,
-            )
+        else {
+            val membersFlow = combine(
+                memberDao.approvedForChurch(churchId),
+                memberDao.pendingForChurch(churchId)
+            ) { approved, pending -> approved to pending }
+
+            combine(
+                flowOf(churchDao.getById(churchId)),
+                membersFlow,
+                eventDao.forChurch(churchId),
+                articleDao.forChurch(churchId),
+                combine(_showCreateEvent, _showWriteArticle, _showVerification) { e, a, v -> Triple(e, a, v) }
+            ) { church, memberPair, events, articles, flags ->
+                ChurchProfileState(
+                    user = user,
+                    church = church,
+                    members = memberPair.first,
+                    pendingMembers = memberPair.second,
+                    events = events,
+                    articles = articles,
+                    showCreateEvent = flags.first,
+                    showWriteArticle = flags.second,
+                    showVerification = flags.third,
+                )
+            }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChurchProfileState())
 
