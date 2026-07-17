@@ -137,7 +137,7 @@ fun GraceNavHost() {
                 // ── Pre-auth ──────────────────────────────────────────────
                 composable<GraceRoute.Splash> {
                     SplashScreen(
-                        onFinished = {
+                        onComplete = {
                             navController.navigate(GraceRoute.Onboarding) {
                                 popUpTo(GraceRoute.Splash) { inclusive = true }
                             }
@@ -180,8 +180,7 @@ fun GraceNavHost() {
                             navController.navigate(GraceRoute.PortalHub) {
                                 popUpTo(GraceRoute.Auth) { inclusive = true }
                             }
-                        },
-                        onBack = { navController.popBackStack() }
+                        }
                     )
                 }
 
@@ -264,19 +263,21 @@ fun GraceNavHost() {
                 }
 
                 composable<GraceRoute.Prayer> {
-                    PrayerWallScreen(onBack = { navController.popBackStack() })
+                    PrayerWallScreen()
                 }
 
                 composable<GraceRoute.Events> {
-                    EventsScreen(onBack = { navController.popBackStack() })
+                    EventsScreen(
+                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) }
+                    )
                 }
 
                 composable<GraceRoute.Articles> {
-                    ArticlesScreen(onBack = { navController.popBackStack() })
+                    ArticlesScreen()
                 }
 
                 composable<GraceRoute.Faith> {
-                    FaithScreen(onBack = { navController.popBackStack() })
+                    FaithScreen()
                 }
 
                 // ── Player routes ─────────────────────────────────────────
