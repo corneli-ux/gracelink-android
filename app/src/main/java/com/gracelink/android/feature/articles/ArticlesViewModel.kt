@@ -15,6 +15,7 @@ data class ArticlesState(
     val showWrite: Boolean = false,
     val myName: String = "You",
     val myId: String = "u_demo",
+    val isGuest: Boolean = true,
 )
 
 @HiltViewModel
@@ -28,7 +29,7 @@ class ArticlesViewModel @Inject constructor(
     private val showWrite = MutableStateFlow(false)
 
     val state: StateFlow<ArticlesState> = combine(articleDao.all(), showWrite, userRepo.current()) { articles, write, user ->
-        ArticlesState(articles, write, user?.displayName ?: "You", user?.uid ?: "u_demo")
+        ArticlesState(articles, write, user?.displayName ?: "You", user?.uid ?: "u_demo", isGuest = user == null)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ArticlesState())
 
     fun showWriteDialog(show: Boolean) { showWrite.value = show }

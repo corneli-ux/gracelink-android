@@ -1,6 +1,5 @@
 package com.gracelink.android.feature.churches
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +12,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Church
 import androidx.compose.material.icons.rounded.People
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,13 +34,28 @@ import com.gracelink.android.data.db.entity.BeliefSystem
 import com.gracelink.android.data.db.entity.ChurchEntity
 import com.gracelink.android.data.db.entity.VerificationStatus
 
+private enum class ChurchFilter(val label: String) { ALL("All"), VERIFIED("Verified"), MINE("My Church") }
+
 @Composable
 fun ChurchesScreen(
     onChurchClick: (String) -> Unit = {},
+    onRequireSignIn: () -> Unit = {},
     vm: ChurchesViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     var showCreate by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
+    var filter by remember { mutableStateOf(ChurchFilter.ALL) }
+
+    val filtered = state.churches
+        .filter { it.name.contains(query, ignoreCase = true) || it.location.contains(query, ignoreCase = true) }
+        .filter {
+            when (filter) {
+                ChurchFilter.ALL -> true
+                ChurchFilter.VERIFIED -> it.verificationStatus == VerificationStatus.VERIFIED
+                ChurchFilter.MINE -> it.id == state.myChurchId
+            }
+        }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
         Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -48,14 +63,70 @@ fun ChurchesScreen(
                 Text("Churches", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
                 Text("Find your community & join", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Box(Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(Gold400).clickable { showCreate = true }, contentAlignment = Alignment.Center) {
+            Box(
+                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(Gold400).clickable {
+                    if (state.isGuest) onRequireSignIn() else showCreate = true
+                },
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(Icons.Rounded.Add, "Create church", tint = Color(0xFF1A1408), modifier = Modifier.size(22.dp))
             }
         }
 
-        LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(state.churches, key = { it.id }) { church ->
-                ChurchCard(church, state.myChurchId == church.id, { vm.joinChurch(church) }, { onChurchClick(church.id) })
+        // Search
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Slate800)
+                .padding(horizontal = 14.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Rounded.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            OutlinedTextField(
+                value = query, onValueChange = { query = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Search by name or location", style = MaterialTheme.typography.bodyMedium) },
+                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400),
+                singleLine = true,
+            )
+        }
+        Spacer(Modifier.height(10.dp))
+
+        // Filter chips
+        Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ChurchFilter.values().forEach { f ->
+                val selected = filter == f
+                Box(
+                    Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (selected) Gold400 else Slate800)
+                        .clickable { filter = f }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(f.label, style = MaterialTheme.typography.labelMedium, color = if (selected) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        if (filtered.isEmpty()) {
+            Column(Modifier.fillMaxWidth().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(Modifier.height(40.dp))
+                Icon(Icons.Rounded.Church, null, tint = Gold400.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
+                Spacer(Modifier.height(8.dp))
+                Text("No churches match", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(filtered, key = { it.id }) { church ->
+                    ChurchCard(
+                        church, state.myChurchId == church.id,
+                        onJoin = { if (state.isGuest) onRequireSignIn() else vm.joinChurch(church) },
+                        onClick = { onChurchClick(church.id) },
+                    )
+                }
             }
         }
     }
@@ -105,7 +176,7 @@ private fun ChurchCard(church: ChurchEntity, isMember: Boolean, onJoin: () -> Un
             }
             if (church.verificationStatus == VerificationStatus.PENDING) {
                 Spacer(Modifier.height(6.dp))
-                Text("⏳ Verification pending — certificate & photos under review", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Verification pending \u2014 certificate & photos under review", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -145,7 +216,7 @@ private fun CreateChurchDialog(onCreate: (String, String, String, BeliefSystem, 
                     Spacer(Modifier.height(4.dp))
                 }
                 Spacer(Modifier.height(8.dp))
-                Text("📋 After creation, upload your church certificate & photos for verification", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("After creation, upload your church certificate & photos for verification", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(16.dp))
                 GoldButton("Register Church", onClick = { if (name.isNotBlank() && pastor.isNotBlank()) onCreate(name, pastor, location, belief, email) }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(10.dp))

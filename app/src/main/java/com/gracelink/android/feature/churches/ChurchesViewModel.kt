@@ -20,6 +20,7 @@ import javax.inject.Inject
 data class ChurchesState(
     val churches: List<ChurchEntity> = emptyList(),
     val myChurchId: String? = null,
+    val isGuest: Boolean = true,
 )
 
 @HiltViewModel
@@ -32,7 +33,7 @@ class ChurchesViewModel @Inject constructor(
     val state: StateFlow<ChurchesState> = combine(
         churchDao.all(), userDao.current()
     ) { churches, user ->
-        ChurchesState(churches, user?.churchId)
+        ChurchesState(churches, user?.churchId, isGuest = user == null)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChurchesState())
 
     fun joinChurch(church: ChurchEntity) = viewModelScope.launch {

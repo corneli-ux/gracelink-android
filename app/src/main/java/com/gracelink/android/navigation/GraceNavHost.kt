@@ -234,7 +234,8 @@ fun GraceNavHost() {
                 // -- Church & detail routes ----------------------------------
                 composable<GraceRoute.Churches> {
                     ChurchesScreen(
-                        onChurchClick = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) }
+                        onChurchClick = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
                     )
                 }
 
@@ -268,11 +269,15 @@ fun GraceNavHost() {
                 }
 
                 composable<GraceRoute.Articles> {
-                    ArticlesScreen()
+                    ArticlesScreen(
+                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
+                    )
                 }
 
                 composable<GraceRoute.Faith> {
-                    FaithScreen()
+                    FaithScreen(
+                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
+                    )
                 }
 
                 // -- Player routes --------------------------------------------
