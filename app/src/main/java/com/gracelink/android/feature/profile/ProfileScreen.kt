@@ -43,9 +43,9 @@ import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.ContentLanguage
 
 /**
- * Doubles as the sign-in gateway: guests see a clear "Sign in" card in place
- * of account stats, and every account-only action degrades gracefully rather
- * than being force-gated earlier in the flow.
+ * Sign-in is mandatory elsewhere in the app, so this screen can assume a
+ * signed-in user. Signing out here returns to the mandatory sign-in screen
+ * via onSignedOut rather than leaving a "guest" view behind.
  */
 @Composable
 fun ProfileScreen(
@@ -53,12 +53,11 @@ fun ProfileScreen(
     onNavigateToArticles: () -> Unit = {},
     onNavigateToChurches: () -> Unit = {},
     onNavigateToChurchPortal: () -> Unit = {},
-    onRequireSignIn: () -> Unit = {},
+    onSignedOut: () -> Unit = {},
     vm: ProfileViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     val user = state.user
-    val isGuest = user == null
 
     LazyColumn(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding(), contentPadding = PaddingValues(bottom = 24.dp)) {
         // Header
@@ -69,9 +68,9 @@ fun ProfileScreen(
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(user?.displayName ?: "Guest", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
-                    Text(user?.email ?: "Not signed in", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (!isGuest) {
+                    Text(user?.displayName ?: "", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
+                    Text(user?.email ?: "", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (user != null) {
                         Spacer(Modifier.height(4.dp))
                         val isChurch = user.accountType == AccountType.CHURCH
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -88,73 +87,49 @@ fun ProfileScreen(
             }
         }
 
-        // Guest sign-in card replaces stats when not signed in
-        if (isGuest) {
-            item {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Gold500)
-                        .clickable(onClick = onRequireSignIn)
-                        .padding(18.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Rounded.Login, null, tint = Color(0xFF1A0F00))
-                    Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text("Sign in to GraceLink", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = Color(0xFF1A0F00))
-                        Text("Save progress, offer prayers, and join a church", style = MaterialTheme.typography.bodySmall, color = Color(0xFF1A0F00).copy(alpha = 0.75f))
-                    }
-                }
-                Spacer(Modifier.height(20.dp))
+        // Stats
+        item {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Stat(Icons.Rounded.GraphicEq, "Minutes", "${user?.totalMinutes ?: 0}", Gold400, Modifier.weight(1f))
+                Stat(Icons.Rounded.TrendingUp, "Streak", "${user?.streakDays ?: 0}d", Emerald500, Modifier.weight(1f))
+                Stat(Icons.Rounded.Bookmark, "Saved", "${state.favoritesCount}", Gold400, Modifier.weight(1f))
+                Stat(Icons.Rounded.Download, "Downloads", "${state.downloadsCount}", Emerald500, Modifier.weight(1f))
             }
-        } else {
-            // Stats
-            item {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Stat(Icons.Rounded.GraphicEq, "Minutes", "${user?.totalMinutes ?: 0}", Gold400, Modifier.weight(1f))
-                    Stat(Icons.Rounded.TrendingUp, "Streak", "${user?.streakDays ?: 0}d", Emerald500, Modifier.weight(1f))
-                    Stat(Icons.Rounded.Bookmark, "Saved", "${state.favoritesCount}", Gold400, Modifier.weight(1f))
-                    Stat(Icons.Rounded.Download, "Downloads", "${state.downloadsCount}", Emerald500, Modifier.weight(1f))
-                }
-                Spacer(Modifier.height(20.dp))
-            }
-
-            // Prayers offered banner
-            item {
-                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(20.dp)).background(Brush.horizontalGradient(listOf(Emerald500.copy(alpha = 0.25f), Slate800))).padding(20.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.Spa, null, tint = Emerald500, modifier = Modifier.size(28.dp))
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) { Text("Prayers Offered", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface); Text("Standing with brothers and sisters", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                        Text("${user?.prayersOffered ?: 0}", style = MaterialTheme.typography.displaySmall, color = Emerald500, fontWeight = FontWeight.Bold)
-                    }
-                }
-                Spacer(Modifier.height(24.dp))
-            }
-
-            // Quick actions: Faith Journey + Articles + Churches + Church Portal
-            item {
-                Text("My Faith", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = 20.dp))
-                Spacer(Modifier.height(8.dp))
-                SettingsCard {
-                    Clickable(Icons.Rounded.Spa, "Faith Journey", "Track your sanctification & belief system", onNavigateToFaith)
-                    Divider()
-                    Clickable(Icons.Rounded.Article, "My Articles", "Write and manage your articles", onNavigateToArticles)
-                    Divider()
-                    Clickable(Icons.Rounded.Church, "Find Churches", "Join a church & become a member", onNavigateToChurches)
-                    if (user?.accountType == AccountType.CHURCH) {
-                        Divider()
-                        Clickable(Icons.Rounded.Church, "Church Portal", "Manage members, events & articles", onNavigateToChurchPortal)
-                    }
-                }
-                Spacer(Modifier.height(12.dp))
-            }
+            Spacer(Modifier.height(20.dp))
         }
 
-        // Settings (available to everyone, guest or not)
+        // Prayers offered banner
+        item {
+            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(20.dp)).background(Brush.horizontalGradient(listOf(Emerald500.copy(alpha = 0.25f), Slate800))).padding(20.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Spa, null, tint = Emerald500, modifier = Modifier.size(28.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) { Text("Prayers Offered", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface); Text("Standing with brothers and sisters", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                    Text("${user?.prayersOffered ?: 0}", style = MaterialTheme.typography.displaySmall, color = Emerald500, fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+        }
+
+        // Quick actions: Faith Journey + Articles + Churches + Church Portal
+        item {
+            Text("My Faith", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = 20.dp))
+            Spacer(Modifier.height(8.dp))
+            SettingsCard {
+                Clickable(Icons.Rounded.Spa, "Faith Journey", "Track your sanctification & belief system", onNavigateToFaith)
+                Divider()
+                Clickable(Icons.Rounded.Article, "My Articles", "Write and manage your articles", onNavigateToArticles)
+                Divider()
+                Clickable(Icons.Rounded.Church, "Find Churches", "Join a church & become a member", onNavigateToChurches)
+                if (user?.accountType == AccountType.CHURCH) {
+                    Divider()
+                    Clickable(Icons.Rounded.Church, "Church Portal", "Manage members, events & articles", onNavigateToChurchPortal)
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+
+        // Settings
         item {
             Text("Settings", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = 20.dp))
             Spacer(Modifier.height(8.dp))
@@ -180,12 +155,15 @@ fun ProfileScreen(
             Spacer(Modifier.height(20.dp))
         }
 
-        // Sign out (only meaningful when signed in)
-        if (!isGuest) {
-            item {
-                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(14.dp)).background(Slate800).clickable { vm.signOut() }.padding(vertical = 14.dp), contentAlignment = Alignment.Center) {
-                    Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Rounded.Logout, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Sign Out", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge) }
-                }
+        // Sign out
+        item {
+            Box(
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(14.dp)).background(Slate800)
+                    .clickable { vm.signOut(); onSignedOut() }
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Rounded.Logout, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Sign Out", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge) }
             }
         }
         item { Spacer(Modifier.height(16.dp)); Text("GraceLink v1.0.0\nBuilt with care for the body of Christ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(20.dp), textAlign = TextAlign.Center) }

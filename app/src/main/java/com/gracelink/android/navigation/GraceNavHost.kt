@@ -35,7 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,6 +60,7 @@ import com.gracelink.android.core.theme.TextSecondary
 import com.gracelink.android.feature.audioconnect.AudioConnectScreen
 import com.gracelink.android.feature.articles.ArticlesScreen
 import com.gracelink.android.feature.auth.AuthScreen
+import com.gracelink.android.feature.auth.GoogleAuthData
 import com.gracelink.android.feature.churches.ChurchDetailScreen
 import com.gracelink.android.feature.churches.ChurchesScreen
 import com.gracelink.android.feature.churchportal.ChurchPortalScreen
@@ -76,23 +78,27 @@ import com.gracelink.android.feature.prayer.PrayerWallScreen
 import com.gracelink.android.feature.profile.ProfileScreen
 import com.gracelink.android.feature.registration.RegistrationScreen
 import com.gracelink.android.feature.splash.SplashScreen
+import kotlinx.coroutines.launch
 
 /**
  * Single source of truth for GraceLink navigation.
  *
- * Clean flow:
- *   Splash -> (first launch) Onboarding -> Home
- *   Splash -> (returning user) Home directly
+ * Flow:
+ *   Splash -> (first launch) Onboarding -> Auth (mandatory) -> Home
+ *   Splash -> (returning, not signed in) Auth (mandatory) -> Home
+ *   Splash -> (returning, signed in) Home directly
  *
- * Home is fully browsable as a guest. Auth is only ever reached by explicit
- * user action -- the sign-in banner on Home/Profile, or a specific gated
- * action such as posting a prayer -- and always returns the user to exactly
- * where they were (popBackStack), never resetting them to Home.
+ * Sign-in is REQUIRED before the app is usable -- there is no guest mode.
+ * The only exception is the one-time Onboarding screens, which explain the
+ * app before asking for an account. Once signed in, Auth/Registration are
+ * never shown again unless the person signs out.
  */
 @Composable
 fun GraceNavHost() {
     val navController = rememberNavController()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val authGateVm: AuthGateViewModel = hiltViewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -100,8 +106,24 @@ fun GraceNavHost() {
         currentRoute?.contains(route::class.simpleName ?: "") == true
     }
 
-    val startAfterSplash = remember {
-        if (AppPrefs.hasOnboarded(context)) GraceRoute.Home else GraceRoute.Onboarding
+    /** After Splash or Onboarding: signed in -> Home, otherwise -> Auth (mandatory gate). */
+    fun navigateAfterGateCheck(popRoute: GraceRoute, popInclusive: Boolean = true) {
+        scope.launch {
+            val destination = if (authGateVm.isSignedIn()) GraceRoute.Home else GraceRoute.Auth
+            navController.navigate(destination) {
+                popUpTo(popRoute) { inclusive = popInclusive }
+            }
+        }
+    }
+
+    /** After Auth/Registration completes: return to caller if there was one, otherwise go to Home. */
+    fun navigateAfterSignIn() {
+        val popped = navController.popBackStack(GraceRoute.Auth, true)
+        if (!popped) {
+            navController.navigate(GraceRoute.Home) {
+                popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+            }
+        }
     }
 
     Scaffold(
@@ -143,8 +165,12 @@ fun GraceNavHost() {
                 composable<GraceRoute.Splash> {
                     SplashScreen(
                         onComplete = {
-                            navController.navigate(startAfterSplash) {
-                                popUpTo(GraceRoute.Splash) { inclusive = true }
+                            if (AppPrefs.hasOnboarded(context)) {
+                                navigateAfterGateCheck(GraceRoute.Splash)
+                            } else {
+                                navController.navigate(GraceRoute.Onboarding) {
+                                    popUpTo(GraceRoute.Splash) { inclusive = true }
+                                }
                             }
                         }
                     )
@@ -154,18 +180,14 @@ fun GraceNavHost() {
                     OnboardingScreen(
                         onDone = {
                             AppPrefs.setOnboarded(context)
-                            navController.navigate(GraceRoute.Home) {
-                                popUpTo(GraceRoute.Onboarding) { inclusive = true }
-                            }
+                            navigateAfterGateCheck(GraceRoute.Onboarding)
                         }
                     )
                 }
 
                 composable<GraceRoute.Auth> {
                     AuthScreen(
-                        onSignInComplete = {
-                            navController.popBackStack()
-                        },
+                        onSignInComplete = { navigateAfterSignIn() },
                         onNewUserNeedsRegistration = { _, _ ->
                             navController.navigate(GraceRoute.Registration)
                         },
@@ -178,13 +200,13 @@ fun GraceNavHost() {
                 composable<GraceRoute.Registration> {
                     RegistrationScreen(
                         onComplete = {
-                            com.gracelink.android.feature.auth.GoogleAuthData.clear()
-                            navController.popBackStack(GraceRoute.Auth, true)
+                            GoogleAuthData.clear()
+                            navigateAfterSignIn()
                         }
                     )
                 }
 
-                // -- Home (guest-accessible unified hub) ---------------------
+                // -- Home (single unified hub, requires sign-in to reach) ----
                 composable<GraceRoute.Home> {
                     HomeScreen(
                         onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) },
@@ -192,7 +214,6 @@ fun GraceNavHost() {
                         onOpenRadio = { navController.navigate(GraceRoute.Radio) },
                         onOpenPodcasts = { navController.navigate(GraceRoute.Podcasts) },
                         onOpenCommunity = { navController.navigate(GraceRoute.Community) },
-                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) },
                     )
                 }
 
@@ -227,7 +248,11 @@ fun GraceNavHost() {
                         onNavigateToArticles = { navController.navigate(GraceRoute.Articles) },
                         onNavigateToChurches = { navController.navigate(GraceRoute.Churches) },
                         onNavigateToChurchPortal = { navController.navigate(GraceRoute.ChurchPortal) },
-                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) },
+                        onSignedOut = {
+                            navController.navigate(GraceRoute.Auth) {
+                                popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                            }
+                        },
                     )
                 }
 
