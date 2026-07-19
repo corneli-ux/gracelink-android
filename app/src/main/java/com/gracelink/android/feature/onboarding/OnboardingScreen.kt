@@ -72,11 +72,11 @@ fun OnboardingScreen(onDone: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = androidx.compose.ui.res.painterResource(id = com.gracelink.android.R.drawable.faith_link_logo),
-                    contentDescription = "Faith Link",
+                    contentDescription = "GraceLink",
                     modifier = Modifier.size(32.dp)
                 )
                 Spacer(Modifier.width(10.dp))
-                Text("Faith Link", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold))
+                Text("GraceLink", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold))
             }
             Spacer(Modifier.height(40.dp))
 

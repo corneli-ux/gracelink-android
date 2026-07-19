@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 /**
- * Faith Link theme — matches the logo colors.
+ * GraceLink theme -- matches the logo colors.
  * Logo: warm gold/cream (#D1BE9B) on pure black (#000000).
  * App: pure black bg, warm gold accents, cream text.
  */

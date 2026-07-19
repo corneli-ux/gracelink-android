@@ -64,7 +64,7 @@ fun SplashScreen(onComplete: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Real Faith Link logo from the uploaded image
+            // GraceLink logo
             Box(
                 Modifier
                     .size(120.dp)
@@ -83,14 +83,14 @@ fun SplashScreen(onComplete: () -> Unit) {
                 // The actual logo image
                 Image(
                     painter = painterResource(id = R.drawable.faith_link_logo),
-                    contentDescription = "Faith Link Logo",
+                    contentDescription = "GraceLink Logo",
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Spacer(Modifier.height(20.dp))
             AnimatedVisibility(visible = true, enter = fadeIn(tween(800))) {
                 Text(
-                    "Faith Link",
+                    "GraceLink",
                     style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onBackground,
                 )

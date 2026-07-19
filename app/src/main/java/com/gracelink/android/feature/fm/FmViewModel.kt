@@ -45,7 +45,7 @@ class FmViewModel @Inject constructor(
             // Play the live FM stream
             val content = com.gracelink.android.data.db.entity.ContentEntity(
                 id = "fm_live_stream",
-                title = "Faith FM Live",
+                title = "GraceLink Radio Live",
                 description = current.preacher + " — " + current.description,
                 speaker = current.preacher,
                 durationMs = 0,

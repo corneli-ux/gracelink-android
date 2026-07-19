@@ -55,8 +55,12 @@ import com.gracelink.android.core.theme.TextPrimary
 import com.gracelink.android.core.theme.TextSecondary
 
 /**
- * Dedicated Podcasts experience – series, episodes, featured rotation,
- * search, and clean unique cards. Completely separate from the old generic library.
+ * Dedicated Podcasts experience -- series, episodes, featured rotation,
+ * search + category filter, distinct from the old generic library.
+ *
+ * NOTE: podcast/episode data below is still the placeholder set from the
+ * previous build (no ContentRepository wiring for podcasts yet) -- flagging
+ * this as a known gap rather than pretending it's live data.
  */
 @Composable
 fun PodcastsScreen(
@@ -64,24 +68,25 @@ fun PodcastsScreen(
     onPlayEpisode: (String) -> Unit
 ) {
     var query by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("All") }
 
-    // Mock data – replace with real repository later
     val featured = remember {
         listOf(
-            PodcastUi("p1", "Grace Daily", "Pastor Michael", "Daily encouragement", "https://picsum.photos/seed/grace1/400", 128),
-            PodcastUi("p2", "Telugu Living Word", "Ps. Raju", "Regional teaching", "https://picsum.photos/seed/grace2/400", 86),
-            PodcastUi("p3", "Worship Unplugged", "GraceLink Team", "Live worship sets", "https://picsum.photos/seed/grace3/400", 54)
+            PodcastUi("p1", "Grace Daily", "Pastor Michael", "Daily encouragement", "https://picsum.photos/seed/grace1/400", 128, "Teaching"),
+            PodcastUi("p2", "Telugu Living Word", "Ps. Raju", "Regional teaching", "https://picsum.photos/seed/grace2/400", 86, "Regional"),
+            PodcastUi("p3", "Worship Unplugged", "GraceLink Team", "Live worship sets", "https://picsum.photos/seed/grace3/400", 54, "Worship")
         )
     }
     val episodes = remember {
         listOf(
-            EpisodeUi("e1", "The Power of Waiting", "Grace Daily", "28 min", "Today"),
-            EpisodeUi("e2", "Faith in the Storm", "Telugu Living Word", "41 min", "Yesterday"),
-            EpisodeUi("e3", "Midnight Worship", "Worship Unplugged", "62 min", "2 days ago"),
-            EpisodeUi("e4", "Prayer That Moves Mountains", "Grace Daily", "33 min", "3 days ago"),
-            EpisodeUi("e5", "Identity in Christ", "Telugu Living Word", "37 min", "4 days ago")
+            EpisodeUi("e1", "The Power of Waiting", "Grace Daily", "28 min", "Today", "Teaching"),
+            EpisodeUi("e2", "Faith in the Storm", "Telugu Living Word", "41 min", "Yesterday", "Regional"),
+            EpisodeUi("e3", "Midnight Worship", "Worship Unplugged", "62 min", "2 days ago", "Worship"),
+            EpisodeUi("e4", "Prayer That Moves Mountains", "Grace Daily", "33 min", "3 days ago", "Teaching"),
+            EpisodeUi("e5", "Identity in Christ", "Telugu Living Word", "37 min", "4 days ago", "Regional")
         )
     }
+    val categories = listOf("All", "Teaching", "Worship", "Regional")
 
     Column(
         modifier = Modifier
@@ -96,7 +101,7 @@ fun PodcastsScreen(
                 color = TextPrimary
             )
             Text(
-                text = "Sermons • Teaching • Worship • Debates",
+                text = "Sermons \u2022 Teaching \u2022 Worship \u2022 Debates",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary
             )
@@ -107,7 +112,7 @@ fun PodcastsScreen(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search podcasts & episodes…", color = TextMuted) },
+                placeholder = { Text("Search podcasts & episodes\u2026", color = TextMuted) },
                 leadingIcon = { Icon(Icons.Rounded.Search, null, tint = TextMuted) },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
@@ -121,34 +126,57 @@ fun PodcastsScreen(
                     unfocusedTextColor = TextPrimary
                 )
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                categories.forEach { c ->
+                    val selected = c == category
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(if (selected) Gold500 else Slate900)
+                            .clickable { category = c }
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                    ) {
+                        Text(c, style = MaterialTheme.typography.labelMedium, color = if (selected) Obsidian else TextSecondary)
+                    }
+                }
+            }
+        }
+
+        val filteredFeatured = featured.filter { category == "All" || it.category == category }
+        val filteredEpisodes = episodes.filter {
+            (category == "All" || it.category == category) &&
+                (query.isBlank() || it.title.contains(query, true) || it.show.contains(query, true))
         }
 
         LazyColumn(
             contentPadding = PaddingValues(bottom = 100.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Featured carousel
-            item {
-                Text(
-                    text = "FEATURED SERIES",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = TextMuted,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                    letterSpacing = 1.2.sp
-                )
-            }
-            item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    items(featured) { podcast ->
-                        FeaturedPodcastCard(podcast) { onOpenPodcast(podcast.id) }
+            if (filteredFeatured.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "FEATURED SERIES",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = TextMuted,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                        letterSpacing = 1.2.sp
+                    )
+                }
+                item {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        items(filteredFeatured) { podcast ->
+                            FeaturedPodcastCard(podcast) { onOpenPodcast(podcast.id) }
+                        }
                     }
                 }
             }
 
-            // Latest episodes
             item {
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
@@ -160,9 +188,18 @@ fun PodcastsScreen(
                 )
             }
 
-            items(episodes.filter {
-                query.isBlank() || it.title.contains(query, true) || it.show.contains(query, true)
-            }) { ep ->
+            if (filteredEpisodes.isEmpty()) {
+                item {
+                    Text(
+                        "No episodes match",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+                    )
+                }
+            }
+
+            items(filteredEpisodes) { ep ->
                 EpisodeRow(ep) { onPlayEpisode(ep.id) }
             }
         }
@@ -191,7 +228,7 @@ private fun FeaturedPodcastCard(podcast: PodcastUi, onClick: () -> Unit) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            // Play overlay
+            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f)))))
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -260,7 +297,7 @@ private fun EpisodeRow(episode: EpisodeUi, onPlay: () -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "${episode.show} • ${episode.duration}",
+                text = "${episode.show} \u2022 ${episode.duration}",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondary
             )
@@ -273,14 +310,15 @@ private fun EpisodeRow(episode: EpisodeUi, onPlay: () -> Unit) {
     }
 }
 
-// Simple UI models (replace with domain models later)
+// Simple UI models (replace with domain models once podcasts have a real repository)
 data class PodcastUi(
     val id: String,
     val title: String,
     val host: String,
     val description: String,
     val coverUrl: String,
-    val episodeCount: Int
+    val episodeCount: Int,
+    val category: String = "All",
 )
 
 data class EpisodeUi(
@@ -288,5 +326,6 @@ data class EpisodeUi(
     val title: String,
     val show: String,
     val duration: String,
-    val date: String
+    val date: String,
+    val category: String = "All",
 )

@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,7 +39,6 @@ import coil.compose.AsyncImage
 import com.gracelink.android.core.theme.Gold400
 import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.core.theme.Obsidian
-import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.core.theme.TextMuted
 import com.gracelink.android.core.theme.TextPrimary
@@ -50,7 +50,8 @@ fun PodcastDetailScreen(
     onBack: () -> Unit,
     onPlayEpisode: (String) -> Unit
 ) {
-    // Mock – in real app load by id from repository
+    // NOTE: still placeholder data -- no podcast repository/detail lookup by
+    // id yet. Flagging rather than hiding it.
     val podcast = remember {
         PodcastUi(
             id = podcastId,
@@ -70,71 +71,66 @@ fun PodcastDetailScreen(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Obsidian)
-    ) {
-        // Top bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = TextPrimary)
-            }
-        }
-
-        LazyColumn(
-            contentPadding = PaddingValues(bottom = 100.dp)
-        ) {
+    Box(Modifier.fillMaxSize().background(Obsidian)) {
+        LazyColumn(contentPadding = PaddingValues(bottom = 100.dp)) {
             item {
-                // Cover + info
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                // Hero: blurred cover backdrop with the artwork + info layered on top
+                Box(Modifier.fillMaxWidth().height(320.dp)) {
                     AsyncImage(
                         model = podcast.coverUrl,
-                        contentDescription = podcast.title,
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .clip(RoundedCornerShape(24.dp))
+                        modifier = Modifier.fillMaxSize(),
                     )
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        text = podcast.title,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                        color = TextPrimary
-                    )
-                    Text(
-                        text = podcast.host,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Gold400
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = podcast.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "${podcast.episodeCount} episodes",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = TextMuted
-                    )
+                    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.35f), Obsidian))))
+                    Column(
+                        Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Row(Modifier.fillMaxWidth()) {
+                            IconButton(onClick = onBack) {
+                                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = TextPrimary)
+                            }
+                        }
+                        Spacer(Modifier.weight(1f))
+                        AsyncImage(
+                            model = podcast.coverUrl,
+                            contentDescription = podcast.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(140.dp).clip(RoundedCornerShape(20.dp)),
+                        )
+                        Spacer(Modifier.height(14.dp))
+                        Text(podcast.title, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
+                        Text(podcast.host, style = MaterialTheme.typography.bodyMedium, color = Gold400)
+                    }
                 }
             }
 
             item {
-                Spacer(modifier = Modifier.height(28.dp))
+                Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp)) {
+                    Text(podcast.description, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    Spacer(Modifier.height(14.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(Gold500)
+                                .clickable { episodes.firstOrNull()?.let { onPlayEpisode(it.id) } }
+                                .padding(horizontal = 20.dp, vertical = 12.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.PlayArrow, null, tint = Obsidian, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Play Latest", color = Obsidian, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text("${podcast.episodeCount} episodes", style = MaterialTheme.typography.labelMedium, color = TextMuted)
+                    }
+                }
+            }
+
+            item {
                 Text(
                     text = "EPISODES",
                     style = MaterialTheme.typography.labelMedium,
@@ -167,7 +163,7 @@ fun PodcastDetailScreen(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(ep.title, color = TextPrimary, style = MaterialTheme.typography.titleSmall)
-                        Text("${ep.duration} • ${ep.date}", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                        Text("${ep.duration} \u2022 ${ep.date}", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }

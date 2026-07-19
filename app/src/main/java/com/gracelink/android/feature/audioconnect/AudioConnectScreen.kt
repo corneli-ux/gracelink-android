@@ -1,6 +1,11 @@
 package com.gracelink.android.feature.audioconnect
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -106,8 +111,8 @@ private fun SpacesListView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
-                Text("Audio Connect", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
-                Text("Live audio spaces — join the conversation", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Live Spaces", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
+                Text("Live audio rooms \u2014 join the conversation", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Box(
                 Modifier
@@ -121,12 +126,25 @@ private fun SpacesListView(
             }
         }
 
-        LazyColumn(
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(state.spaces, key = { it.id }) { space ->
-                SpaceCard(space) { onJoin(space) }
+        if (state.spaces.isEmpty()) {
+            Column(
+                Modifier.fillMaxWidth().padding(40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(Modifier.height(40.dp))
+                Icon(Icons.Rounded.People, null, tint = Gold500.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
+                Spacer(Modifier.height(10.dp))
+                Text("No live spaces right now", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text("Start one to begin a live conversation", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(state.spaces, key = { it.id }) { space ->
+                    SpaceCard(space) { onJoin(space) }
+                }
             }
         }
     }
@@ -211,8 +229,23 @@ private fun ActiveSpaceView(
 
         Spacer(Modifier.weight(1f))
 
-        // Participant circle (visual)
+        // Participant circle (visual, with a subtle live pulse)
         Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
+            val transition = rememberInfiniteTransition(label = "space-pulse")
+            val ringScale by transition.animateFloat(
+                initialValue = 1f, targetValue = 1.25f,
+                animationSpec = infiniteRepeatable(tween(1400), RepeatMode.Restart), label = "ring"
+            )
+            val ringAlpha by transition.animateFloat(
+                initialValue = 0.5f, targetValue = 0f,
+                animationSpec = infiniteRepeatable(tween(1400), RepeatMode.Restart), label = "ringAlpha"
+            )
+            Box(
+                Modifier
+                    .size(120.dp * ringScale)
+                    .clip(CircleShape)
+                    .background(Gold500.copy(alpha = ringAlpha))
+            )
             Box(
                 Modifier
                     .size(120.dp)

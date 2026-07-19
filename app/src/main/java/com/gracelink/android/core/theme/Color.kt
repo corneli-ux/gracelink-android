@@ -3,7 +3,7 @@ package com.gracelink.android.core.theme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-// ── Faith Link logo colors ──────────────────────────────────────────────────
+// ── GraceLink logo colors ──────────────────────────────────────────────────
 // Logo: warm gold/cream (#D1BE9B) on pure black (#030303)
 // Theme follows the logo: black bg, warm gold accents, cream text
 

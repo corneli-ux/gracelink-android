@@ -136,7 +136,7 @@ fun ChurchPortalScreen(
 
             PortalAction(
                 title = "Radio Schedule",
-                subtitle = "Claim slots on Faith FM 24/7",
+                subtitle = "Claim slots on GraceLink Radio 24/7",
                 icon = Icons.Rounded.Radio,
                 accent = Gold400,
                 onClick = onScheduleRadio
@@ -146,7 +146,7 @@ fun ChurchPortalScreen(
 
             PortalAction(
                 title = "Start Live Space",
-                subtitle = "Host an audio space like X Spaces",
+                subtitle = "Host a live audio room for your congregation",
                 icon = Icons.Rounded.Headphones,
                 accent = Emerald500,
                 onClick = onStartSpace

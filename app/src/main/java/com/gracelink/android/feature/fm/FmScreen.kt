@@ -36,7 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -47,7 +46,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.components.LiveBadge
 import com.gracelink.android.core.theme.Emerald500
 import com.gracelink.android.core.theme.Gold400
+import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.core.theme.Slate800
+import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.data.db.entity.ContentCategory
 import com.gracelink.android.data.db.entity.FmScheduleEntity
 
@@ -64,24 +65,24 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
         // Header
         Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Faith FM", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
-                Text("24/7 Live Radio", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("GraceLink Radio", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
+                Text("24/7 Live Broadcast", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             LiveBadge(text = "ON AIR")
         }
 
-        // ── Live Player Bar ──────────────────────────────────────────────────
+        // -- Live Player Hero --------------------------------------------------
         state.currentSlot?.let { slot ->
-            LivePlayerBar(slot, state.isPlaying, vm::togglePlay)
-            Spacer(Modifier.height(16.dp))
+            LivePlayerHero(slot, state.isPlaying, vm::togglePlay)
+            Spacer(Modifier.height(20.dp))
         }
 
         // Day selector
         LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")) { day ->
                 val selected = day == state.selectedDay
-                Box(Modifier.clip(RoundedCornerShape(12.dp)).background(if (selected) Gold400 else Slate800).clickable { vm.selectDay(day) }.padding(horizontal = 16.dp, vertical = 10.dp)) {
-                    Text(day, style = MaterialTheme.typography.labelLarge, color = if (selected) Color(0xFF1A1408) else MaterialTheme.colorScheme.onSurface)
+                Box(Modifier.clip(RoundedCornerShape(12.dp)).background(if (selected) Gold500 else Slate800).clickable { vm.selectDay(day) }.padding(horizontal = 16.dp, vertical = 10.dp)) {
+                    Text(day, style = MaterialTheme.typography.labelLarge, color = if (selected) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface)
                 }
             }
         }
@@ -94,6 +95,12 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
             val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
             val today = FmViewModel.today()
 
+            if (daySchedule.isEmpty()) {
+                item {
+                    Text("No schedule for this day yet", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 24.dp))
+                }
+            }
+
             items(daySchedule, key = { it.id }) { slot ->
                 val isNow = slot.startHour <= currentHour && currentHour < (slot.startHour + 2) && state.selectedDay == today
                 ScheduleCard(slot, isNow)
@@ -103,44 +110,60 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun LivePlayerBar(slot: FmScheduleEntity, isPlaying: Boolean, onToggle: () -> Unit) {
-    val transition = rememberInfiniteTransition(label = "fm-pulse")
-    val pulseAlpha by transition.animateFloat(
-        initialValue = 0.4f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "pulse"
-    )
+private fun LivePlayerHero(slot: FmScheduleEntity, isPlaying: Boolean, onToggle: () -> Unit) {
+    val transition = rememberInfiniteTransition(label = "fm-eq")
+    val bar1 by transition.animateFloat(0.3f, 1f, infiniteRepeatable(tween(420), RepeatMode.Reverse), label = "b1")
+    val bar2 by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween(560), RepeatMode.Reverse), label = "b2")
+    val bar3 by transition.animateFloat(0.5f, 1f, infiniteRepeatable(tween(340), RepeatMode.Reverse), label = "b3")
 
     Box(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(Brush.horizontalGradient(listOf(Gold400.copy(alpha = 0.2f), Slate800)))
-            .padding(16.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Brush.linearGradient(listOf(Gold500.copy(alpha = 0.28f), Slate900)))
+            .padding(20.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Play/Pause button
             Box(
                 Modifier
-                    .size(56.dp)
+                    .size(60.dp)
                     .clip(CircleShape)
-                    .background(Gold400)
+                    .background(Gold500)
                     .clickable(onClick = onToggle),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, "Play/Pause", tint = Color(0xFF1A1408), modifier = Modifier.size(28.dp))
+                Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, "Play/Pause", tint = Color(0xFF1A0F00), modifier = Modifier.size(30.dp))
             }
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(8.dp).alpha(pulseAlpha).clip(CircleShape).background(Color.Red))
-                    Spacer(Modifier.width(6.dp))
-                    Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = Color.Red, fontWeight = FontWeight.Bold)
+                    Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = Gold500, fontWeight = FontWeight.Bold)
+                    if (isPlaying) {
+                        Spacer(Modifier.width(8.dp))
+                        EqualizerBars(bar1, bar2, bar3)
+                    }
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(slot.preacher, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+                Text(slot.preacher, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
                 Text(slot.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
+        }
+    }
+}
+
+@Composable
+private fun EqualizerBars(a: Float, b: Float, c: Float) {
+    Row(verticalAlignment = Alignment.Bottom) {
+        listOf(a, b, c).forEach { h ->
+            Box(
+                Modifier
+                    .padding(horizontal = 1.dp)
+                    .width(3.dp)
+                    .height((h * 10).dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(Gold500)
+            )
         }
     }
 }
