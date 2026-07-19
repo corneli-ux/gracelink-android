@@ -66,11 +66,11 @@ fun RadioBookingScreen(onBack: () -> Unit, vm: RadioBookingViewModel = hiltViewM
             "Open slots are first-come, first-served \u2014 booking is live.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 20.dp, bottom = 8.dp),
+            modifier = Modifier.padding(horizontal = 20.dp).padding(bottom = 8.dp),
         )
 
         if (state.message != null) {
-            Text(state.message ?: "", style = MaterialTheme.typography.labelMedium, color = Gold500, modifier = Modifier.padding(horizontal = 20.dp, bottom = 8.dp))
+            Text(state.message ?: "", style = MaterialTheme.typography.labelMedium, color = Gold500, modifier = Modifier.padding(horizontal = 20.dp).padding(bottom = 8.dp))
         }
 
         LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
