@@ -5,14 +5,10 @@ import kotlinx.serialization.Serializable
 /**
  * Type-safe navigation routes for GraceLink.
  *
- * Clean flow:
- *   Splash -> (first launch only) Onboarding -> Home
- *   Splash -> (returning user) Home directly
- *
- * Home is reachable and fully usable as a GUEST -- no forced login before or
- * after onboarding. Auth is a destination you can navigate *to* from Profile
- * or from a specific gated action (posting a prayer, requesting to join a
- * church, opening the Church Portal), never a mandatory gate in the graph.
+ * Flow: Splash -> (first launch only) Onboarding -> Home. There is no
+ * mandatory login right now; "Registration" doubles as a lightweight,
+ * non-blocking "Set Up Profile" step (name + role: Member / Pastor /
+ * Church) reachable from Profile whenever an action needs an identity.
  */
 @Serializable
 sealed interface GraceRoute {
@@ -20,7 +16,6 @@ sealed interface GraceRoute {
     // Pre-auth / first-run
     @Serializable data object Splash : GraceRoute
     @Serializable data object Onboarding : GraceRoute
-    @Serializable data object Auth : GraceRoute
     @Serializable data object Registration : GraceRoute
 
     // Single unified hub -- replaces the old forced PortalHub step
@@ -43,10 +38,17 @@ sealed interface GraceRoute {
     @Serializable data object Churches : GraceRoute
     @Serializable data class ChurchDetail(val churchId: String) : GraceRoute
     @Serializable data object ChurchPortal : GraceRoute
+    @Serializable data object PastorPortal : GraceRoute
     @Serializable data object Prayer : GraceRoute
     @Serializable data object Events : GraceRoute
     @Serializable data object Articles : GraceRoute
     @Serializable data object Faith : GraceRoute
+
+    // Church/Pastor content creation & booking
+    @Serializable data object RadioBooking : GraceRoute
+    @Serializable data object PodcastCreate : GraceRoute
+    @Serializable data object EventCreate : GraceRoute
+    @Serializable data object WritePost : GraceRoute
 }
 
 /**

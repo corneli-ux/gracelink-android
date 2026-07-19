@@ -12,4 +12,6 @@ data class FmScheduleEntity(
     val preacher: String,         // "Pastor Anil Kumar"
     val description: String,
     val category: ContentCategory,
+    val bookedByUid: String? = null,
+    val bookedByName: String? = null,
 )

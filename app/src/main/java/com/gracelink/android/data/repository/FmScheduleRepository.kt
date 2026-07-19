@@ -12,4 +12,10 @@ class FmScheduleRepository @Inject constructor(
 ) {
     fun all(): Flow<List<FmScheduleEntity>> = dao.all()
     fun forDay(day: String): Flow<List<FmScheduleEntity>> = dao.forDay(day)
+    fun myBookings(uid: String): Flow<List<FmScheduleEntity>> = dao.myBookings(uid)
+
+    /** Returns true if the slot was successfully booked (false if someone beat you to it). */
+    suspend fun bookSlot(id: String, uid: String, name: String): Boolean = dao.bookSlot(id, uid, name) > 0
+
+    suspend fun cancelBooking(id: String, uid: String): Boolean = dao.cancelBooking(id, uid) > 0
 }

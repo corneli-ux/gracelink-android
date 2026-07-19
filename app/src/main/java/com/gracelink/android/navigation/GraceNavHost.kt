@@ -35,7 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,11 +58,10 @@ import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.core.theme.TextSecondary
 import com.gracelink.android.feature.audioconnect.AudioConnectScreen
 import com.gracelink.android.feature.articles.ArticlesScreen
-import com.gracelink.android.feature.auth.AuthScreen
-import com.gracelink.android.feature.auth.GoogleAuthData
 import com.gracelink.android.feature.churches.ChurchDetailScreen
 import com.gracelink.android.feature.churches.ChurchesScreen
 import com.gracelink.android.feature.churchportal.ChurchPortalScreen
+import com.gracelink.android.feature.pastorportal.PastorPortalScreen
 import com.gracelink.android.feature.community.CommunityScreen
 import com.gracelink.android.feature.events.EventsScreen
 import com.gracelink.android.feature.faith.FaithScreen
@@ -78,27 +76,24 @@ import com.gracelink.android.feature.prayer.PrayerWallScreen
 import com.gracelink.android.feature.profile.ProfileScreen
 import com.gracelink.android.feature.registration.RegistrationScreen
 import com.gracelink.android.feature.splash.SplashScreen
-import kotlinx.coroutines.launch
 
 /**
  * Single source of truth for GraceLink navigation.
  *
- * Flow:
- *   Splash -> (first launch) Onboarding -> Auth (mandatory) -> Home
- *   Splash -> (returning, not signed in) Auth (mandatory) -> Home
- *   Splash -> (returning, signed in) Home directly
+ * Flow (no login page for now -- see Profile's "Set Up Profile" instead):
+ *   Splash -> (first launch) Onboarding -> Home
+ *   Splash -> (returning) Home directly
  *
- * Sign-in is REQUIRED before the app is usable -- there is no guest mode.
- * The only exception is the one-time Onboarding screens, which explain the
- * app before asking for an account. Once signed in, Auth/Registration are
- * never shown again unless the person signs out.
+ * There is no credential-based sign-in at the moment. Anyone can use the
+ * app immediately. "Set Up Profile" (the old Registration screen,
+ * repurposed) is reachable non-blockingly from Profile or from a few
+ * identity-dependent actions (posting a prayer, writing an article) so
+ * those actions have a name/role to attach to -- it is never a gate.
  */
 @Composable
 fun GraceNavHost() {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val authGateVm: AuthGateViewModel = hiltViewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -106,24 +101,8 @@ fun GraceNavHost() {
         currentRoute?.contains(route::class.simpleName ?: "") == true
     }
 
-    /** After Splash or Onboarding: signed in -> Home, otherwise -> Auth (mandatory gate). */
-    fun navigateAfterGateCheck(popRoute: GraceRoute, popInclusive: Boolean = true) {
-        scope.launch {
-            val destination = if (authGateVm.isSignedIn()) GraceRoute.Home else GraceRoute.Auth
-            navController.navigate(destination) {
-                popUpTo(popRoute) { inclusive = popInclusive }
-            }
-        }
-    }
-
-    /** After Auth/Registration completes: return to caller if there was one, otherwise go to Home. */
-    fun navigateAfterSignIn() {
-        val popped = navController.popBackStack(GraceRoute.Auth, true)
-        if (!popped) {
-            navController.navigate(GraceRoute.Home) {
-                popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
-            }
-        }
+    val startAfterSplash = remember {
+        if (AppPrefs.hasOnboarded(context)) GraceRoute.Home else GraceRoute.Onboarding
     }
 
     Scaffold(
@@ -165,12 +144,8 @@ fun GraceNavHost() {
                 composable<GraceRoute.Splash> {
                     SplashScreen(
                         onComplete = {
-                            if (AppPrefs.hasOnboarded(context)) {
-                                navigateAfterGateCheck(GraceRoute.Splash)
-                            } else {
-                                navController.navigate(GraceRoute.Onboarding) {
-                                    popUpTo(GraceRoute.Splash) { inclusive = true }
-                                }
+                            navController.navigate(startAfterSplash) {
+                                popUpTo(GraceRoute.Splash) { inclusive = true }
                             }
                         }
                     )
@@ -180,29 +155,17 @@ fun GraceNavHost() {
                     OnboardingScreen(
                         onDone = {
                             AppPrefs.setOnboarded(context)
-                            navigateAfterGateCheck(GraceRoute.Onboarding)
-                        }
-                    )
-                }
-
-                composable<GraceRoute.Auth> {
-                    AuthScreen(
-                        onSignInComplete = { navigateAfterSignIn() },
-                        onNewUserNeedsRegistration = { _, _ ->
-                            navController.navigate(GraceRoute.Registration)
-                        },
-                        onRegister = {
-                            navController.navigate(GraceRoute.Registration)
+                            navController.navigate(GraceRoute.Home) {
+                                popUpTo(GraceRoute.Onboarding) { inclusive = true }
+                            }
                         }
                     )
                 }
 
                 composable<GraceRoute.Registration> {
                     RegistrationScreen(
-                        onComplete = {
-                            GoogleAuthData.clear()
-                            navigateAfterSignIn()
-                        }
+                        onComplete = { navController.popBackStack() },
+                        onBack = { navController.popBackStack() },
                     )
                 }
 
@@ -248,8 +211,10 @@ fun GraceNavHost() {
                         onNavigateToArticles = { navController.navigate(GraceRoute.Articles) },
                         onNavigateToChurches = { navController.navigate(GraceRoute.Churches) },
                         onNavigateToChurchPortal = { navController.navigate(GraceRoute.ChurchPortal) },
+                        onNavigateToPastorPortal = { navController.navigate(GraceRoute.PastorPortal) },
+                        onSetupProfile = { navController.navigate(GraceRoute.Registration) },
                         onSignedOut = {
-                            navController.navigate(GraceRoute.Auth) {
+                            navController.navigate(GraceRoute.Home) {
                                 popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                             }
                         },
@@ -260,7 +225,7 @@ fun GraceNavHost() {
                 composable<GraceRoute.Churches> {
                     ChurchesScreen(
                         onChurchClick = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
-                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
                     )
                 }
 
@@ -269,22 +234,54 @@ fun GraceNavHost() {
                     ChurchDetailScreen(
                         churchId = route.churchId,
                         onBack = { navController.popBackStack() },
-                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
                     )
                 }
 
                 composable<GraceRoute.ChurchPortal> {
                     ChurchPortalScreen(
                         onBack = { navController.popBackStack() },
-                        onManageMembers = { /* future */ },
-                        onScheduleRadio = { navController.navigate(GraceRoute.Radio) },
-                        onStartSpace = { navController.navigate(GraceRoute.LiveSpaces) }
+                        onScheduleRadio = { navController.navigate(GraceRoute.RadioBooking) },
+                        onStartSpace = { navController.navigate(GraceRoute.LiveSpaces) },
+                        onOpenPodcasts = { navController.navigate(GraceRoute.PodcastCreate) },
+                        onWriteArticle = { navController.navigate(GraceRoute.Articles) },
+                        onCreateEvent = { navController.navigate(GraceRoute.EventCreate) },
+                    )
+                }
+
+                composable<GraceRoute.PastorPortal> {
+                    PastorPortalScreen(
+                        onBack = { navController.popBackStack() },
+                        onScheduleRadio = { navController.navigate(GraceRoute.RadioBooking) },
+                        onStartSpace = { navController.navigate(GraceRoute.LiveSpaces) },
+                        onOpenPodcasts = { navController.navigate(GraceRoute.PodcastCreate) },
+                        onWriteArticle = { navController.navigate(GraceRoute.Articles) },
+                        onCreateEvent = { navController.navigate(GraceRoute.EventCreate) },
+                    )
+                }
+
+                composable<GraceRoute.RadioBooking> {
+                    com.gracelink.android.feature.radiobooking.RadioBookingScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable<GraceRoute.PodcastCreate> {
+                    com.gracelink.android.feature.podcast.PodcastCreateScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable<GraceRoute.EventCreate> {
+                    com.gracelink.android.feature.events.EventCreateScreen(
+                        onBack = { navController.popBackStack() },
+                        onCreated = { navController.popBackStack() },
                     )
                 }
 
                 composable<GraceRoute.Prayer> {
                     PrayerWallScreen(
-                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
                     )
                 }
 
@@ -296,13 +293,13 @@ fun GraceNavHost() {
 
                 composable<GraceRoute.Articles> {
                     ArticlesScreen(
-                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
                     )
                 }
 
                 composable<GraceRoute.Faith> {
                     FaithScreen(
-                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
                     )
                 }
 

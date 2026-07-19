@@ -18,8 +18,12 @@ data class FmState(
     val schedule: List<FmScheduleEntity> = emptyList(),
     val currentSlot: FmScheduleEntity? = null,
     val isPlaying: Boolean = false,
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
     val selectedDay: String = "",
 )
+
+private const val FM_STREAM_CONTENT_ID = "fm_live_stream"
 
 @HiltViewModel
 class FmViewModel @Inject constructor(
@@ -27,24 +31,44 @@ class FmViewModel @Inject constructor(
     private val playerController: GracePlayerController,
 ) : ViewModel() {
 
-    private val isPlaying = MutableStateFlow(false)
     private val selectedDay = MutableStateFlow(today())
+    private var pollJob: kotlinx.coroutines.Job? = null
 
+    // BUG FIX: the previous version tracked its own local `isPlaying` flag
+    // that was set on tap and never corrected against what ExoPlayer was
+    // actually doing. If the stream failed to buffer, got interrupted, or
+    // was paused from the system notification, this screen would keep
+    // showing "playing" with no audio -- looking broken with no way to
+    // tell why. State now comes directly from the real player.
     val state: StateFlow<FmState> = combine(
-        repo.all(), isPlaying, selectedDay
-    ) { schedule, playing, day ->
+        repo.all(), playerController.state, selectedDay
+    ) { schedule, playerState, day ->
         val current = findCurrentSlot(schedule)
-        FmState(schedule, current, playing, day)
+        val isThisStream = playerState.current?.id == FM_STREAM_CONTENT_ID
+        FmState(
+            schedule = schedule,
+            currentSlot = current,
+            isPlaying = isThisStream && playerState.isPlaying,
+            isLoading = isThisStream && playerState.isLoading,
+            errorMessage = if (isThisStream) playerState.errorMessage else null,
+            selectedDay = day,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), FmState())
 
     private val streamUrl = "https://stream.zeno.fm/0r0xa792kwzuv"
 
-    fun togglePlay() = viewModelScope.launch {
-        val current = state.value.currentSlot
-        if (current != null) {
-            // Play the live FM stream
+    fun togglePlay() {
+        val current = state.value.currentSlot ?: return
+        val playerState = playerController.state.value
+        val isThisStreamLoaded = playerState.current?.id == FM_STREAM_CONTENT_ID
+
+        if (isThisStreamLoaded) {
+            // Already loaded (playing or paused) -- just toggle, don't
+            // reload the stream from scratch every tap.
+            playerController.togglePlayPause()
+        } else {
             val content = com.gracelink.android.data.db.entity.ContentEntity(
-                id = "fm_live_stream",
+                id = FM_STREAM_CONTENT_ID,
                 title = "GraceLink Radio Live",
                 description = current.preacher + " — " + current.description,
                 speaker = current.preacher,
@@ -59,18 +83,18 @@ class FmViewModel @Inject constructor(
                 isLive = true,
                 listenerCount = 0,
             )
-            if (isPlaying.value) {
-                playerController.stop()
-                isPlaying.value = false
-            } else {
-                playerController.play(content)
-                isPlaying.value = true
-                launch { playerController.pollPosition() }
-            }
+            playerController.play(content)
+            pollJob?.cancel()
+            pollJob = viewModelScope.launch { playerController.pollPosition() }
         }
     }
 
     fun selectDay(day: String) { selectedDay.value = day }
+
+    override fun onCleared() {
+        pollJob?.cancel()
+        super.onCleared()
+    }
 
     companion object {
         fun today(): String {

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Login
 import androidx.compose.material.icons.rounded.Logout
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Savings
@@ -43,9 +44,10 @@ import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.ContentLanguage
 
 /**
- * Sign-in is mandatory elsewhere in the app, so this screen can assume a
- * signed-in user. Signing out here returns to the mandatory sign-in screen
- * via onSignedOut rather than leaving a "guest" view behind.
+ * There is no login/credential flow right now -- anyone can use the app.
+ * If no local profile has been set up yet, this screen shows a banner
+ * inviting the person to set one up (name + role), rather than assuming
+ * a signed-in user like before.
  */
 @Composable
 fun ProfileScreen(
@@ -53,6 +55,8 @@ fun ProfileScreen(
     onNavigateToArticles: () -> Unit = {},
     onNavigateToChurches: () -> Unit = {},
     onNavigateToChurchPortal: () -> Unit = {},
+    onNavigateToPastorPortal: () -> Unit = {},
+    onSetupProfile: () -> Unit = {},
     onSignedOut: () -> Unit = {},
     vm: ProfileViewModel = hiltViewModel(),
 ) {
@@ -64,18 +68,22 @@ fun ProfileScreen(
         item {
             Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(72.dp).clip(CircleShape).background(Brush.horizontalGradient(listOf(Gold400, Emerald500))), contentAlignment = Alignment.Center) {
-                    Text(user?.displayName?.firstOrNull()?.uppercase() ?: "G", style = MaterialTheme.typography.headlineMedium, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
+                    Text(user?.displayName?.firstOrNull()?.uppercase() ?: "?", style = MaterialTheme.typography.headlineMedium, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(user?.displayName ?: "", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
+                    Text(user?.displayName ?: "Not set up yet", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
                     Text(user?.email ?: "", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (user != null) {
                         Spacer(Modifier.height(4.dp))
-                        val isChurch = user.accountType == AccountType.CHURCH
+                        val roleLabel = when (user.accountType) {
+                            AccountType.CHURCH -> "CHURCH"
+                            AccountType.PASTOR -> "PASTOR"
+                            AccountType.PERSONAL -> "MEMBER"
+                        }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.clip(RoundedCornerShape(6.dp)).background(if (isChurch) Gold400 else Emerald500).padding(horizontal = 8.dp, vertical = 3.dp)) {
-                                Text(if (isChurch) "CHURCH" else "PERSONAL", style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
+                            Box(Modifier.clip(RoundedCornerShape(6.dp)).background(if (user.accountType == AccountType.PERSONAL) Emerald500 else Gold400).padding(horizontal = 8.dp, vertical = 3.dp)) {
+                                Text(roleLabel, style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
                             }
                             if (user.isVerified) {
                                 Spacer(Modifier.width(6.dp))
@@ -84,6 +92,28 @@ fun ProfileScreen(
                         }
                     }
                 }
+            }
+        }
+
+        // Profile setup banner (no profile yet)
+        if (user == null) {
+            item {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Gold500)
+                        .clickable(onClick = onSetupProfile)
+                        .padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text("Set up your profile", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = Color(0xFF1A0F00))
+                        Text("Tell us your name and whether you're a member, pastor, or church", style = MaterialTheme.typography.bodySmall, color = Color(0xFF1A0F00).copy(alpha = 0.75f))
+                    }
+                }
+                Spacer(Modifier.height(20.dp))
             }
         }
 
@@ -124,6 +154,10 @@ fun ProfileScreen(
                 if (user?.accountType == AccountType.CHURCH) {
                     Divider()
                     Clickable(Icons.Rounded.Church, "Church Portal", "Manage members, events & articles", onNavigateToChurchPortal)
+                }
+                if (user?.accountType == AccountType.PASTOR) {
+                    Divider()
+                    Clickable(Icons.Rounded.Mic, "Pastor Studio", "Podcasts, live spaces, articles & radio slots", onNavigateToPastorPortal)
                 }
             }
             Spacer(Modifier.height(12.dp))

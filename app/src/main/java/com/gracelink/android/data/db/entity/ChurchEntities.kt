@@ -3,7 +3,7 @@ package com.gracelink.android.data.db.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-enum class AccountType { PERSONAL, CHURCH }
+enum class AccountType { PERSONAL, PASTOR, CHURCH }
 
 enum class BeliefSystem(val displayName: String) {
     PROGRESSIVE_SANCTIFICATION("Progressive Sanctification"),
@@ -40,6 +40,7 @@ data class ChurchEntity(
     val gracePeriodEndsAt: Long,      // Suspension deadline if not progressing
     val website: String?,
     val phone: String?,
+    val ownerUserId: String? = null,  // links a CHURCH-role profile to this record
 )
 
 @Entity(tableName = "church_members")
@@ -68,6 +69,7 @@ data class ArticleEntity(
     val likeCount: Int,
     val commentCount: Int,
     val tags: String,                 // comma-separated
+    val isPost: Boolean = false,      // true = short-form post, false = long-form article
 )
 
 @Entity(tableName = "article_comments")

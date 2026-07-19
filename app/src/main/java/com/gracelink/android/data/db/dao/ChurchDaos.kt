@@ -19,11 +19,20 @@ interface ChurchDao {
     @Query("SELECT * FROM churches WHERE verificationStatus = 'VERIFIED'")
     fun verified(): Flow<List<ChurchEntity>>
 
+    @Query("SELECT * FROM churches WHERE ownerUserId = :ownerUserId LIMIT 1")
+    fun byOwner(ownerUserId: String): Flow<ChurchEntity?>
+
+    @Query("SELECT * FROM churches WHERE ownerUserId = :ownerUserId LIMIT 1")
+    suspend fun byOwnerOnce(ownerUserId: String): ChurchEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(church: ChurchEntity)
 
     @Update
     suspend fun update(church: ChurchEntity)
+
+    @Query("UPDATE churches SET memberCount = memberCount + 1 WHERE id = :churchId")
+    suspend fun incrementMemberCount(churchId: String)
 }
 
 @Dao

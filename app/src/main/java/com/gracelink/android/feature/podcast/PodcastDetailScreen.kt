@@ -21,12 +21,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +37,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.gracelink.android.core.theme.Gold400
 import com.gracelink.android.core.theme.Gold500
@@ -48,74 +52,48 @@ import com.gracelink.android.core.theme.TextSecondary
 fun PodcastDetailScreen(
     podcastId: String,
     onBack: () -> Unit,
-    onPlayEpisode: (String) -> Unit
+    onPlayEpisode: (String) -> Unit,
+    vm: PodcastDetailViewModel = hiltViewModel(),
 ) {
-    // NOTE: still placeholder data -- no podcast repository/detail lookup by
-    // id yet. Flagging rather than hiding it.
-    val podcast = remember {
-        PodcastUi(
-            id = podcastId,
-            title = "Grace Daily",
-            host = "Pastor Michael",
-            description = "Short, powerful daily encouragement rooted in Scripture. New episode every morning.",
-            coverUrl = "https://picsum.photos/seed/grace1/600",
-            episodeCount = 128
-        )
-    }
-    val episodes = remember {
-        listOf(
-            EpisodeUi("e1", "The Power of Waiting", "Grace Daily", "28 min", "Today"),
-            EpisodeUi("e2", "Walking in Authority", "Grace Daily", "31 min", "Yesterday"),
-            EpisodeUi("e3", "Grace for Today", "Grace Daily", "24 min", "2 days ago"),
-            EpisodeUi("e4", "The Good Shepherd", "Grace Daily", "29 min", "3 days ago")
-        )
-    }
+    val state by vm.state.collectAsStateWithLifecycle()
+    LaunchedEffect(podcastId) { vm.load(podcastId) }
+    val series = state.series
 
     Box(Modifier.fillMaxSize().background(Obsidian)) {
         LazyColumn(contentPadding = PaddingValues(bottom = 100.dp)) {
             item {
-                // Hero: blurred cover backdrop with the artwork + info layered on top
                 Box(Modifier.fillMaxWidth().height(320.dp)) {
-                    AsyncImage(
-                        model = podcast.coverUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                    )
+                    if (series?.coverUrl != null) {
+                        AsyncImage(model = series.coverUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                    }
                     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.35f), Obsidian))))
-                    Column(
-                        Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
+                    Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Row(Modifier.fillMaxWidth()) {
-                            IconButton(onClick = onBack) {
-                                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = TextPrimary)
-                            }
+                            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = TextPrimary) }
                         }
                         Spacer(Modifier.weight(1f))
-                        AsyncImage(
-                            model = podcast.coverUrl,
-                            contentDescription = podcast.title,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(140.dp).clip(RoundedCornerShape(20.dp)),
-                        )
+                        Box(Modifier.size(140.dp).clip(RoundedCornerShape(20.dp)).background(Slate900), contentAlignment = Alignment.Center) {
+                            if (series?.coverUrl != null) {
+                                AsyncImage(model = series.coverUrl, contentDescription = series.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                            } else {
+                                Icon(Icons.Rounded.Podcasts, null, tint = Gold500.copy(alpha = 0.6f), modifier = Modifier.size(48.dp))
+                            }
+                        }
                         Spacer(Modifier.height(14.dp))
-                        Text(podcast.title, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
-                        Text(podcast.host, style = MaterialTheme.typography.bodyMedium, color = Gold400)
+                        Text(series?.title ?: "", style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
+                        Text(series?.authorName ?: "", style = MaterialTheme.typography.bodyMedium, color = Gold400)
                     }
                 }
             }
 
             item {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp)) {
-                    Text(podcast.description, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    Text(series?.description ?: "", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                     Spacer(Modifier.height(14.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
-                            Modifier
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(Gold500)
-                                .clickable { episodes.firstOrNull()?.let { onPlayEpisode(it.id) } }
+                            Modifier.clip(RoundedCornerShape(24.dp)).background(Gold500)
+                                .clickable { state.episodes.firstOrNull()?.let { onPlayEpisode(it.id) } }
                                 .padding(horizontal = 20.dp, vertical = 12.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -125,45 +103,32 @@ fun PodcastDetailScreen(
                             }
                         }
                         Spacer(Modifier.width(12.dp))
-                        Text("${podcast.episodeCount} episodes", style = MaterialTheme.typography.labelMedium, color = TextMuted)
+                        Text("${state.episodes.size} episodes", style = MaterialTheme.typography.labelMedium, color = TextMuted)
                     }
                 }
             }
 
             item {
-                Text(
-                    text = "EPISODES",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = TextMuted,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
+                Text("EPISODES", style = MaterialTheme.typography.labelMedium, color = TextMuted, modifier = Modifier.padding(horizontal = 24.dp))
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            items(episodes) { ep ->
+            if (state.episodes.isEmpty()) {
+                item { Text("No episodes yet", style = MaterialTheme.typography.bodyMedium, color = TextSecondary, modifier = Modifier.padding(horizontal = 24.dp)) }
+            }
+
+            items(state.episodes, key = { it.id }) { ep ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 6.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Slate900)
-                        .clickable { onPlayEpisode(ep.id) }
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp).clip(RoundedCornerShape(14.dp)).background(Slate900).clickable { onPlayEpisode(ep.id) }.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(Gold500.copy(alpha = 0.18f)),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(Gold500.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.PlayArrow, null, tint = Gold400)
                     }
                     Spacer(modifier = Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(ep.title, color = TextPrimary, style = MaterialTheme.typography.titleSmall)
-                        Text("${ep.duration} \u2022 ${ep.date}", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                        Text(ep.durationLabel, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }

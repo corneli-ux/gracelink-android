@@ -73,7 +73,15 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
 
         // -- Live Player Hero --------------------------------------------------
         state.currentSlot?.let { slot ->
-            LivePlayerHero(slot, state.isPlaying, vm::togglePlay)
+            LivePlayerHero(slot, state.isPlaying, state.isLoading, vm::togglePlay)
+            if (state.errorMessage != null) {
+                Text(
+                    "Couldn't connect to the stream: ${state.errorMessage}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                )
+            }
             Spacer(Modifier.height(20.dp))
         }
 
@@ -110,7 +118,7 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun LivePlayerHero(slot: FmScheduleEntity, isPlaying: Boolean, onToggle: () -> Unit) {
+private fun LivePlayerHero(slot: FmScheduleEntity, isPlaying: Boolean, isLoading: Boolean, onToggle: () -> Unit) {
     val transition = rememberInfiniteTransition(label = "fm-eq")
     val bar1 by transition.animateFloat(0.3f, 1f, infiniteRepeatable(tween(420), RepeatMode.Reverse), label = "b1")
     val bar2 by transition.animateFloat(1f, 0.35f, infiniteRepeatable(tween(560), RepeatMode.Reverse), label = "b2")
@@ -133,7 +141,15 @@ private fun LivePlayerHero(slot: FmScheduleEntity, isPlaying: Boolean, onToggle:
                     .clickable(onClick = onToggle),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, "Play/Pause", tint = Color(0xFF1A0F00), modifier = Modifier.size(30.dp))
+                if (isLoading) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color(0xFF1A0F00),
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Icon(if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, "Play/Pause", tint = Color(0xFF1A0F00), modifier = Modifier.size(30.dp))
+                }
             }
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
