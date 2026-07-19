@@ -21,8 +21,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Equalizer
+import androidx.compose.material.icons.rounded.Groups
+import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Podcasts
+import androidx.compose.material.icons.rounded.Radio
+import androidx.compose.material.icons.rounded.VolunteerActivism
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,21 +49,32 @@ import coil.compose.AsyncImage
 import com.gracelink.android.core.components.LiveBadge
 import com.gracelink.android.core.theme.Emerald500
 import com.gracelink.android.core.theme.EmberGradient
+import com.gracelink.android.core.theme.Gold400
 import com.gracelink.android.core.theme.Gold500
+import com.gracelink.android.core.theme.GoldGradient
 import com.gracelink.android.core.theme.LiveRed
 import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.data.db.entity.ContentEntity
 import com.gracelink.android.data.db.entity.ContentLanguage
 
+/**
+ * GraceLink's single unified hub. Fully usable as a guest -- the only guest
+ * gate is the sign-in banner at the top, which is dismissible via ignoring it
+ * (nothing below it requires an account to browse).
+ */
 @Composable
 fun HomeScreen(
     onPlayContent: (String) -> Unit,
     onOpenLiveSession: (String) -> Unit,
-    onSeeAll: () -> Unit,
+    onOpenRadio: () -> Unit,
+    onOpenPodcasts: () -> Unit,
+    onOpenCommunity: () -> Unit,
+    onRequireSignIn: () -> Unit,
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val isGuest = state.userName.isBlank()
 
     LazyColumn(
         modifier = Modifier
@@ -65,7 +83,7 @@ fun HomeScreen(
             .statusBarsPadding(),
         contentPadding = PaddingValues(bottom = 32.dp),
     ) {
-        // ── Greeting ─────────────────────────────────────────────────────────
+        // -- Greeting --------------------------------------------------------
         item {
             Row(
                 Modifier
@@ -74,9 +92,10 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f)) {
+                    Text("GraceLink", style = MaterialTheme.typography.labelMedium, color = Gold400)
                     Text(state.greeting, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        state.userName.ifBlank { "Welcome to Faith Link" },
+                        state.userName.ifBlank { "Welcome" },
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onBackground,
                     )
@@ -96,7 +115,30 @@ fun HomeScreen(
             }
         }
 
-        // ── Live Now hero ────────────────────────────────────────────────────
+        // -- Guest sign-in banner ---------------------------------------------
+        if (isGuest) {
+            item {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Brush.horizontalGradient(GoldGradient))
+                        .clickable(onClick = onRequireSignIn)
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("You're browsing as a guest", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = Color(0xFF1A0F00))
+                        Text("Sign in to save progress, pray with your church, and more", style = MaterialTheme.typography.bodySmall, color = Color(0xFF1A0F00).copy(alpha = 0.75f))
+                    }
+                    Icon(Icons.Rounded.ChevronRight, null, tint = Color(0xFF1A0F00))
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+
+        // -- Live Now hero -----------------------------------------------------
         item {
             val live = state.liveRadio.firstOrNull { it.isLive }
             if (live != null) {
@@ -106,11 +148,30 @@ fun HomeScreen(
                     onPlay = { onPlayContent(live.id) },
                     onJoinConversation = { state.liveSession?.let { onOpenLiveSession(it.id) } },
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(20.dp))
             }
         }
 
-        // ── Continue Listening ───────────────────────────────────────────────
+        // -- Quick actions -------------------------------------------------------
+        item {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(quickActions) { action ->
+                    QuickActionChip(action) {
+                        when (action.label) {
+                            "Radio" -> onOpenRadio()
+                            "Podcasts" -> onOpenPodcasts()
+                            "Community" -> onOpenCommunity()
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+        }
+
+        // -- Continue Listening ---------------------------------------------------
         if (state.continueListening.isNotEmpty()) {
             item {
                 SectionHeader("Continue Listening", Modifier.padding(horizontal = 20.dp))
@@ -125,11 +186,39 @@ fun HomeScreen(
                         ContinueCard(item) { onPlayContent(item.id) }
                     }
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(20.dp))
             }
         }
 
-        // ── Recommended ──────────────────────────────────────────────────────
+        // -- Community CTA -----------------------------------------------------
+        item {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Slate800)
+                    .clickable(onClick = onOpenCommunity)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(Emerald500.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Rounded.Groups, null, tint = Emerald500)
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Your Community", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onBackground)
+                    Text("Churches, prayer, events, and articles", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Icon(Icons.Rounded.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.height(20.dp))
+        }
+
+        // -- Recommended -------------------------------------------------------
         item {
             SectionHeader("Recommended", Modifier.padding(horizontal = 20.dp), "Curated based on your history")
             Spacer(Modifier.height(12.dp))
@@ -138,6 +227,30 @@ fun HomeScreen(
             RecommendedRow(item) { onPlayContent(item.id) }
             Spacer(Modifier.height(10.dp))
         }
+    }
+}
+
+private data class QuickAction(val label: String, val icon: ImageVector)
+
+private val quickActions = listOf(
+    QuickAction("Radio", Icons.Rounded.Radio),
+    QuickAction("Podcasts", Icons.Rounded.Podcasts),
+    QuickAction("Community", Icons.Rounded.Groups),
+)
+
+@Composable
+private fun QuickActionChip(action: QuickAction, onClick: () -> Unit) {
+    Row(
+        Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Slate800)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(action.icon, null, tint = Gold500, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(action.label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onBackground)
     }
 }
 
@@ -257,7 +370,7 @@ private fun ContinueCard(item: ContentEntity, onClick: () -> Unit) {
         Column(Modifier.padding(12.dp)) {
             Text(item.title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(4.dp))
-            Text(item.speaker ?: "Faith Link", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(item.speaker ?: "GraceLink", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -289,7 +402,7 @@ private fun RecommendedRow(item: ContentEntity, onClick: () -> Unit) {
             Spacer(Modifier.height(6.dp))
             Text(item.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(2.dp))
-            Text(item.speaker ?: "Faith Link", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(item.speaker ?: "GraceLink", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.width(8.dp))
         Box(

@@ -18,14 +18,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Headphones
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Podcasts
-import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Headphones
+import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Podcasts
-import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
@@ -35,12 +35,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -48,55 +50,58 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.gracelink.android.core.AppPrefs
 import com.gracelink.android.core.theme.Gold400
 import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.core.theme.Obsidian
-import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.core.theme.Slate900
-import com.gracelink.android.core.theme.TextPrimary
 import com.gracelink.android.core.theme.TextSecondary
 import com.gracelink.android.feature.audioconnect.AudioConnectScreen
 import com.gracelink.android.feature.articles.ArticlesScreen
 import com.gracelink.android.feature.auth.AuthScreen
 import com.gracelink.android.feature.churches.ChurchDetailScreen
 import com.gracelink.android.feature.churches.ChurchesScreen
-import com.gracelink.android.feature.churches.ChurchProfileScreen
+import com.gracelink.android.feature.churchportal.ChurchPortalScreen
+import com.gracelink.android.feature.community.CommunityScreen
 import com.gracelink.android.feature.events.EventsScreen
 import com.gracelink.android.feature.faith.FaithScreen
 import com.gracelink.android.feature.fm.FmScreen
+import com.gracelink.android.feature.home.HomeScreen
 import com.gracelink.android.feature.onboarding.OnboardingScreen
 import com.gracelink.android.feature.player.LiveSessionScreen
 import com.gracelink.android.feature.player.PlayerScreen
+import com.gracelink.android.feature.podcast.PodcastDetailScreen
+import com.gracelink.android.feature.podcast.PodcastsScreen
 import com.gracelink.android.feature.prayer.PrayerWallScreen
 import com.gracelink.android.feature.profile.ProfileScreen
 import com.gracelink.android.feature.registration.RegistrationScreen
 import com.gracelink.android.feature.splash.SplashScreen
-import com.gracelink.android.feature.portal.PortalHubScreen
-import com.gracelink.android.feature.podcast.PodcastsScreen
-import com.gracelink.android.feature.podcast.PodcastDetailScreen
-import com.gracelink.android.feature.churchportal.ChurchPortalScreen
-import com.gracelink.android.feature.community.CommunityScreen
 
 /**
  * Single source of truth for GraceLink navigation.
  *
- * Flow after login (new clean design):
- * Splash → Onboarding (first launch) → Auth → Registration (if new) → PortalHub
+ * Clean flow:
+ *   Splash -> (first launch) Onboarding -> Home
+ *   Splash -> (returning user) Home directly
  *
- * From PortalHub the user enters either:
- * - Members experience (bottom nav: Radio / Podcasts / Live / Community / Profile)
- * - Church Portal (leadership tools)
- *
- * Bottom navigation is a unique floating pill, not the standard Material bar.
+ * Home is fully browsable as a guest. Auth is only ever reached by explicit
+ * user action -- the sign-in banner on Home/Profile, or a specific gated
+ * action such as posting a prayer -- and always returns the user to exactly
+ * where they were (popBackStack), never resetting them to Home.
  */
 @Composable
 fun GraceNavHost() {
     val navController = rememberNavController()
+    val context = LocalContext.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val showBottomBar = bottomNavRoutes.any { route ->
         currentRoute?.contains(route::class.simpleName ?: "") == true
+    }
+
+    val startAfterSplash = remember {
+        if (AppPrefs.hasOnboarded(context)) GraceRoute.Home else GraceRoute.Onboarding
     }
 
     Scaffold(
@@ -134,11 +139,11 @@ fun GraceNavHost() {
                 startDestination = GraceRoute.Splash,
                 modifier = Modifier.fillMaxSize()
             ) {
-                // ── Pre-auth ──────────────────────────────────────────────
+                // -- Pre-auth / first-run -----------------------------------
                 composable<GraceRoute.Splash> {
                     SplashScreen(
                         onComplete = {
-                            navController.navigate(GraceRoute.Onboarding) {
+                            navController.navigate(startAfterSplash) {
                                 popUpTo(GraceRoute.Splash) { inclusive = true }
                             }
                         }
@@ -148,7 +153,8 @@ fun GraceNavHost() {
                 composable<GraceRoute.Onboarding> {
                     OnboardingScreen(
                         onDone = {
-                            navController.navigate(GraceRoute.Auth) {
+                            AppPrefs.setOnboarded(context)
+                            navController.navigate(GraceRoute.Home) {
                                 popUpTo(GraceRoute.Onboarding) { inclusive = true }
                             }
                         }
@@ -158,15 +164,10 @@ fun GraceNavHost() {
                 composable<GraceRoute.Auth> {
                     AuthScreen(
                         onSignInComplete = {
-                            navController.navigate(GraceRoute.PortalHub) {
-                                popUpTo(GraceRoute.Auth) { inclusive = true }
-                            }
+                            navController.popBackStack()
                         },
-                        onNewUserNeedsRegistration = { name, email ->
-                            // Store temporarily if needed; RegistrationScreen handles the rest
-                            navController.navigate(GraceRoute.Registration) {
-                                // keep Auth in stack so user can go back if they cancel
-                            }
+                        onNewUserNeedsRegistration = { _, _ ->
+                            navController.navigate(GraceRoute.Registration)
                         },
                         onRegister = {
                             navController.navigate(GraceRoute.Registration)
@@ -177,31 +178,24 @@ fun GraceNavHost() {
                 composable<GraceRoute.Registration> {
                     RegistrationScreen(
                         onComplete = {
-                            navController.navigate(GraceRoute.PortalHub) {
-                                popUpTo(GraceRoute.Auth) { inclusive = true }
-                            }
+                            com.gracelink.android.feature.auth.GoogleAuthData.clear()
+                            navController.popBackStack(GraceRoute.Auth, true)
                         }
                     )
                 }
 
-                // ── Post-login hub (unique entry point) ───────────────────
-                composable<GraceRoute.PortalHub> {
-                    PortalHubScreen(
-                        onEnterMembers = {
-                            navController.navigate(GraceRoute.Radio) {
-                                popUpTo(GraceRoute.PortalHub) { inclusive = false }
-                            }
-                        },
-                        onEnterChurchPortal = {
-                            navController.navigate(GraceRoute.ChurchPortal)
-                        },
-                        onOpenProfile = {
-                            navController.navigate(GraceRoute.Profile)
-                        }
+                // -- Home (guest-accessible unified hub) ---------------------
+                composable<GraceRoute.Home> {
+                    HomeScreen(
+                        onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) },
+                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) },
+                        onOpenRadio = { navController.navigate(GraceRoute.Radio) },
+                        onOpenPodcasts = { navController.navigate(GraceRoute.Podcasts) },
+                        onOpenCommunity = { navController.navigate(GraceRoute.Community) },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) },
                     )
                 }
 
-                // ── Bottom-nav destinations ───────────────────────────────
                 composable<GraceRoute.Radio> {
                     FmScreen()
                 }
@@ -229,16 +223,15 @@ fun GraceNavHost() {
 
                 composable<GraceRoute.Profile> {
                     ProfileScreen(
-                        onNavigateToChurches = {
-                            navController.navigate(GraceRoute.Churches)
-                        },
-                        onNavigateToChurchProfile = {
-                            navController.navigate(GraceRoute.ChurchPortal)
-                        }
+                        onNavigateToFaith = { navController.navigate(GraceRoute.Faith) },
+                        onNavigateToArticles = { navController.navigate(GraceRoute.Articles) },
+                        onNavigateToChurches = { navController.navigate(GraceRoute.Churches) },
+                        onNavigateToChurchPortal = { navController.navigate(GraceRoute.ChurchPortal) },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) },
                     )
                 }
 
-                // ── Church & detail routes ────────────────────────────────
+                // -- Church & detail routes ----------------------------------
                 composable<GraceRoute.Churches> {
                     ChurchesScreen(
                         onChurchClick = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) }
@@ -263,7 +256,9 @@ fun GraceNavHost() {
                 }
 
                 composable<GraceRoute.Prayer> {
-                    PrayerWallScreen()
+                    PrayerWallScreen(
+                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
+                    )
                 }
 
                 composable<GraceRoute.Events> {
@@ -280,7 +275,7 @@ fun GraceNavHost() {
                     FaithScreen()
                 }
 
-                // ── Player routes ─────────────────────────────────────────
+                // -- Player routes --------------------------------------------
                 composable<GraceRoute.Player> { entry ->
                     val route = entry.toRoute<GraceRoute.Player>()
                     PlayerScreen(
@@ -309,7 +304,7 @@ fun GraceNavHost() {
 
                 composable<GraceRoute.EpisodePlayer> { entry ->
                     val route = entry.toRoute<GraceRoute.EpisodePlayer>()
-                    // Reuse PlayerScreen for episodes or create dedicated later
+                    // Reuse PlayerScreen for episodes; a dedicated episode player can follow later.
                     PlayerScreen(
                         contentId = route.episodeId,
                         onBack = { navController.popBackStack() },
@@ -322,8 +317,9 @@ fun GraceNavHost() {
 }
 
 /**
- * Unique floating pill bottom navigation – deliberately different from standard Material NavigationBar.
- * Glass-like surface, gold accent, rounded capsule.
+ * Unique floating pill bottom navigation -- deliberately different from the
+ * standard Material NavigationBar. Glass-like surface, gold accent, rounded
+ * capsule.
  */
 @Composable
 private fun GraceFloatingBottomBar(
@@ -401,10 +397,10 @@ private fun GraceFloatingBottomBar(
 }
 
 private fun GraceRoute.icons(): Triple<ImageVector, ImageVector, String> = when (this) {
-    GraceRoute.Radio -> Triple(Icons.Rounded.Radio, Icons.Outlined.Radio, "Radio")
+    GraceRoute.Home -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "Home")
     GraceRoute.Podcasts -> Triple(Icons.Rounded.Podcasts, Icons.Outlined.Podcasts, "Podcasts")
     GraceRoute.LiveSpaces -> Triple(Icons.Rounded.Headphones, Icons.Outlined.Headphones, "Live")
     GraceRoute.Community -> Triple(Icons.Rounded.Groups, Icons.Outlined.Groups, "Community")
     GraceRoute.Profile -> Triple(Icons.Rounded.Person, Icons.Outlined.Person, "Me")
-    else -> Triple(Icons.Rounded.Radio, Icons.Outlined.Radio, "")
+    else -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "")
 }

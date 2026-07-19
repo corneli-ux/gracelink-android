@@ -22,6 +22,7 @@ data class PrayerState(
     val prayers: List<PrayerEntity> = emptyList(),
     val showSheet: Boolean = false,
     val myName: String = "You",
+    val isGuest: Boolean = true,
 )
 
 @HiltViewModel
@@ -43,7 +44,7 @@ class PrayerViewModel @Inject constructor(
     }
 
     val state: StateFlow<PrayerState> = combine(tab, prayersFlow, showSheet, userRepo.current()) { t, prayers, sheet, user ->
-        PrayerState(t, prayers, sheet, user?.displayName ?: "You")
+        PrayerState(t, prayers, sheet, user?.displayName ?: "You", isGuest = user == null)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PrayerState())
 
     fun setTab(t: PrayerTab) { tab.value = t }

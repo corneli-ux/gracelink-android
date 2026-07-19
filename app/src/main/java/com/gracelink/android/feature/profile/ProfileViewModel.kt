@@ -43,4 +43,5 @@ class ProfileViewModel @Inject constructor(
     fun setNotifications(enabled: Boolean) = viewModelScope.launch {
         state.value.user?.let { userRepo.setNotifications(it.uid, enabled) }
     }
+    fun signOut() = viewModelScope.launch { userRepo.signOut() }
 }

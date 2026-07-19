@@ -61,7 +61,7 @@ import com.gracelink.android.data.db.entity.PrayerEntity
 import org.json.JSONArray
 
 @Composable
-fun PrayerWallScreen(vm: PrayerViewModel = hiltViewModel()) {
+fun PrayerWallScreen(onRequireSignIn: () -> Unit = {}, vm: PrayerViewModel = hiltViewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -73,7 +73,9 @@ fun PrayerWallScreen(vm: PrayerViewModel = hiltViewModel()) {
                     Text("Stand in the gap for one another", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Box(
-                    Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(Gold500).clickable { vm.showSheet(true) },
+                    Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(Gold500).clickable {
+                        if (state.isGuest) onRequireSignIn() else vm.showSheet(true)
+                    },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Rounded.Add, "New prayer", tint = Color(0xFF1A0F00), modifier = Modifier.size(24.dp))

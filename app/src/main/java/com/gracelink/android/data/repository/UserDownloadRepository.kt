@@ -19,6 +19,7 @@ class UserRepository @Inject constructor(
     suspend fun setLanguage(uid: String, lang: ContentLanguage) = userDao.setLanguage(uid, lang)
     suspend fun setDataSaver(uid: String, enabled: Boolean) = userDao.setDataSaver(uid, enabled)
     suspend fun setNotifications(uid: String, enabled: Boolean) = userDao.setNotifications(uid, enabled)
+    suspend fun signOut() = userDao.deleteAll()
 }
 
 @Singleton
