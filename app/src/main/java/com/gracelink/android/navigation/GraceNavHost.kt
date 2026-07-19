@@ -243,7 +243,8 @@ fun GraceNavHost() {
                     val route = entry.toRoute<GraceRoute.ChurchDetail>()
                     ChurchDetailScreen(
                         churchId = route.churchId,
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Auth) }
                     )
                 }
 

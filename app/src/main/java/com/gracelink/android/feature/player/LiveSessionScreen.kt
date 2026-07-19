@@ -117,6 +117,13 @@ fun LiveSessionScreen(sessionId: String, onBack: () -> Unit, vm: LiveSessionView
             modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            if (state.messages.isEmpty()) {
+                item {
+                    Box(Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
+                        Text("Be the first to say something", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
             items(state.messages, key = { it.id }) { msg -> ChatBubble(msg) }
         }
 

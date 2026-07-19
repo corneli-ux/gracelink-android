@@ -39,11 +39,13 @@ import java.util.Locale
 fun ChurchDetailScreen(
     churchId: String,
     onBack: () -> Unit,
+    onRequireSignIn: () -> Unit = {},
     vm: ChurchDetailViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
     LaunchedEffect(churchId) { vm.load(churchId) }
     val church = state.church
+    val isGuest = state.myId == "u_demo"
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
         // Top bar
@@ -87,20 +89,20 @@ fun ChurchDetailScreen(
                                 val membership = state.myMembership
                                 when {
                                     membership == null -> {
-                                        GoldButton("Request Membership", onClick = { vm.joinChurch() })
+                                        GoldButton("Request Membership", onClick = { if (isGuest) onRequireSignIn() else vm.joinChurch() })
                                     }
                                     membership.status == MemberStatus.PENDING -> {
                                         Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Gold400.copy(alpha = 0.2f)).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                                            Text("⏳ Pending Approval", style = MaterialTheme.typography.labelMedium, color = Gold400, fontWeight = FontWeight.SemiBold)
+                                            Text("Pending Approval", style = MaterialTheme.typography.labelMedium, color = Gold400, fontWeight = FontWeight.SemiBold)
                                         }
                                     }
                                     membership.status == MemberStatus.APPROVED -> {
                                         Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Emerald500.copy(alpha = 0.2f)).padding(horizontal = 16.dp, vertical = 8.dp)) {
-                                            Text("✓ Member", style = MaterialTheme.typography.labelMedium, color = Emerald500, fontWeight = FontWeight.SemiBold)
+                                            Text("Member", style = MaterialTheme.typography.labelMedium, color = Emerald500, fontWeight = FontWeight.SemiBold)
                                         }
                                     }
                                     membership.status == MemberStatus.REJECTED -> {
-                                        GoldButton("Request Again", onClick = { vm.joinChurch() })
+                                        GoldButton("Request Again", onClick = { if (isGuest) onRequireSignIn() else vm.joinChurch() })
                                     }
                                 }
                             }
@@ -115,14 +117,23 @@ fun ChurchDetailScreen(
 
             // Upcoming events
             item { Text("Events", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface) }
+            if (state.events.isEmpty()) {
+                item { Text("No upcoming events yet", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
             items(state.events) { event -> EventCard(event) }
 
             // Church articles
             item { Text("Articles from this Church", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface) }
+            if (state.articles.isEmpty()) {
+                item { Text("No articles published yet", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
             items(state.articles) { article -> ArticleCard(article) }
 
             // Members
             item { Text("Members (${state.members.size})", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface) }
+            if (state.members.isEmpty()) {
+                item { Text("Be the first to join", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
             items(state.members) { member ->
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Slate800).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
