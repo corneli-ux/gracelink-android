@@ -1,5 +1,9 @@
 package com.gracelink.android.feature.prayer
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,7 +33,11 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -38,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -63,6 +73,24 @@ import org.json.JSONArray
 @Composable
 fun PrayerWallScreen(onRequireSignIn: () -> Unit = {}, vm: PrayerViewModel = hiltViewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var pendingRecordTarget by remember { mutableStateOf<String?>(null) }
+
+    val micPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        val target = pendingRecordTarget
+        pendingRecordTarget = null
+        if (granted && target != null) vm.startRecording(target)
+    }
+
+    fun requestRecording(prayerId: String) {
+        val granted = androidx.core.content.ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (granted) {
+            vm.startRecording(prayerId)
+        } else {
+            pendingRecordTarget = prayerId
+            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
@@ -106,7 +134,16 @@ fun PrayerWallScreen(onRequireSignIn: () -> Unit = {}, vm: PrayerViewModel = hil
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(state.prayers, key = { it.id }) { p ->
-                    PrayerCard(p, { vm.togglePrayed(p.id) }, { vm.markAnswered(p.id) }, { vm.encourage(p.id, it) })
+                    PrayerCard(
+                        p = p,
+                        onPray = { vm.togglePrayed(p.id) },
+                        onAnswered = { vm.markAnswered(p.id) },
+                        onEncourage = { vm.encourage(p.id, it) },
+                        isRecording = state.recordingPrayerId == p.id,
+                        isUploading = state.uploadingPrayerId == p.id,
+                        onStartRecording = { requestRecording(p.id) },
+                        onStopRecording = { vm.stopRecordingAndSend(p.id) },
+                    )
                 }
             }
         }
@@ -118,7 +155,16 @@ fun PrayerWallScreen(onRequireSignIn: () -> Unit = {}, vm: PrayerViewModel = hil
 }
 
 @Composable
-private fun PrayerCard(p: PrayerEntity, onPray: () -> Unit, onAnswered: () -> Unit, onEncourage: (String) -> Unit) {
+private fun PrayerCard(
+    p: PrayerEntity,
+    onPray: () -> Unit,
+    onAnswered: () -> Unit,
+    onEncourage: (String) -> Unit,
+    isRecording: Boolean,
+    isUploading: Boolean,
+    onStartRecording: () -> Unit,
+    onStopRecording: () -> Unit,
+) {
     var showEnc by remember { mutableStateOf(false) }
     var encText by remember { mutableStateOf("") }
 
@@ -146,16 +192,20 @@ private fun PrayerCard(p: PrayerEntity, onPray: () -> Unit, onAnswered: () -> Un
             val encs = parseEncouragements(p.encouragementsJson)
             if (encs.isNotEmpty()) {
                 Spacer(Modifier.height(10.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    encs.take(2).forEach { e ->
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(4.dp).clip(RoundedCornerShape(2.dp)).background(Emerald500.copy(alpha = 0.6f)))
-                            Spacer(Modifier.width(8.dp))
-                            Text("${e.first}: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
-                            Text(e.second, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    encs.take(3).forEach { e ->
+                        if (e.audioUrl != null) {
+                            AudioEncouragementRow(e.displayName, e.audioUrl)
+                        } else {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(4.dp).clip(RoundedCornerShape(2.dp)).background(Emerald500.copy(alpha = 0.6f)))
+                                Spacer(Modifier.width(8.dp))
+                                Text("${e.displayName}: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                                Text(e.text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                            }
                         }
                     }
-                    if (encs.size > 2) Text("+${encs.size - 2} more", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (encs.size > 3) Text("+${encs.size - 3} more", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -180,23 +230,50 @@ private fun PrayerCard(p: PrayerEntity, onPray: () -> Unit, onAnswered: () -> Un
             }
 
             AnimatedVisibility(visible = showEnc) {
-                Row(
-                    Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(16.dp)).background(Slate900).padding(horizontal = 12.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextField(
-                        value = encText, onValueChange = { encText = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text("Send an encouragement…", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                        colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                        keyboardActions = KeyboardActions(onSend = { if (encText.isNotBlank()) { onEncourage(encText.trim()); encText = ""; showEnc = false } })
-                    )
-                    Box(
-                        Modifier.size(36.dp).clip(RoundedCornerShape(18.dp)).background(Gold500).clickable { if (encText.isNotBlank()) { onEncourage(encText.trim()); encText = ""; showEnc = false } },
-                        contentAlignment = Alignment.Center
+                Column {
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(16.dp)).background(Slate900).padding(horizontal = 12.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Rounded.Send, "Send", tint = Color(0xFF1A0F00), modifier = Modifier.size(16.dp))
+                        TextField(
+                            value = encText, onValueChange = { encText = it },
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text("Send an encouragement…", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                            keyboardActions = KeyboardActions(onSend = { if (encText.isNotBlank()) { onEncourage(encText.trim()); encText = ""; showEnc = false } })
+                        )
+                        Box(
+                            Modifier.size(36.dp).clip(RoundedCornerShape(18.dp)).background(Gold500).clickable { if (encText.isNotBlank()) { onEncourage(encText.trim()); encText = ""; showEnc = false } },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Rounded.Send, "Send", tint = Color(0xFF1A0F00), modifier = Modifier.size(16.dp))
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    // Voice reply -- pray for someone out loud instead of typing
+                    when {
+                        isUploading -> Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Gold500, strokeWidth = 2.dp)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Sending voice reply\u2026", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        isRecording -> Row(
+                            Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.error).clickable(onClick = onStopRecording).padding(horizontal = 14.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Rounded.Stop, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Recording\u2026 tap to stop & send", style = MaterialTheme.typography.labelSmall, color = Color.White)
+                        }
+                        else -> Row(
+                            Modifier.clip(RoundedCornerShape(20.dp)).background(Slate900).clickable(onClick = onStartRecording).padding(horizontal = 14.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Rounded.Mic, null, tint = Emerald500, modifier = Modifier.size(14.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Or pray out loud", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }
@@ -241,16 +318,79 @@ private fun SubmitSheet(onSubmit: (String, Boolean) -> Unit, onDismiss: () -> Un
     }
 }
 
+@Composable
+private fun AudioEncouragementRow(displayName: String, audioUrl: String) {
+    var isPlaying by remember { mutableStateOf(false) }
+    var player by remember { mutableStateOf<android.media.MediaPlayer?>(null) }
+
+    DisposableEffect(audioUrl) {
+        onDispose {
+            player?.release()
+            player = null
+        }
+    }
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Emerald500.copy(alpha = 0.12f))
+            .clickable {
+                val current = player
+                if (current == null) {
+                    val mp = android.media.MediaPlayer()
+                    try {
+                        mp.setDataSource(audioUrl)
+                        mp.setOnCompletionListener {
+                            isPlaying = false
+                            it.release()
+                            player = null
+                        }
+                        mp.setOnPreparedListener {
+                            it.start()
+                            isPlaying = true
+                        }
+                        mp.prepareAsync()
+                        player = mp
+                    } catch (_: Exception) {
+                        isPlaying = false
+                    }
+                } else if (isPlaying) {
+                    current.pause()
+                    isPlaying = false
+                } else {
+                    current.start()
+                    isPlaying = true
+                }
+            }
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            if (isPlaying) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
+            null, tint = Emerald500, modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text("$displayName's voice reply", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
 private fun fmtTime(epoch: Long): String {
     val diff = System.currentTimeMillis() - epoch
     val h = diff / 3_600_000; val d = h / 24
     return when { d > 0 -> "${d}d ago"; h > 0 -> "${h}h ago"; else -> "${diff / 60_000}m ago" }
 }
 
-private fun parseEncouragements(json: String): List<Pair<String, String>> = try {
+private data class EncouragementItem(val displayName: String, val text: String, val audioUrl: String?)
+
+private fun parseEncouragements(json: String): List<EncouragementItem> = try {
     val arr = JSONArray(json)
     (0 until arr.length()).map { i ->
         val o = arr.getJSONObject(i)
-        (o.optString("displayName") ?: "Anonymous") to o.optString("text")
+        EncouragementItem(
+            displayName = o.optString("displayName").ifBlank { "Anonymous" },
+            text = o.optString("text"),
+            audioUrl = o.optString("audioUrl").ifBlank { null },
+        )
     }
 } catch (_: Exception) { emptyList() }

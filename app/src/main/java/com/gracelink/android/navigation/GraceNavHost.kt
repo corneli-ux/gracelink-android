@@ -293,7 +293,16 @@ fun GraceNavHost() {
 
                 composable<GraceRoute.Articles> {
                     ArticlesScreen(
-                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
+                        onOpenArticle = { id -> navController.navigate(GraceRoute.ArticleDetail(id)) },
+                    )
+                }
+
+                composable<GraceRoute.ArticleDetail> { entry ->
+                    val route = entry.toRoute<GraceRoute.ArticleDetail>()
+                    com.gracelink.android.feature.articles.ArticleDetailScreen(
+                        articleId = route.articleId,
+                        onBack = { navController.popBackStack() },
                     )
                 }
 

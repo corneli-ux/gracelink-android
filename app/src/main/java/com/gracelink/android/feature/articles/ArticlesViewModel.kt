@@ -87,10 +87,14 @@ class ArticleDetailViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val myId = MutableStateFlow("u_demo")
+    private val myName = MutableStateFlow("You")
 
     init {
         viewModelScope.launch {
-            userRepo.current().collect { u -> myId.value = u?.uid ?: "u_demo" }
+            userRepo.current().collect { u ->
+                myId.value = u?.uid ?: "u_demo"
+                myName.value = u?.displayName?.takeIf { it.isNotBlank() } ?: "You"
+            }
         }
     }
 
@@ -108,7 +112,7 @@ class ArticleDetailViewModel @Inject constructor(
 
     fun addComment(text: String) = viewModelScope.launch {
         val a = article.value ?: return@launch
-        commentDao.insert(ArticleCommentEntity("c_${System.currentTimeMillis()}", a.id, myId.value, "You", text, System.currentTimeMillis()))
+        commentDao.insert(ArticleCommentEntity("c_${System.currentTimeMillis()}", a.id, myId.value, myName.value, text, System.currentTimeMillis()))
         articleDao.incrementComments(a.id)
         article.value = articleDao.getById(a.id)
     }

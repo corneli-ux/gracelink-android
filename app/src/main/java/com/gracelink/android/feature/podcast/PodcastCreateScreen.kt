@@ -1,5 +1,8 @@
 package com.gracelink.android.feature.podcast
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -22,6 +27,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -39,17 +45,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gracelink.android.core.components.GhostButton
 import com.gracelink.android.core.components.GoldButton
 import com.gracelink.android.core.theme.Gold400
 import com.gracelink.android.core.theme.Obsidian
 import com.gracelink.android.core.theme.Slate800
 
 /**
- * Podcast publishing for pastors/churches. Episode audio is added by URL
- * for now (no on-device upload-to-cloud-storage pipeline exists yet in
- * this app -- that would need its own backend/storage setup) -- but the
- * series/episode data itself is fully real and immediately shows up in
- * the Podcasts tab for everyone.
+ * Podcast publishing for pastors/churches. Episode audio can be uploaded
+ * directly (via Firebase Storage, which was already a dependency in this
+ * project) or added by pasting an existing URL. Series/episode data is
+ * fully real and immediately shows up in the Podcasts tab for everyone.
  */
 @Composable
 fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltViewModel()) {
@@ -122,14 +128,48 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
                 Spacer(Modifier.height(10.dp))
                 Field("Episode title", epTitle) { epTitle = it }
                 Spacer(Modifier.height(10.dp))
-                Field("Audio URL", epUrl) { epUrl = it }
-                Spacer(Modifier.height(10.dp))
                 Field("Duration label (e.g. 28 min)", epDuration) { epDuration = it }
                 Spacer(Modifier.height(16.dp))
-                GoldButton("Add Episode", icon = Icons.Rounded.Add, onClick = {
-                    val id = activeSeriesId ?: return@GoldButton
-                    vm.addEpisode(id, epTitle, epUrl, epDuration.ifBlank { "\u2014" }) {
-                        epTitle = ""; epUrl = ""; epDuration = ""
+
+                val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                    if (uri != null) {
+                        val id = activeSeriesId
+                        if (id != null) {
+                            vm.addEpisodeFromFile(id, epTitle, uri, epDuration.ifBlank { "\u2014" }) {
+                                epTitle = ""; epDuration = ""
+                            }
+                        }
+                    }
+                }
+
+                if (state.isUploading) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Gold400, strokeWidth = 2.dp)
+                        Spacer(Modifier.width(10.dp))
+                        Text("Uploading\u2026", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else {
+                    GoldButton(
+                        "Upload Audio File", icon = Icons.Rounded.Add,
+                        onClick = { if (epTitle.isNotBlank()) filePicker.launch("audio/*") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (state.uploadError != null) {
+                        Text(state.uploadError ?: "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 6.dp))
+                    }
+                }
+
+                Spacer(Modifier.height(14.dp))
+                Text("or paste an audio URL instead", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(8.dp))
+                Field("Audio URL", epUrl) { epUrl = it }
+                Spacer(Modifier.height(10.dp))
+                GhostButton("Add via URL", onClick = {
+                    val id = activeSeriesId ?: return@GhostButton
+                    if (epUrl.isNotBlank()) {
+                        vm.addEpisode(id, epTitle, epUrl, epDuration.ifBlank { "\u2014" }) {
+                            epTitle = ""; epUrl = ""; epDuration = ""
+                        }
                     }
                 }, modifier = Modifier.fillMaxWidth())
             }

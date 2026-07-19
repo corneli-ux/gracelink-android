@@ -31,7 +31,7 @@ import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.ArticleEntity
 
 @Composable
-fun ArticlesScreen(onRequireSignIn: () -> Unit = {}, vm: ArticlesViewModel = hiltViewModel()) {
+fun ArticlesScreen(onRequireSignIn: () -> Unit = {}, onOpenArticle: (String) -> Unit = {}, vm: ArticlesViewModel = hiltViewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
     val featured = state.articles.firstOrNull()
     val rest = if (featured != null) state.articles.drop(1) else emptyList()
@@ -61,13 +61,13 @@ fun ArticlesScreen(onRequireSignIn: () -> Unit = {}, vm: ArticlesViewModel = hil
                         item {
                             Text("Featured", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), color = Gold400)
                             Spacer(Modifier.height(8.dp))
-                            FeaturedCard(featured) { vm.toggleLike(featured.id) }
+                            FeaturedCard(featured, { vm.toggleLike(featured.id) }, { onOpenArticle(featured.id) })
                         }
                     }
                     if (rest.isNotEmpty()) {
                         item { Spacer(Modifier.height(4.dp)); Text("More", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
-                    items(rest, key = { it.id }) { article -> ArticleCard(article) { vm.toggleLike(article.id) } }
+                    items(rest, key = { it.id }) { article -> ArticleCard(article, { vm.toggleLike(article.id) }, { onOpenArticle(article.id) }) }
                 }
             }
         }
@@ -90,13 +90,14 @@ private fun EmptyState() {
 }
 
 @Composable
-private fun FeaturedCard(article: ArticleEntity, onLike: () -> Unit) {
+private fun FeaturedCard(article: ArticleEntity, onLike: () -> Unit, onOpen: () -> Unit) {
     var liked by remember { mutableStateOf(false) }
     Column(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(Brush.horizontalGradient(listOf(Gold400.copy(alpha = 0.14f), Slate800)))
+            .clickable(onClick = onOpen)
             .padding(18.dp)
     ) {
         AuthorRow(article)
@@ -110,9 +111,9 @@ private fun FeaturedCard(article: ArticleEntity, onLike: () -> Unit) {
 }
 
 @Composable
-private fun ArticleCard(article: ArticleEntity, onLike: () -> Unit) {
+private fun ArticleCard(article: ArticleEntity, onLike: () -> Unit, onOpen: () -> Unit) {
     var liked by remember { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Slate800).padding(16.dp)) {
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Slate800).clickable(onClick = onOpen).padding(16.dp)) {
         AuthorRow(article)
         Spacer(Modifier.height(12.dp))
         Text(article.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)

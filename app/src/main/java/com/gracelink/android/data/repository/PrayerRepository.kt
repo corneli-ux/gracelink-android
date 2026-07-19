@@ -58,10 +58,11 @@ class PrayerRepository @Inject constructor(
         prayerDao.update(p.copy(isAnswered = true))
     }
 
-    suspend fun addEncouragement(prayerId: String, text: String, myName: String) {
+    suspend fun addEncouragement(prayerId: String, text: String, myName: String, audioUrl: String? = null) {
         val p = prayerDao.getById(prayerId) ?: return
         val encJson = p.encouragementsJson.trimEnd(']')
-        val newEntry = """{"id":"e_${System.currentTimeMillis()}","userId":"u_demo","displayName":"$myName","text":"${text.replace("\"", "\\\"")}","timestamp":${System.currentTimeMillis()}}"""
+        val audioField = if (audioUrl != null) "\"audioUrl\":\"${audioUrl.replace("\"", "\\\"")}\"," else ""
+        val newEntry = """{"id":"e_${System.currentTimeMillis()}","userId":"u_demo","displayName":"$myName",$audioField"text":"${text.replace("\"", "\\\"")}","timestamp":${System.currentTimeMillis()}}"""
         val updated = if (encJson == "[") "$encJson$newEntry]" else "$encJson,$newEntry]"
         prayerDao.update(p.copy(encouragementsJson = updated))
     }
