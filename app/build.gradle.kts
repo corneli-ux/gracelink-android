@@ -23,6 +23,21 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+
+        // Short git commit SHA baked into the app, so any installed build
+        // can be identified exactly (shown on the sign-in screen). Falls
+        // back to "local" outside of git/CI so local builds don't fail.
+        val gitSha = try {
+            val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+                .redirectErrorStream(true)
+                .start()
+            val output = process.inputStream.bufferedReader().readText().trim()
+            process.waitFor()
+            output.ifBlank { "local" }
+        } catch (e: Exception) {
+            "local"
+        }
+        buildConfigField("String", "GIT_SHA", "\"$gitSha\"")
     }
 
     signingConfigs {

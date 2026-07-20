@@ -23,6 +23,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +62,20 @@ fun AuthScreen(
 
     fun runOnMain(action: () -> Unit) {
         mainHandler.post { action() }
+    }
+
+    // Safety net: if Firebase's callback never fires at all (e.g. the device
+    // is on a network that can reach the Google picker but not Firebase's
+    // servers), isLoading would otherwise spin forever with zero feedback --
+    // indistinguishable from "the app is just stuck." Time it out instead.
+    LaunchedEffect(isLoading) {
+        if (isLoading) {
+            kotlinx.coroutines.delay(15_000)
+            if (isLoading) {
+                isLoading = false
+                errorMsg = "This is taking too long. Check your connection and try again."
+            }
+        }
     }
 
     val googleSignInLauncher = rememberLauncherForActivityResult(
@@ -175,13 +190,27 @@ fun AuthScreen(
             }
 
             errorMsg?.let {
-                Spacer(Modifier.height(16.dp))
-                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                Spacer(Modifier.height(20.dp))
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.15f))
+                        .padding(16.dp),
+                ) {
+                    Text(it, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium), color = MaterialTheme.colorScheme.error)
+                }
             }
 
             Spacer(Modifier.height(28.dp))
             Text(
                 "By continuing you agree to be part of the Faith Link community.",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextMuted,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Build ${com.gracelink.android.BuildConfig.GIT_SHA}",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextMuted,
             )
