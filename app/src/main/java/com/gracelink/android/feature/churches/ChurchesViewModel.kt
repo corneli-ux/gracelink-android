@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gracelink.android.data.db.dao.ChurchDao
 import com.gracelink.android.data.db.dao.ChurchMemberDao
 import com.gracelink.android.data.db.dao.UserDao
+import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.ChurchEntity
 import com.gracelink.android.data.db.entity.ChurchMemberEntity
 import com.gracelink.android.data.db.entity.VerificationStatus
@@ -21,6 +22,7 @@ data class ChurchesState(
     val churches: List<ChurchEntity> = emptyList(),
     val myChurchId: String? = null,
     val isGuest: Boolean = true,
+    val myAccountType: AccountType = AccountType.PERSONAL,
 )
 
 @HiltViewModel
@@ -33,7 +35,7 @@ class ChurchesViewModel @Inject constructor(
     val state: StateFlow<ChurchesState> = combine(
         churchDao.all(), userDao.current()
     ) { churches, user ->
-        ChurchesState(churches, user?.churchId, isGuest = user == null)
+        ChurchesState(churches, user?.churchId, isGuest = user == null, myAccountType = user?.accountType ?: AccountType.PERSONAL)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChurchesState())
 
     fun joinChurch(church: ChurchEntity) = viewModelScope.launch {

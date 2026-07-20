@@ -137,6 +137,17 @@ fun ChurchPortalScreen(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
 
+            // Incoming collaboration proposals -- other churches/pastors
+            // asking to partner on events, debates, or discussions. Distinct
+            // from membership: churches don't join each other.
+            if (state.pendingCollaborations.isNotEmpty()) {
+                SectionLabel("Collaboration requests")
+                state.pendingCollaborations.forEach { req ->
+                    CollaborationRequestRow(req, onAccept = { vm.respondToCollaboration(req.id, true) }, onDecline = { vm.respondToCollaboration(req.id, false) })
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            }
+
             // Upcoming events -- this is what was missing before: events
             // you created had nowhere to actually show up
             SectionLabel("Upcoming events")
@@ -192,6 +203,25 @@ private fun PendingMemberRow(member: ChurchMemberEntity, onApprove: () -> Unit, 
         Icon(Icons.Rounded.Check, "Approve", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp).clickable(onClick = onApprove))
         Spacer(Modifier.width(16.dp))
         Icon(Icons.Rounded.Close, "Reject", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(22.dp).clickable(onClick = onReject))
+    }
+}
+
+@Composable
+private fun CollaborationRequestRow(req: com.gracelink.android.data.db.entity.CollaborationRequestEntity, onAccept: () -> Unit, onDecline: () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(req.fromName, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                Text(req.fromType.name.lowercase().replaceFirstChar { it.uppercase() } + " wants to collaborate", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Icon(Icons.Rounded.Check, "Accept", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp).clickable(onClick = onAccept))
+            Spacer(Modifier.width(16.dp))
+            Icon(Icons.Rounded.Close, "Decline", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(22.dp).clickable(onClick = onDecline))
+        }
+        if (req.message.isNotBlank()) {
+            Spacer(Modifier.height(4.dp))
+            Text(req.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 

@@ -11,6 +11,8 @@ import com.gracelink.android.data.db.dao.UserDao
 import com.gracelink.android.data.db.entity.ChurchEntity
 import com.gracelink.android.data.db.entity.ChurchEventEntity
 import com.gracelink.android.data.db.entity.ChurchMemberEntity
+import com.gracelink.android.data.db.entity.CollaborationRequestEntity
+import com.gracelink.android.data.repository.CollaborationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,6 +33,17 @@ data class ChurchPortalState(
     val articleCount: Int = 0,
     val podcastCount: Int = 0,
     val upcomingEvents: List<ChurchEventEntity> = emptyList(),
+    val pendingCollaborations: List<CollaborationRequestEntity> = emptyList(),
+)
+
+private data class ChurchPortalBase(
+    val myUid: String?,
+    val church: ChurchEntity?,
+    val pendingMembers: List<ChurchMemberEntity>,
+    val approvedCount: Int,
+    val articleCount: Int,
+    val podcastCount: Int,
+    val upcomingEvents: List<ChurchEventEntity>,
 )
 
 @HiltViewModel
@@ -40,17 +54,18 @@ class ChurchPortalViewModel @Inject constructor(
     private val articleDao: ArticleDao,
     private val podcastDao: PodcastDao,
     private val eventDao: ChurchEventDao,
+    private val collaborationRepo: CollaborationRepository,
 ) : ViewModel() {
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<ChurchPortalState> = userDao.current().flatMapLatest { user ->
+    private val baseFlow = userDao.current().flatMapLatest { user ->
         val uid = user?.uid
         if (uid == null) {
-            flowOf(ChurchPortalState())
+            flowOf(ChurchPortalBase(null, null, emptyList(), 0, 0, 0, emptyList()))
         } else {
             churchDao.byOwner(uid).flatMapLatest { church ->
                 if (church == null) {
-                    flowOf(ChurchPortalState(myUid = uid))
+                    flowOf(ChurchPortalBase(uid, null, emptyList(), 0, 0, 0, emptyList()))
                 } else {
                     combine(
                         memberDao.pendingForChurch(church.id),
@@ -59,17 +74,36 @@ class ChurchPortalViewModel @Inject constructor(
                         podcastDao.seriesByAuthor(uid),
                         eventDao.forChurch(church.id),
                     ) { pending, approved, articles, podcasts, events ->
-                        ChurchPortalState(
-                            myUid = uid,
-                            church = church,
-                            pendingMembers = pending,
-                            approvedCount = approved.size,
-                            articleCount = articles.size,
-                            podcastCount = podcasts.size,
-                            upcomingEvents = events,
+                        ChurchPortalBase(
+                            myUid = uid, church = church, pendingMembers = pending,
+                            approvedCount = approved.size, articleCount = articles.size,
+                            podcastCount = podcasts.size, upcomingEvents = events,
                         )
                     }
                 }
+            }
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val state: StateFlow<ChurchPortalState> = baseFlow.flatMapLatest { base ->
+        val churchId = base.church?.id
+        if (churchId == null) {
+            flowOf(
+                ChurchPortalState(
+                    myUid = base.myUid, church = base.church, pendingMembers = base.pendingMembers,
+                    approvedCount = base.approvedCount, articleCount = base.articleCount,
+                    podcastCount = base.podcastCount, upcomingEvents = base.upcomingEvents,
+                )
+            )
+        } else {
+            collaborationRepo.pendingFor(churchId).map { pendingCollabs ->
+                ChurchPortalState(
+                    myUid = base.myUid, church = base.church, pendingMembers = base.pendingMembers,
+                    approvedCount = base.approvedCount, articleCount = base.articleCount,
+                    podcastCount = base.podcastCount, upcomingEvents = base.upcomingEvents,
+                    pendingCollaborations = pendingCollabs,
+                )
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChurchPortalState())
@@ -81,5 +115,9 @@ class ChurchPortalViewModel @Inject constructor(
 
     fun rejectMember(memberId: String) = viewModelScope.launch {
         memberDao.reject(memberId)
+    }
+
+    fun respondToCollaboration(id: String, accept: Boolean) = viewModelScope.launch {
+        collaborationRepo.respond(id, accept)
     }
 }

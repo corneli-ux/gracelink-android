@@ -8,9 +8,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Church
+import androidx.compose.material.icons.rounded.Handshake
 import androidx.compose.material.icons.rounded.People
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
@@ -18,7 +20,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -26,16 +27,22 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.components.GoldButton
-import com.gracelink.android.core.theme.Emerald500
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Slate800
-import com.gracelink.android.core.theme.Slate900
+import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.BeliefSystem
 import com.gracelink.android.data.db.entity.ChurchEntity
 import com.gracelink.android.data.db.entity.VerificationStatus
 
 private enum class ChurchFilter(val label: String) { ALL("All"), VERIFIED("Verified"), MINE("My Church") }
 
+/**
+ * Minimalist: flat list, hairline dividers, no gradient cards. Also fixes
+ * a real inconsistency -- Church/Pastor viewers used to see the same
+ * "Join" action as everyone else right here on the list, even though
+ * Church Detail (one tap away) correctly offered "Collaborate" instead.
+ * Churches don't join each other as members; they partner on events,
+ * debates, and discussions. Now consistent: Church/Pastor viewers see
+ * "View & Collaborate", which opens Detail where that flow already lives.
+ */
 @Composable
 fun ChurchesScreen(
     onChurchClick: (String) -> Unit = {},
@@ -57,14 +64,19 @@ fun ChurchesScreen(
             }
         }
 
+    val isChurchOrPastorViewer = state.myAccountType == AccountType.CHURCH || state.myAccountType == AccountType.PASTOR
+
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
         Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("Churches", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
-                Text("Find your community & join", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    if (isChurchOrPastorViewer) "Find churches to partner with" else "Find your community & join",
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             Box(
-                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(Gold400).clickable {
+                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.primary).clickable {
                     if (state.isGuest) onRequireSignIn() else showCreate = true
                 },
                 contentAlignment = Alignment.Center
@@ -79,7 +91,7 @@ fun ChurchesScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(Slate800)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(horizontal = 14.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -89,7 +101,7 @@ fun ChurchesScreen(
                 value = query, onValueChange = { query = it },
                 modifier = Modifier.weight(1f),
                 placeholder = { Text("Search by name or location", style = MaterialTheme.typography.bodyMedium) },
-                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400),
+                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary),
                 singleLine = true,
             )
         }
@@ -102,7 +114,7 @@ fun ChurchesScreen(
                 Box(
                     Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(if (selected) Gold400 else Slate800)
+                        .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                         .clickable { filter = f }
                         .padding(horizontal = 14.dp, vertical = 8.dp)
                 ) {
@@ -110,22 +122,25 @@ fun ChurchesScreen(
                 }
             }
         }
+        Spacer(Modifier.height(8.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         if (filtered.isEmpty()) {
             Column(Modifier.fillMaxWidth().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(Modifier.height(40.dp))
-                Icon(Icons.Rounded.Church, null, tint = Gold400.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
+                Icon(Icons.Rounded.Church, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
                 Spacer(Modifier.height(8.dp))
                 Text("No churches match", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
-            LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            LazyColumn(contentPadding = PaddingValues(horizontal = 24.dp)) {
                 items(filtered, key = { it.id }) { church ->
-                    ChurchCard(
-                        church, state.myChurchId == church.id,
+                    ChurchRow(
+                        church, state.myChurchId == church.id, isChurchOrPastorViewer,
                         onJoin = { if (state.isGuest) onRequireSignIn() else vm.joinChurch(church) },
                         onClick = { onChurchClick(church.id) },
                     )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
         }
@@ -137,47 +152,53 @@ fun ChurchesScreen(
 }
 
 @Composable
-private fun ChurchCard(church: ChurchEntity, isMember: Boolean, onJoin: () -> Unit, onClick: () -> Unit) {
+private fun ChurchRow(church: ChurchEntity, isMember: Boolean, isChurchOrPastorViewer: Boolean, onJoin: () -> Unit, onClick: () -> Unit) {
     val isVerified = church.verificationStatus == VerificationStatus.VERIFIED
-    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Brush.horizontalGradient(listOf(Gold400.copy(alpha = 0.1f), Slate800))).clickable(onClick = onClick).padding(16.dp)) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Church, null, tint = Gold400, modifier = Modifier.size(20.dp))
+    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(church.name, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+                    if (isVerified) { Spacer(Modifier.width(6.dp)); Icon(Icons.Rounded.CheckCircle, "Verified", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(15.dp)) }
                 }
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(church.name, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
-                        if (isVerified) { Spacer(Modifier.width(6.dp)); Icon(Icons.Rounded.CheckCircle, "Verified", tint = Emerald500, modifier = Modifier.size(16.dp)) }
-                    }
-                    Text(church.location, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                Text(church.location, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Spacer(Modifier.height(10.dp))
-            Text("Pastor: ${church.pastorName}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-            Spacer(Modifier.height(4.dp))
-            Text("Belief: ${church.beliefSystem.displayName}", style = MaterialTheme.typography.bodySmall, color = Gold400)
-            Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("${church.memberCount} members", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.weight(1f))
-                if (isMember) {
-                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Emerald500.copy(alpha = 0.2f)).padding(horizontal = 14.dp, vertical = 8.dp)) {
-                        Text("Member", style = MaterialTheme.typography.labelMedium, color = Emerald500, fontWeight = FontWeight.SemiBold)
+            Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+        }
+        Spacer(Modifier.height(8.dp))
+        Text("Pastor: ${church.pastorName} \u00b7 ${church.beliefSystem.displayName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.width(4.dp))
+            Text("${church.memberCount} members", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.weight(1f))
+            when {
+                isChurchOrPastorViewer -> {
+                    Row(
+                        Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Rounded.Handshake, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Collaborate", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
                     }
-                } else {
-                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Gold400).clickable(onClick = onJoin).padding(horizontal = 14.dp, vertical = 8.dp)) {
+                }
+                isMember -> {
+                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)).padding(horizontal = 14.dp, vertical = 8.dp)) {
+                        Text("Member", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+                else -> {
+                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.primary).clickable(onClick = onJoin).padding(horizontal = 14.dp, vertical = 8.dp)) {
                         Text("Join", style = MaterialTheme.typography.labelMedium, color = Color(0xFF1A1408), fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
-            if (church.verificationStatus == VerificationStatus.PENDING) {
-                Spacer(Modifier.height(6.dp))
-                Text("Verification pending \u2014 certificate & photos under review", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+        }
+        if (church.verificationStatus == VerificationStatus.PENDING) {
+            Spacer(Modifier.height(6.dp))
+            Text("Verification pending \u2014 certificate & photos under review", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -191,7 +212,7 @@ private fun CreateChurchDialog(onCreate: (String, String, String, BeliefSystem, 
     var belief by remember { mutableStateOf(BeliefSystem.NONDENOMINATIONAL) }
 
     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.7f)).clickable(onClick = onDismiss)) {
-        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(Slate900).padding(24.dp).clickable(enabled = false) {}) {
+        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(MaterialTheme.colorScheme.surface).padding(24.dp).clickable(enabled = false) {}) {
             Column {
                 Text("Register Your Church", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(4.dp))
@@ -205,11 +226,11 @@ private fun CreateChurchDialog(onCreate: (String, String, String, BeliefSystem, 
                 Spacer(Modifier.height(10.dp))
                 Field("Email", email) { email = it }
                 Spacer(Modifier.height(12.dp))
-                Text("Belief System", style = MaterialTheme.typography.labelMedium, color = Gold400, fontWeight = FontWeight.SemiBold)
+                Text("Belief System", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
                 BeliefSystem.values().take(6).forEach { b ->
-                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (b == belief) Gold400.copy(alpha = 0.15f) else Slate800).clickable { belief = b }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = b == belief, onClick = { belief = b }, colors = RadioButtonDefaults.colors(selectedColor = Gold400))
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (b == belief) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant).clickable { belief = b }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = b == belief, onClick = { belief = b }, colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary))
                         Spacer(Modifier.width(8.dp))
                         Text(b.displayName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                     }
@@ -220,7 +241,7 @@ private fun CreateChurchDialog(onCreate: (String, String, String, BeliefSystem, 
                 Spacer(Modifier.height(16.dp))
                 GoldButton("Register Church", onClick = { if (name.isNotBlank() && pastor.isNotBlank()) onCreate(name, pastor, location, belief, email) }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(10.dp))
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Slate800).clickable(onClick = onDismiss).padding(vertical = 14.dp), contentAlignment = Alignment.Center) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface) }
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onDismiss).padding(vertical = 14.dp), contentAlignment = Alignment.Center) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface) }
             }
         }
     }
@@ -228,5 +249,5 @@ private fun CreateChurchDialog(onCreate: (String, String, String, BeliefSystem, 
 
 @Composable
 private fun Field(label: String, value: String, onChange: (String) -> Unit) {
-    OutlinedTextField(value = value, onValueChange = onChange, modifier = Modifier.fillMaxWidth(), placeholder = { Text(label) }, colors = TextFieldDefaults.colors(focusedContainerColor = Slate800, unfocusedContainerColor = Slate800, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400), shape = RoundedCornerShape(12.dp), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
+    OutlinedTextField(value = value, onValueChange = onChange, modifier = Modifier.fillMaxWidth(), placeholder = { Text(label) }, colors = TextFieldDefaults.colors(focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(12.dp), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
 }
