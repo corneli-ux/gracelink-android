@@ -86,7 +86,7 @@ fun AudioConnectScreen(vm: AudioConnectViewModel = hiltViewModel()) {
 
     if (state.isCreating) {
         CreateSpaceDialog(
-            onCreate = { title, topic -> vm.createSpace(title, topic, "You") },
+            onCreate = { title, topic -> vm.createSpace(title, topic) },
             onDismiss = { vm.showCreateDialog(false) },
         )
     }

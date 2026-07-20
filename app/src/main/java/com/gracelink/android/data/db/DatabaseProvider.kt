@@ -76,13 +76,29 @@ object DatabaseProvider {
         }
     }
 
+    /** v12 -> v13: new collaboration_requests table. Brand new table, plain CREATE TABLE. */
+    private val MIGRATION_12_13 = object : androidx.room.migration.Migration(12, 13) {
+        override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `collaboration_requests` (
+                    `id` TEXT NOT NULL, `fromUid` TEXT NOT NULL, `fromName` TEXT NOT NULL,
+                    `fromType` TEXT NOT NULL, `toChurchId` TEXT NOT NULL, `toChurchName` TEXT NOT NULL,
+                    `message` TEXT NOT NULL, `status` TEXT NOT NULL, `createdAt` INTEGER NOT NULL,
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     fun get(context: Context): GraceDatabase = INSTANCE ?: synchronized(this) {
         INSTANCE ?: Room.databaseBuilder(
             context.applicationContext,
             GraceDatabase::class.java,
             "gracelink.db"
         )
-            .addMigrations(MIGRATION_10_11, MIGRATION_11_12)
+            .addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
             .fallbackToDestructiveMigration()
             .build()
             .also { INSTANCE = it }

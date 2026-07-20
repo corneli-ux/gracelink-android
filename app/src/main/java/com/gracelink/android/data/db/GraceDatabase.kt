@@ -18,8 +18,9 @@ import com.gracelink.android.data.db.entity.*
         ChurchEventEntity::class, FaithProgressEntity::class,
         PodcastSeriesEntity::class, PodcastEpisodeEntity::class,
         QuestionEntity::class, AnswerEntity::class,
+        CollaborationRequestEntity::class,
     ],
-    version = 12,
+    version = 13,
     exportSchema = false,
 )
 @TypeConverters(EnumConverters::class)
@@ -42,6 +43,7 @@ abstract class GraceDatabase : RoomDatabase() {
     abstract fun faithProgressDao(): FaithProgressDao
     abstract fun podcastDao(): PodcastDao
     abstract fun forumDao(): ForumDao
+    abstract fun collaborationDao(): CollaborationDao
 
     companion object {
         @Volatile private var INSTANCE: GraceDatabase? = null

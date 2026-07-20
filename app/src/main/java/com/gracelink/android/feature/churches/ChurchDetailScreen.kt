@@ -43,10 +43,12 @@ fun ChurchDetailScreen(
     vm: ChurchDetailViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    var showCollaborateDialog by remember { mutableStateOf(false) }
     LaunchedEffect(churchId) { vm.load(churchId) }
     val church = state.church
     val isGuest = state.myId == "u_demo"
 
+    Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
         // Top bar
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -87,7 +89,26 @@ fun ChurchDetailScreen(
                                 Text("${state.members.size} members", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(Modifier.weight(1f))
                                 val membership = state.myMembership
-                                when {
+                                if (state.myAccountType != com.gracelink.android.data.db.entity.AccountType.PERSONAL) {
+                                    // Churches and individual pastors don't join each other as
+                                    // members -- they propose partnering on events, debates, or
+                                    // discussions instead.
+                                    val sent = state.myCollaborationRequest
+                                    when {
+                                        sent == null -> GoldButton("Collaborate", onClick = { if (isGuest) onRequireSignIn() else showCollaborateDialog = true })
+                                        sent.status == com.gracelink.android.data.db.entity.CollaborationStatus.PENDING -> {
+                                            Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Gold400.copy(alpha = 0.2f)).padding(horizontal = 16.dp, vertical = 8.dp)) {
+                                                Text("Request Sent", style = MaterialTheme.typography.labelMedium, color = Gold400, fontWeight = FontWeight.SemiBold)
+                                            }
+                                        }
+                                        sent.status == com.gracelink.android.data.db.entity.CollaborationStatus.ACCEPTED -> {
+                                            Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Emerald500.copy(alpha = 0.2f)).padding(horizontal = 16.dp, vertical = 8.dp)) {
+                                                Text("Collaborating", style = MaterialTheme.typography.labelMedium, color = Emerald500, fontWeight = FontWeight.SemiBold)
+                                            }
+                                        }
+                                        else -> GoldButton("Request Again", onClick = { if (isGuest) onRequireSignIn() else showCollaborateDialog = true })
+                                    }
+                                } else when {
                                     membership == null -> {
                                         GoldButton("Request Membership", onClick = { if (isGuest) onRequireSignIn() else vm.joinChurch() })
                                     }
@@ -145,9 +166,53 @@ fun ChurchDetailScreen(
             }
         }
     }
+
+    if (showCollaborateDialog) {
+        CollaborateDialog(
+            churchName = church?.name ?: "",
+            onSend = { message ->
+                vm.requestCollaboration(message) { showCollaborateDialog = false }
+            },
+            onDismiss = { showCollaborateDialog = false },
+        )
+    }
+    }
 }
 
 @Composable
+private fun CollaborateDialog(churchName: String, onSend: (String) -> Unit, onDismiss: () -> Unit) {
+    var message by remember { mutableStateOf("") }
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.7f)).clickable(onClick = onDismiss)) {
+        Box(
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .background(Slate800)
+                .padding(20.dp)
+                .clickable(enabled = false) {},
+        ) {
+            Column {
+                Text("Propose Collaboration", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+                Spacer(Modifier.height(4.dp))
+                Text("Suggest partnering with $churchName on an event, debate, or discussion", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(14.dp))
+                OutlinedTextField(
+                    value = message, onValueChange = { message = it },
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
+                    placeholder = { Text("What would you like to collaborate on?") },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                )
+                Spacer(Modifier.height(16.dp))
+                GoldButton("Send Request", onClick = { if (message.isNotBlank()) onSend(message) }, modifier = Modifier.fillMaxWidth())
+            }
+        }
+    }
+}
 private fun EventCard(event: ChurchEventEntity) {
     Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Slate800).padding(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
