@@ -314,6 +314,9 @@ fun GraceNavHost() {
                         onOpenLeadership = { navController.navigate(GraceRoute.ChurchLeadership) },
                         onOpenMinistries = { navController.navigate(GraceRoute.ChurchMinistries) },
                         onOpenEventRsvp = { id -> navController.navigate(GraceRoute.EventRsvp(id)) },
+                        onOpenServiceTimes = { navController.navigate(GraceRoute.ChurchServiceTimes) },
+                        onOpenModerationLog = { navController.navigate(GraceRoute.ModerationLog) },
+                        onOpenInsights = { navController.navigate(GraceRoute.ChurchInsights) },
                     )
                 }
 
@@ -403,6 +406,24 @@ fun GraceNavHost() {
                         eventId = route.eventId,
                         onBack = { navController.popBackStack() },
                         onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
+                    )
+                }
+
+                composable<GraceRoute.ChurchServiceTimes> {
+                    com.gracelink.android.feature.servicetimes.ServiceTimesScreen(
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+
+                composable<GraceRoute.ModerationLog> {
+                    com.gracelink.android.feature.moderation.ModerationScreen(
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+
+                composable<GraceRoute.ChurchInsights> {
+                    com.gracelink.android.feature.insights.InsightsScreen(
+                        onBack = { navController.popBackStack() },
                     )
                 }
 

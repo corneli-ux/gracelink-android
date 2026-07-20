@@ -26,8 +26,11 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Headphones
+import androidx.compose.material.icons.rounded.Insights
 import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material.icons.rounded.Radio
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.SupervisorAccount
 import androidx.compose.material.icons.rounded.VolunteerActivism
 import androidx.compose.material3.HorizontalDivider
@@ -72,6 +75,9 @@ fun ChurchPortalScreen(
     onOpenLeadership: () -> Unit,
     onOpenMinistries: () -> Unit,
     onOpenEventRsvp: (String) -> Unit,
+    onOpenServiceTimes: () -> Unit,
+    onOpenModerationLog: () -> Unit,
+    onOpenInsights: () -> Unit,
     vm: ChurchPortalViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -142,10 +148,13 @@ fun ChurchPortalScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             SectionLabel("Manage")
+            PortalAction("Insights", Icons.Rounded.Insights, onOpenInsights)
             PortalAction("Announcements", Icons.Rounded.Campaign, onOpenAnnouncements)
             PortalAction("Groups", Icons.Rounded.Groups, onOpenGroups)
             PortalAction("Leadership Team", Icons.Rounded.SupervisorAccount, onOpenLeadership)
             PortalAction("Ministries", Icons.Rounded.VolunteerActivism, onOpenMinistries)
+            PortalAction("Service Times", Icons.Rounded.Schedule, onOpenServiceTimes)
+            PortalAction("Moderation Log", Icons.Rounded.Shield, onOpenModerationLog)
             PortalAction("Radio Schedule", Icons.Rounded.Radio, onScheduleRadio)
             PortalAction("Start Live Space", Icons.Rounded.Headphones, onStartSpace)
             PortalAction("Podcasts", Icons.Rounded.Podcasts, onOpenPodcasts)
