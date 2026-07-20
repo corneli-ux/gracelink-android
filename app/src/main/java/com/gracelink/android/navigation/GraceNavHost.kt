@@ -338,6 +338,7 @@ fun GraceNavHost() {
                     com.gracelink.android.feature.churchportal.MemberDetailScreen(
                         memberId = route.memberId,
                         onBack = { navController.popBackStack() },
+                        onMessage = { uid, name -> navController.navigate(GraceRoute.DirectChat(uid, name)) },
                     )
                 }
 
@@ -429,6 +430,15 @@ fun GraceNavHost() {
 
                 composable<GraceRoute.PastorInsights> {
                     com.gracelink.android.feature.insights.PastorInsightsScreen(
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+
+                composable<GraceRoute.DirectChat> { entry ->
+                    val route = entry.toRoute<GraceRoute.DirectChat>()
+                    com.gracelink.android.feature.messages.DirectChatScreen(
+                        otherUserId = route.otherUserId,
+                        otherName = route.otherName,
                         onBack = { navController.popBackStack() },
                     )
                 }

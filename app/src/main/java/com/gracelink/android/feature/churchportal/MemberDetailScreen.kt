@@ -53,7 +53,7 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun MemberDetailScreen(memberId: String, onBack: () -> Unit, vm: MemberDetailViewModel = hiltViewModel()) {
+fun MemberDetailScreen(memberId: String, onBack: () -> Unit, onMessage: (String, String) -> Unit, vm: MemberDetailViewModel = hiltViewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
     val member = state.member
     var noteText by remember { mutableStateOf("") }
@@ -86,6 +86,15 @@ fun MemberDetailScreen(memberId: String, onBack: () -> Unit, vm: MemberDetailVie
                     listOfNotNull(member.phone, member.email).joinToString(" \u00b7 "),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            Spacer(Modifier.height(14.dp))
+            Row(
+                Modifier.clip(RoundedCornerShape(20.dp)).background(Gold500).clickable { onMessage(member.userId, member.displayName) }.padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Rounded.Send, null, tint = Color(0xFF1A0F00), modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Message", style = MaterialTheme.typography.labelLarge, color = Color(0xFF1A0F00))
             }
             Spacer(Modifier.height(20.dp))
 

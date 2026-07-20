@@ -72,6 +72,7 @@ sealed interface GraceRoute {
     @Serializable data object ModerationLog : GraceRoute
     @Serializable data object ChurchInsights : GraceRoute
     @Serializable data object PastorInsights : GraceRoute
+    @Serializable data class DirectChat(val otherUserId: String, val otherName: String) : GraceRoute
 }
 
 /**
