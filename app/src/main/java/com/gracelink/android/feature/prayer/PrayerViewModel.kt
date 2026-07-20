@@ -3,9 +3,9 @@ package com.gracelink.android.feature.prayer
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gracelink.android.data.db.entity.PrayerEntity
 import com.gracelink.android.data.repository.MediaUploadRepository
-import com.gracelink.android.data.repository.PrayerRepository
+import com.gracelink.android.data.repository.PrayerFirestoreRepository
+import com.gracelink.android.data.repository.PrayerRequest
 import com.gracelink.android.data.repository.UserRepository
 import com.gracelink.android.player.VoiceRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,24 +22,35 @@ enum class PrayerTab(val label: String) { ALL("All"), MINE("My Prayers"), ANSWER
 
 data class PrayerState(
     val tab: PrayerTab = PrayerTab.ALL,
-    val prayers: List<PrayerEntity> = emptyList(),
+    val allPrayers: List<PrayerRequest> = emptyList(),
     val showSheet: Boolean = false,
     val myName: String = "You",
+    val myUid: String = "",
     val isGuest: Boolean = true,
     val recordingPrayerId: String? = null,
     val uploadingPrayerId: String? = null,
-)
+) {
+    /** Filtered by the currently selected tab -- "mine" and "answered" are
+     * computed here against the real signed-in uid, not a stored per-row
+     * flag that would be wrong for every viewer except whoever it was
+     * hardcoded for. */
+    val prayers: List<PrayerRequest> get() = when (tab) {
+        PrayerTab.ALL -> allPrayers
+        PrayerTab.MINE -> allPrayers.filter { it.authorId == myUid }
+        PrayerTab.ANSWERED -> allPrayers.filter { it.isAnswered }
+    }
+}
 
 private data class PrayerBaseCombined(
     val tab: PrayerTab,
-    val prayers: List<PrayerEntity>,
+    val allPrayers: List<PrayerRequest>,
     val sheet: Boolean,
     val user: com.gracelink.android.data.db.entity.UserEntity?,
 )
 
 @HiltViewModel
 class PrayerViewModel @Inject constructor(
-    private val repo: PrayerRepository,
+    private val repo: PrayerFirestoreRepository,
     private val mediaUpload: MediaUploadRepository,
     @ApplicationContext private val context: Context,
     userRepo: UserRepository,
@@ -52,24 +62,16 @@ class PrayerViewModel @Inject constructor(
     private val uploadingPrayerId = MutableStateFlow<String?>(null)
     private var activeRecorder: VoiceRecorder? = null
 
-    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    private val prayersFlow = tab.flatMapLatest { t ->
-        when (t) {
-            PrayerTab.ALL -> repo.approved()
-            PrayerTab.MINE -> repo.mine()
-            PrayerTab.ANSWERED -> repo.answered()
-        }
-    }
-
-    val state: StateFlow<PrayerState> = combine(tab, prayersFlow, showSheet, userRepo.current()) { t, prayers, sheet, user ->
+    val state: StateFlow<PrayerState> = combine(tab, repo.allPrayers(), showSheet, userRepo.current()) { t, prayers, sheet, user ->
         PrayerBaseCombined(t, prayers, sheet, user)
     }.let { baseFlow ->
         combine(baseFlow, recordingPrayerId, uploadingPrayerId) { base, recording, uploading ->
             PrayerState(
                 tab = base.tab,
-                prayers = base.prayers,
+                allPrayers = base.allPrayers,
                 showSheet = base.sheet,
                 myName = base.user?.displayName ?: "You",
+                myUid = base.user?.uid ?: "",
                 isGuest = base.user == null,
                 recordingPrayerId = recording,
                 uploadingPrayerId = uploading,
@@ -79,13 +81,27 @@ class PrayerViewModel @Inject constructor(
 
     fun setTab(t: PrayerTab) { tab.value = t }
     fun showSheet(show: Boolean) { showSheet.value = show }
+
     fun submit(text: String, anonymous: Boolean) = viewModelScope.launch {
-        repo.submit(text, anonymous, state.value.myName)
+        val s = state.value
+        if (s.myUid.isBlank() || text.isBlank()) return@launch
+        repo.submit(s.myUid, s.myName, text, anonymous)
         showSheet.value = false
     }
-    fun togglePrayed(id: String) = viewModelScope.launch { repo.togglePrayed(id) }
-    fun markAnswered(id: String) = viewModelScope.launch { repo.markAnswered(id) }
-    fun encourage(id: String, text: String) = viewModelScope.launch { repo.addEncouragement(id, text, state.value.myName) }
+
+    fun togglePrayed(prayer: PrayerRequest) = viewModelScope.launch {
+        val uid = state.value.myUid
+        if (uid.isBlank()) return@launch
+        repo.togglePrayed(prayer.id, uid, currentlyPrayed = uid in prayer.prayedByUids)
+    }
+
+    fun markAnswered(prayerId: String) = viewModelScope.launch { repo.markAnswered(prayerId) }
+
+    fun encourage(prayerId: String, text: String) = viewModelScope.launch {
+        val s = state.value
+        if (s.myUid.isBlank()) return@launch
+        repo.addEncouragement(prayerId, s.myUid, s.myName, text)
+    }
 
     /** Starts recording a voice reply for the given prayer. Caller must have RECORD_AUDIO granted. */
     fun startRecording(prayerId: String) {
@@ -109,11 +125,14 @@ class PrayerViewModel @Inject constructor(
         recordingPrayerId.value = null
         if (path == null) return
 
+        val s = state.value
+        if (s.myUid.isBlank()) return
+
         uploadingPrayerId.value = prayerId
         viewModelScope.launch {
             try {
                 val url = mediaUpload.uploadLocalFile(path, "prayer_replies/$prayerId/${System.currentTimeMillis()}.m4a")
-                repo.addEncouragement(prayerId, "\uD83C\uDFA4 Voice reply", state.value.myName, audioUrl = url)
+                repo.addEncouragement(prayerId, s.myUid, s.myName, "\uD83C\uDFA4 Voice reply", audioUrl = url)
             } catch (_: Exception) {
                 // Upload failed silently for now -- the recording is still on device
                 // at `path` if we want to add a retry affordance later.

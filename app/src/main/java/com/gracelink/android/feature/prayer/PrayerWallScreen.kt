@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -67,8 +66,8 @@ import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.core.theme.PrayerGradient
 import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.core.theme.Slate900
-import com.gracelink.android.data.db.entity.PrayerEntity
-import org.json.JSONArray
+import com.gracelink.android.data.repository.PrayerEncouragement
+import com.gracelink.android.data.repository.PrayerRequest
 
 @Composable
 fun PrayerWallScreen(onRequireSignIn: () -> Unit = {}, vm: PrayerViewModel = hiltViewModel()) {
@@ -128,22 +127,36 @@ fun PrayerWallScreen(onRequireSignIn: () -> Unit = {}, vm: PrayerViewModel = hil
 
             Spacer(Modifier.height(8.dp))
 
-            LazyColumn(
-                Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(state.prayers, key = { it.id }) { p ->
-                    PrayerCard(
-                        p = p,
-                        onPray = { vm.togglePrayed(p.id) },
-                        onAnswered = { vm.markAnswered(p.id) },
-                        onEncourage = { vm.encourage(p.id, it) },
-                        isRecording = state.recordingPrayerId == p.id,
-                        isUploading = state.uploadingPrayerId == p.id,
-                        onStartRecording = { requestRecording(p.id) },
-                        onStopRecording = { vm.stopRecordingAndSend(p.id) },
+            if (state.prayers.isEmpty()) {
+                Column(Modifier.fillMaxSize().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Text(
+                        when (state.tab) {
+                            PrayerTab.MINE -> "You haven't shared a prayer yet"
+                            PrayerTab.ANSWERED -> "No answered prayers yet"
+                            PrayerTab.ALL -> "No prayers shared yet \u2014 be the first"
+                        },
+                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+            } else {
+                LazyColumn(
+                    Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(state.prayers, key = { it.id }) { p ->
+                        PrayerCard(
+                            p = p,
+                            hasPrayed = state.myUid.isNotBlank() && state.myUid in p.prayedByUids,
+                            onPray = { vm.togglePrayed(p) },
+                            onAnswered = { vm.markAnswered(p.id) },
+                            onEncourage = { vm.encourage(p.id, it) },
+                            isRecording = state.recordingPrayerId == p.id,
+                            isUploading = state.uploadingPrayerId == p.id,
+                            onStartRecording = { requestRecording(p.id) },
+                            onStopRecording = { vm.stopRecordingAndSend(p.id) },
+                        )
+                    }
                 }
             }
         }
@@ -156,7 +169,8 @@ fun PrayerWallScreen(onRequireSignIn: () -> Unit = {}, vm: PrayerViewModel = hil
 
 @Composable
 private fun PrayerCard(
-    p: PrayerEntity,
+    p: PrayerRequest,
+    hasPrayed: Boolean,
     onPray: () -> Unit,
     onAnswered: () -> Unit,
     onEncourage: (String) -> Unit,
@@ -181,31 +195,30 @@ private fun PrayerCard(
                     Text("ANSWERED", style = MaterialTheme.typography.labelSmall, color = Emerald500, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(8.dp))
                 }
-                Text(p.displayName ?: "Anonymous", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                Text(p.authorName, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.width(6.dp))
-                Text("• ${fmtTime(p.timestamp)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("\u2022 ${fmtTime(p.timestamp)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.height(8.dp))
             Text(p.text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
 
-            // Encouragements
-            val encs = parseEncouragements(p.encouragementsJson)
-            if (encs.isNotEmpty()) {
+            // Encouragements -- real list, not hand-parsed JSON
+            if (p.encouragements.isNotEmpty()) {
                 Spacer(Modifier.height(10.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    encs.take(3).forEach { e ->
+                    p.encouragements.take(3).forEach { e ->
                         if (e.audioUrl != null) {
-                            AudioEncouragementRow(e.displayName, e.audioUrl)
+                            AudioEncouragementRow(e.authorName, e.audioUrl)
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(4.dp).clip(RoundedCornerShape(2.dp)).background(Emerald500.copy(alpha = 0.6f)))
                                 Spacer(Modifier.width(8.dp))
-                                Text("${e.displayName}: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                                Text("${e.authorName}: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
                                 Text(e.text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     }
-                    if (encs.size > 3) Text("+${encs.size - 3} more", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (p.encouragements.size > 3) Text("+${p.encouragements.size - 3} more", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -213,14 +226,14 @@ private fun PrayerCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier.clip(RoundedCornerShape(20.dp))
-                        .background(if (p.userPrayedThis) Emerald500.copy(alpha = 0.25f) else Slate900.copy(alpha = 0.7f))
+                        .background(if (hasPrayed) Emerald500.copy(alpha = 0.25f) else Slate900.copy(alpha = 0.7f))
                         .clickable(onClick = onPray).padding(horizontal = 12.dp, vertical = 8.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(if (p.userPrayedThis) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, null, tint = if (p.userPrayedThis) Emerald500 else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                        Icon(if (hasPrayed) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, null, tint = if (hasPrayed) Emerald500 else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("I Prayed • ${p.prayedCount}", style = MaterialTheme.typography.labelMedium, color = if (p.userPrayedThis) Emerald500 else MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("I Prayed \u2022 ${p.prayedByUids.size}", style = MaterialTheme.typography.labelMedium, color = if (hasPrayed) Emerald500 else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 Spacer(Modifier.weight(1f))
@@ -238,7 +251,7 @@ private fun PrayerCard(
                         TextField(
                             value = encText, onValueChange = { encText = it },
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text("Send an encouragement…", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            placeholder = { Text("Send an encouragement\u2026", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                             colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                             keyboardActions = KeyboardActions(onSend = { if (encText.isNotBlank()) { onEncourage(encText.trim()); encText = ""; showEnc = false } })
@@ -293,12 +306,12 @@ private fun SubmitSheet(onSubmit: (String, Boolean) -> Unit, onDismiss: () -> Un
             Column {
                 Text("Share a Prayer", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(4.dp))
-                Text("All prayers go through moderation before appearing publicly. Be honest and respectful.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Visible to the whole community. Be honest and respectful.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(16.dp))
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Slate800).padding(horizontal = 12.dp, vertical = 4.dp)) {
                     TextField(
                         value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Write your prayer…", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        placeholder = { Text("Write your prayer\u2026", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                         colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500),
                         minLines = 3,
                     )
@@ -319,7 +332,7 @@ private fun SubmitSheet(onSubmit: (String, Boolean) -> Unit, onDismiss: () -> Un
 }
 
 @Composable
-private fun AudioEncouragementRow(displayName: String, audioUrl: String) {
+private fun AudioEncouragementRow(authorName: String, audioUrl: String) {
     var isPlaying by remember { mutableStateOf(false) }
     var player by remember { mutableStateOf<android.media.MediaPlayer?>(null) }
 
@@ -371,7 +384,7 @@ private fun AudioEncouragementRow(displayName: String, audioUrl: String) {
             null, tint = Emerald500, modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(8.dp))
-        Text("$displayName's voice reply", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+        Text("$authorName's voice reply", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
@@ -380,17 +393,3 @@ private fun fmtTime(epoch: Long): String {
     val h = diff / 3_600_000; val d = h / 24
     return when { d > 0 -> "${d}d ago"; h > 0 -> "${h}h ago"; else -> "${diff / 60_000}m ago" }
 }
-
-private data class EncouragementItem(val displayName: String, val text: String, val audioUrl: String?)
-
-private fun parseEncouragements(json: String): List<EncouragementItem> = try {
-    val arr = JSONArray(json)
-    (0 until arr.length()).map { i ->
-        val o = arr.getJSONObject(i)
-        EncouragementItem(
-            displayName = o.optString("displayName").ifBlank { "Anonymous" },
-            text = o.optString("text"),
-            audioUrl = o.optString("audioUrl").ifBlank { null },
-        )
-    }
-} catch (_: Exception) { emptyList() }
