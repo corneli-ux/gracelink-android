@@ -6,6 +6,7 @@ import com.gracelink.android.data.db.dao.ChurchDao
 import com.gracelink.android.data.db.dao.UserDao
 import com.gracelink.android.data.db.entity.BeliefSystem
 import com.gracelink.android.data.db.entity.ChurchEntity
+import com.gracelink.android.data.repository.CloudProfileRegistry
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,7 @@ import javax.inject.Inject
 class ChurchEditProfileViewModel @Inject constructor(
     private val userDao: UserDao,
     private val churchDao: ChurchDao,
+    private val cloudRegistry: CloudProfileRegistry,
 ) : ViewModel() {
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -48,6 +50,16 @@ class ChurchEditProfileViewModel @Inject constructor(
                 phone = phone.ifBlank { null },
             )
         )
+        // Keep the cloud restoration backup in sync with edits, so a
+        // reinstall restores the CURRENT profile, not a stale snapshot
+        // from whenever registration originally happened.
+        current.ownerUserId?.let { uid ->
+            cloudRegistry.writeChurch(
+                uid = uid, churchName = name, pastorName = pastorName, location = location,
+                beliefSystem = belief, description = description,
+                website = website.ifBlank { null }, phone = phone.ifBlank { null },
+            )
+        }
         onDone()
     }
 }

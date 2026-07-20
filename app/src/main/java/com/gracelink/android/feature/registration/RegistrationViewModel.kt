@@ -10,6 +10,7 @@ import com.gracelink.android.data.db.entity.ChurchEntity
 import com.gracelink.android.data.db.entity.ContentLanguage
 import com.gracelink.android.data.db.entity.UserEntity
 import com.gracelink.android.data.db.entity.VerificationStatus
+import com.gracelink.android.data.repository.CloudProfileRegistry
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -19,6 +20,7 @@ import javax.inject.Inject
 class RegistrationViewModel @Inject constructor(
     private val userDao: UserDao,
     private val churchDao: ChurchDao,
+    private val cloudRegistry: CloudProfileRegistry,
 ) : ViewModel() {
 
     fun registerPersonal(name: String, email: String, belief: BeliefSystem, onComplete: (AccountType) -> Unit) = viewModelScope.launch {
@@ -50,6 +52,7 @@ class RegistrationViewModel @Inject constructor(
             bio = null,
         )
         userDao.upsert(user)
+        cloudRegistry.writePersonal(uid, name, belief)
         onComplete(AccountType.PERSONAL)
     }
 
@@ -109,6 +112,11 @@ class RegistrationViewModel @Inject constructor(
                 )
             )
         }
+        cloudRegistry.writeChurch(
+            uid = uid, churchName = name, pastorName = pastorName, location = location,
+            beliefSystem = belief, description = "Church pastored by $pastorName in $location",
+            website = null, phone = null,
+        )
         onComplete(AccountType.CHURCH)
     }
 
@@ -139,6 +147,7 @@ class RegistrationViewModel @Inject constructor(
             bio = null,
         )
         userDao.upsert(user)
+        cloudRegistry.writePastor(uid, name, belief)
         onComplete(AccountType.PASTOR)
     }
 }

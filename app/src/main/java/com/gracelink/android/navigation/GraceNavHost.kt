@@ -273,7 +273,7 @@ fun GraceNavHost() {
                         onNavigateToPastorPortal = { navController.navigate(GraceRoute.PastorPortal) },
                         onSetupProfile = { navController.navigate(GraceRoute.Registration) },
                         onSignedOut = {
-                            navController.navigate(GraceRoute.Registration) {
+                            navController.navigate(GraceRoute.Auth) {
                                 popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                             }
                         },

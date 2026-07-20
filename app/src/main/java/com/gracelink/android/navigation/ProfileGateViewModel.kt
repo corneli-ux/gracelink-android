@@ -5,8 +5,12 @@ import com.gracelink.android.data.db.dao.ChurchDao
 import com.gracelink.android.data.db.dao.PodcastDao
 import com.gracelink.android.data.db.dao.UserDao
 import com.gracelink.android.data.db.entity.AccountType
+import com.gracelink.android.data.db.entity.BeliefSystem
+import com.gracelink.android.data.db.entity.ChurchEntity
 import com.gracelink.android.data.db.entity.ContentLanguage
 import com.gracelink.android.data.db.entity.UserEntity
+import com.gracelink.android.data.db.entity.VerificationStatus
+import com.gracelink.android.data.repository.CloudProfileRegistry
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
@@ -19,65 +23,63 @@ import javax.inject.Inject
  * route straight into the right portal (Church/Pastor/member Home)
  * afterward instead of always landing on the generic Home.
  *
- * Also fixes a real data-loss bug: signing out only ever deleted the local
- * "current profile" row -- it never touched the church/podcast/article
- * records tied to that Firebase account. But since routing decisions only
- * checked that local row, signing back in looked identical to being a
- * brand-new user: forced back through full Registration, with the
- * person's actual church/portal now orphaned (still in the database,
- * just unreachable because nothing pointed back to it).
+ * Restoration happens in three tiers, each covering a different way the
+ * local "current profile" row can go missing while the account itself
+ * still legitimately exists:
+ *   1. Local profile matching the signed-in Firebase UID -- the normal case.
+ *   2. Local Room data still has the church/podcast records (survives a
+ *      plain sign-out, which only clears the profile row) -- reconstruct
+ *      the profile from those.
+ *   3. Local Room data is GONE entirely (app reinstall / new device wipes
+ *      the whole SQLite file) -- fall back to the Firestore cloud registry
+ *      and reconstruct both the profile AND the church record from there.
  */
 @HiltViewModel
 class ProfileGateViewModel @Inject constructor(
     private val userDao: UserDao,
     private val churchDao: ChurchDao,
     private val podcastDao: PodcastDao,
+    private val cloudRegistry: CloudProfileRegistry,
 ) : ViewModel() {
 
     /** Null if no profile has been set up yet. */
     suspend fun currentAccountType(): AccountType? = userDao.currentOnce()?.accountType
 
-    /**
-     * Called right after a successful sign-in. If a local profile already
-     * exists, returns its type immediately. If not, checks whether this
-     * Firebase account already owns a church or has published podcasts as
-     * a pastor, and reconstructs the local profile from that real data
-     * instead of forcing Registration again. Returns null only if this
-     * really is a brand-new account with no prior church/pastor footprint.
-     */
     suspend fun restoreOrCheckProfile(): AccountType? {
+        val fbUser = FirebaseAuth.getInstance().currentUser
         val existing = userDao.currentOnce()
-        if (existing != null) return existing.accountType
 
-        val fbUser = FirebaseAuth.getInstance().currentUser ?: return null
+        // Tier 1: local profile belongs to the currently signed-in account.
+        if (existing != null && (fbUser == null || existing.uid == fbUser.uid)) {
+            return existing.accountType
+        }
+
+        if (fbUser == null) return null
         val uid = fbUser.uid
 
+        // Tier 2: local Room still has the church/podcast records (a plain
+        // sign-out only clears the profile row, not these).
         val church = churchDao.byOwnerOnce(uid)
         if (church != null) {
-            restoreUser(
-                uid = uid,
-                displayName = church.name,
-                email = fbUser.email ?: "",
-                photoUrl = fbUser.photoUrl?.toString(),
-                accountType = AccountType.CHURCH,
-                beliefSystem = church.beliefSystem,
-                bio = church.description,
-            )
+            restoreUser(uid, church.name, fbUser.email ?: "", fbUser.photoUrl?.toString(), AccountType.CHURCH, church.beliefSystem, church.description)
             return AccountType.CHURCH
         }
 
         val pastorSeries = podcastDao.seriesByAuthor(uid).first().firstOrNull { it.authorType == AccountType.PASTOR }
         if (pastorSeries != null) {
-            restoreUser(
-                uid = uid,
-                displayName = pastorSeries.authorName,
-                email = fbUser.email ?: "",
-                photoUrl = fbUser.photoUrl?.toString(),
-                accountType = AccountType.PASTOR,
-                beliefSystem = com.gracelink.android.data.db.entity.BeliefSystem.NONDENOMINATIONAL,
-                bio = null,
-            )
+            restoreUser(uid, pastorSeries.authorName, fbUser.email ?: "", fbUser.photoUrl?.toString(), AccountType.PASTOR, BeliefSystem.NONDENOMINATIONAL, null)
             return AccountType.PASTOR
+        }
+
+        // Tier 3: local Room data is gone entirely (reinstall / new device).
+        // Fall back to the cloud registry and reconstruct everything needed.
+        val cloud = cloudRegistry.read(uid)
+        if (cloud != null) {
+            restoreUser(uid, cloud.displayName, fbUser.email ?: "", fbUser.photoUrl?.toString(), cloud.accountType, cloud.beliefSystem, cloud.bio)
+            if (cloud.accountType == AccountType.CHURCH) {
+                restoreChurchFromCloud(uid, cloud)
+            }
+            return cloud.accountType
         }
 
         return null
@@ -89,7 +91,7 @@ class ProfileGateViewModel @Inject constructor(
         email: String,
         photoUrl: String?,
         accountType: AccountType,
-        beliefSystem: com.gracelink.android.data.db.entity.BeliefSystem,
+        beliefSystem: BeliefSystem,
         bio: String?,
     ) {
         userDao.upsert(
@@ -111,6 +113,34 @@ class ProfileGateViewModel @Inject constructor(
                 churchId = null,
                 isVerified = false,
                 bio = bio,
+            )
+        )
+    }
+
+    private suspend fun restoreChurchFromCloud(uid: String, cloud: com.gracelink.android.data.repository.CloudProfileEntry) {
+        // Local church row is gone too (that's why we got here) -- recreate
+        // it from the cloud backup so Church Portal has real data again
+        // instead of showing "Set up your profile" despite being CHURCH type.
+        val existing = churchDao.byOwnerOnce(uid)
+        if (existing != null) return
+        val now = System.currentTimeMillis()
+        churchDao.insert(
+            ChurchEntity(
+                id = "church_$uid",
+                name = cloud.displayName,
+                description = cloud.churchDescription ?: cloud.bio ?: "",
+                pastorName = cloud.churchPastorName ?: "",
+                location = cloud.churchLocation ?: "",
+                beliefSystem = cloud.beliefSystem,
+                verificationStatus = VerificationStatus.PENDING,
+                certificateUrl = null,
+                photoUrl = null,
+                memberCount = 0,
+                createdAt = now,
+                gracePeriodEndsAt = now + 30L * 24 * 3600 * 1000,
+                website = cloud.churchWebsite?.ifBlank { null },
+                phone = cloud.churchPhone?.ifBlank { null },
+                ownerUserId = uid,
             )
         )
     }

@@ -19,7 +19,18 @@ class UserRepository @Inject constructor(
     suspend fun setLanguage(uid: String, lang: ContentLanguage) = userDao.setLanguage(uid, lang)
     suspend fun setDataSaver(uid: String, enabled: Boolean) = userDao.setDataSaver(uid, enabled)
     suspend fun setNotifications(uid: String, enabled: Boolean) = userDao.setNotifications(uid, enabled)
-    suspend fun signOut() = userDao.deleteAll()
+
+    /**
+     * Signs out for real: clears the Firebase Auth session (previously this
+     * only deleted the local cached profile row, leaving Firebase still
+     * signed in -- so the app had no consistent notion of "signed out",
+     * and the sign-out screen's navigation had to guess where to send the
+     * person instead of the normal identity check being able to tell).
+     */
+    suspend fun signOut() {
+        com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+        userDao.deleteAll()
+    }
 }
 
 @Singleton
