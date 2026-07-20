@@ -48,13 +48,13 @@ jobs:
       - name: Print debug keystore SHA-1 (needed for Google Sign-In in Firebase Console)
         if: always()
         run: |
-          KEYSTORE="$HOME/.android/debug.keystore"
-          if [ -f "$KEYSTORE" ]; then
-            FPRINT=$(keytool -list -v -keystore "$KEYSTORE" -alias androiddebugkey -storepass android -keypass android 2>/dev/null | grep "SHA1:" | head -1)
-            echo "::warning::Debug keystore ${FPRINT}"
-          else
-            echo "::warning::No debug keystore found at $KEYSTORE"
-          fi
+          echo "::warning::HOME is $HOME"
+          FOUND=$(find / -iname "debug.keystore" 2>/dev/null | head -5)
+          echo "::warning::Found keystores: ${FOUND:-none}"
+          for KS in $FOUND; do
+            FPRINT=$(keytool -list -v -keystore "$KS" -alias androiddebugkey -storepass android -keypass android 2>/dev/null | grep "SHA1:" | head -1)
+            echo "::warning::$KS -> ${FPRINT:-could not read}"
+          done
 
       - name: Surface compiler errors as annotations
         if: failure()
