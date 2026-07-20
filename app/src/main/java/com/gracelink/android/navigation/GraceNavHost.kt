@@ -116,18 +116,25 @@ fun GraceNavHost() {
     }
 
     /**
-     * Checks whether a profile already exists and routes accordingly,
-     * popping back to [popRoute]. If no profile exists, goes to
-     * [ifNoProfile] -- Auth for a fresh app launch (need to create/sign in
-     * to an account first), or straight to Registration if we already know
-     * an account was just created (skips a redundant profile check).
+     * Checks whether a profile already exists (or can be restored -- see
+     * ProfileGateViewModel) and routes accordingly, popping back to
+     * [popRoute]. Home is always established as the base of the stack
+     * first -- previously a Church/Pastor account landed directly in
+     * their portal with NOTHING underneath it, so swiping back closed
+     * the whole app instead of going anywhere. Now swiping back from a
+     * portal always lands on Home.
      */
     fun routeByProfile(popRoute: GraceRoute, ifNoProfile: GraceRoute) {
         scope.launch {
-            val type = profileGateVm.currentAccountType()
-            val destination = if (type != null) destinationFor(type) else ifNoProfile
-            navController.navigate(destination) {
-                popUpTo(popRoute) { inclusive = true }
+            val type = profileGateVm.restoreOrCheckProfile()
+            if (type == null) {
+                navController.navigate(ifNoProfile) { popUpTo(popRoute) { inclusive = true } }
+            } else {
+                navController.navigate(GraceRoute.Home) { popUpTo(popRoute) { inclusive = true } }
+                val portal = destinationFor(type)
+                if (portal != GraceRoute.Home) {
+                    navController.navigate(portal)
+                }
             }
         }
     }
@@ -210,9 +217,13 @@ fun GraceNavHost() {
                 composable<GraceRoute.Registration> {
                     RegistrationScreen(
                         onComplete = { accountType ->
-                            navController.navigate(destinationFor(accountType)) {
+                            navController.navigate(GraceRoute.Home) {
                                 popUpTo(GraceRoute.Registration) { inclusive = true }
                                 launchSingleTop = true
+                            }
+                            val portal = destinationFor(accountType)
+                            if (portal != GraceRoute.Home) {
+                                navController.navigate(portal)
                             }
                         },
                         onBack = { navController.popBackStack() },

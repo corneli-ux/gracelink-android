@@ -36,12 +36,29 @@ object DatabaseProvider {
     @Volatile
     private var seeded = false
 
+    /**
+     * v10 -> v11: FmScheduleEntity gained contentId/contentTitle (both
+     * nullable) so a booked radio slot can link to real playable content.
+     * This is the one schema change in this app's history I can write
+     * with full confidence, since I made it directly. Earlier version
+     * jumps still fall back to a destructive rebuild (see below) rather
+     * than risk a wrong hand-written migration crashing the app -- but
+     * from v10 onward, updates no longer wipe local data.
+     */
+    private val MIGRATION_10_11 = object : androidx.room.migration.Migration(10, 11) {
+        override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE fm_schedule ADD COLUMN contentId TEXT")
+            db.execSQL("ALTER TABLE fm_schedule ADD COLUMN contentTitle TEXT")
+        }
+    }
+
     fun get(context: Context): GraceDatabase = INSTANCE ?: synchronized(this) {
         INSTANCE ?: Room.databaseBuilder(
             context.applicationContext,
             GraceDatabase::class.java,
             "gracelink.db"
         )
+            .addMigrations(MIGRATION_10_11)
             .fallbackToDestructiveMigration()
             .build()
             .also { INSTANCE = it }

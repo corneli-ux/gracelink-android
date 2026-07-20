@@ -32,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -92,6 +93,23 @@ fun HomeScreen(
                     style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = TextPrimary,
                 )
+            }
+        }
+
+        // -- Verse of the Day -------------------------------------------------
+        item {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val verse = remember { com.gracelink.android.core.BibleVerseProvider.verseOfTheDay(context) }
+            if (verse != null) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 4.dp)) {
+                    Text("VERSE OF THE DAY", style = MaterialTheme.typography.labelSmall, color = Gold500, letterSpacing = 1.sp)
+                    Spacer(Modifier.height(6.dp))
+                    Text("\u201c${verse.text}\u201d", style = MaterialTheme.typography.bodyLarge.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic), color = TextPrimary)
+                    Spacer(Modifier.height(4.dp))
+                    Text("\u2014 ${verse.reference}", style = MaterialTheme.typography.labelMedium, color = TextMuted)
+                }
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider(color = Slate700, thickness = 0.75.dp)
             }
         }
 

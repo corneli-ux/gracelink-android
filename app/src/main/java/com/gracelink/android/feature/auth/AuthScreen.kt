@@ -171,7 +171,14 @@ fun AuthScreen(
             Text("Faith Link", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary)
             Spacer(Modifier.height(6.dp))
             Text("Continue with Google to get started", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(24.dp))
+            Text(
+                "\u201cThe just shall live by faith.\u201d",
+                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic),
+                color = TextSecondary,
+            )
+            Text("\u2014 Romans 1:17", style = MaterialTheme.typography.labelSmall, color = TextMuted)
+            Spacer(Modifier.height(16.dp))
 
             if (isLoading) {
                 CircularProgressIndicator(color = TextPrimary, modifier = Modifier.size(22.dp))
