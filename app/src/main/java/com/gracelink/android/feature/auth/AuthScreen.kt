@@ -103,8 +103,26 @@ fun AuthScreen(
                     }
             } catch (e: ApiException) {
                 Log.e("FaithLinkAuth", "Google API exception: ${e.statusCode}", e)
-                runOnMain { errorMsg = "Google sign-in failed (${e.statusCode})" }
+                isLoading = false
+                runOnMain {
+                    errorMsg = when (e.statusCode) {
+                        // DEVELOPER_ERROR -- almost always means this build's signing
+                        // certificate SHA-1 isn't registered against the OAuth client
+                        // in the Firebase/Google Cloud console. A different debug
+                        // keystore used by CI vs. a local machine is the classic cause.
+                        10 -> "Sign-in is not configured for this build (error 10). This app's signing certificate needs to be registered in the Firebase console under Google Sign-In settings."
+                        7 -> "No internet connection. Check your network and try again."
+                        12501 -> null // user closed the account picker -- not an error, just stay on screen quietly
+                        else -> "Google sign-in failed (code ${e.statusCode})"
+                    }
+                }
             }
+        } else {
+            // Non-OK result that ISN'T a simple cancel (e.g. the picker closed due
+            // to an underlying error) -- previously this left the screen doing
+            // nothing with no feedback at all, which looked like being stuck.
+            isLoading = false
+            Log.d("FaithLinkAuth", "Google sign-in did not complete, resultCode=${result.resultCode}")
         }
     }
 

@@ -161,7 +161,7 @@ private fun LivePlayerHero(slot: FmScheduleEntity, isPlaying: Boolean, isLoading
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(slot.preacher, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+                Text(slot.preacher.ifBlank { "Faith Link Radio" }, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
                 Text(slot.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
         }
@@ -196,7 +196,12 @@ private fun ScheduleCard(slot: FmScheduleEntity, isNow: Boolean) {
                 Text(if (slot.timeSlot.length >= 13) slot.timeSlot.substring(8, 13) else "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Column(Modifier.weight(1f)) {
-                Text(slot.preacher, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+                Text(
+                    slot.preacher.ifBlank { "Open \u2014 book this slot" },
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = if (slot.preacher.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                )
                 Spacer(Modifier.height(2.dp))
                 Text(slot.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
                 Spacer(Modifier.height(6.dp))
