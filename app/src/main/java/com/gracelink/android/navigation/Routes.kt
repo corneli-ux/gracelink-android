@@ -71,6 +71,7 @@ sealed interface GraceRoute {
     @Serializable data class MemberDetail(val memberId: String) : GraceRoute
     @Serializable data object ModerationLog : GraceRoute
     @Serializable data object ChurchInsights : GraceRoute
+    @Serializable data object PastorInsights : GraceRoute
 }
 
 /**

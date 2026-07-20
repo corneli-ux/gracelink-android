@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Article
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Headphones
+import androidx.compose.material.icons.rounded.Insights
 import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material3.HorizontalDivider
@@ -54,6 +55,7 @@ fun PastorPortalScreen(
     onOpenPodcasts: () -> Unit,
     onWriteArticle: () -> Unit,
     onCreateEvent: () -> Unit,
+    onOpenInsights: () -> Unit,
     vm: PastorPortalViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -98,6 +100,7 @@ fun PastorPortalScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             SectionLabel("Publish")
+            PortalAction("Insights", Icons.Rounded.Insights, onOpenInsights)
             PortalAction("Radio Schedule", Icons.Rounded.Radio, onScheduleRadio)
             PortalAction("Start Live Space", Icons.Rounded.Headphones, onStartSpace)
             PortalAction("Podcasts", Icons.Rounded.Podcasts, onOpenPodcasts)

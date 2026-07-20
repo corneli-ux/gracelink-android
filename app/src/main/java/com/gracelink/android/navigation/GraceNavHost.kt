@@ -427,6 +427,12 @@ fun GraceNavHost() {
                     )
                 }
 
+                composable<GraceRoute.PastorInsights> {
+                    com.gracelink.android.feature.insights.PastorInsightsScreen(
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+
                 composable<GraceRoute.PastorPortal> {
                     PastorPortalScreen(
                         onBack = { navController.popBackStack() },
@@ -435,6 +441,7 @@ fun GraceNavHost() {
                         onOpenPodcasts = { navController.navigate(GraceRoute.PodcastCreate) },
                         onWriteArticle = { navController.navigate(GraceRoute.Articles) },
                         onCreateEvent = { navController.navigate(GraceRoute.EventCreate) },
+                        onOpenInsights = { navController.navigate(GraceRoute.PastorInsights) },
                     )
                 }
 
