@@ -213,6 +213,8 @@ private fun CollaborateDialog(churchName: String, onSend: (String) -> Unit, onDi
         }
     }
 }
+
+@Composable
 private fun EventCard(event: ChurchEventEntity) {
     Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Slate800).padding(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
