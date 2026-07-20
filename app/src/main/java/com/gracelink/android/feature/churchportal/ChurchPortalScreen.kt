@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.Article
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material.icons.rounded.Radio
@@ -60,6 +61,8 @@ fun ChurchPortalScreen(
     onOpenPodcasts: () -> Unit,
     onWriteArticle: () -> Unit,
     onCreateEvent: () -> Unit,
+    onEditProfile: () -> Unit,
+    onViewMembers: () -> Unit,
     vm: ChurchPortalViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -69,6 +72,12 @@ fun ChurchPortalScreen(
         Row(modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+            }
+            Spacer(Modifier.weight(1f))
+            if (church != null) {
+                IconButton(onClick = onEditProfile) {
+                    Icon(Icons.Rounded.Edit, contentDescription = "Edit profile", tint = MaterialTheme.colorScheme.onSurface)
+                }
             }
         }
 
@@ -90,6 +99,7 @@ fun ChurchPortalScreen(
                 church.verificationStatus.name.lowercase().replaceFirstChar { it.uppercase() } + " \u00b7 ${church.memberCount} members",
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (church.verificationStatus == VerificationStatus.VERIFIED) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clickable(onClick = onViewMembers),
             )
             Spacer(Modifier.height(20.dp))
 

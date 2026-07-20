@@ -38,6 +38,8 @@ sealed interface GraceRoute {
     @Serializable data object Churches : GraceRoute
     @Serializable data class ChurchDetail(val churchId: String) : GraceRoute
     @Serializable data object ChurchPortal : GraceRoute
+    @Serializable data object ChurchEditProfile : GraceRoute
+    @Serializable data object ChurchMembers : GraceRoute
     @Serializable data object PastorPortal : GraceRoute
     @Serializable data object Prayer : GraceRoute
     @Serializable data object Events : GraceRoute

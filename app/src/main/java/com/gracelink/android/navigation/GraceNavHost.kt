@@ -294,6 +294,20 @@ fun GraceNavHost() {
                         onOpenPodcasts = { navController.navigate(GraceRoute.PodcastCreate) },
                         onWriteArticle = { navController.navigate(GraceRoute.Articles) },
                         onCreateEvent = { navController.navigate(GraceRoute.EventCreate) },
+                        onEditProfile = { navController.navigate(GraceRoute.ChurchEditProfile) },
+                        onViewMembers = { navController.navigate(GraceRoute.ChurchMembers) },
+                    )
+                }
+
+                composable<GraceRoute.ChurchEditProfile> {
+                    com.gracelink.android.feature.churchportal.ChurchEditProfileScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable<GraceRoute.ChurchMembers> {
+                    com.gracelink.android.feature.churchportal.ChurchMembersScreen(
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
