@@ -49,20 +49,31 @@ class PodcastCreateViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PodcastCreateState())
 
-    fun createSeries(title: String, description: String, category: String, onDone: (String) -> Unit) = viewModelScope.launch {
+    fun createSeries(title: String, description: String, category: String, coverUri: Uri?, onDone: (String) -> Unit) = viewModelScope.launch {
         val s = state.value
         if (s.myUid.isBlank() || title.isBlank()) return@launch
-        val id = repo.createSeries(
-            authorId = s.myUid,
-            authorName = s.myName,
-            authorType = s.myAccountType,
-            churchId = null,
-            title = title,
-            description = description,
-            coverUrl = null,
-            category = category,
-        )
-        onDone(id)
+        isUploading.value = coverUri != null
+        uploadError.value = null
+        try {
+            val coverUrl = coverUri?.let { uri ->
+                mediaUpload.uploadContentUri(uri, "podcasts/covers/${System.currentTimeMillis()}_${title.take(20).replace(" ", "_")}")
+            }
+            val id = repo.createSeries(
+                authorId = s.myUid,
+                authorName = s.myName,
+                authorType = s.myAccountType,
+                churchId = null,
+                title = title,
+                description = description,
+                coverUrl = coverUrl,
+                category = category,
+            )
+            onDone(id)
+        } catch (e: Exception) {
+            uploadError.value = "Couldn't upload cover image: ${e.message}"
+        } finally {
+            isUploading.value = false
+        }
     }
 
     fun addEpisode(podcastId: String, title: String, audioUrl: String, durationLabel: String, onDone: () -> Unit) = viewModelScope.launch {

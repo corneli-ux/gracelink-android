@@ -30,4 +30,7 @@ interface FmScheduleDao {
 
     @Query("SELECT * FROM fm_schedule WHERE bookedByUid = :uid ORDER BY id ASC")
     fun myBookings(uid: String): Flow<List<FmScheduleEntity>>
+
+    @Query("UPDATE fm_schedule SET contentId = :contentId, contentTitle = :contentTitle WHERE id = :id AND bookedByUid = :uid")
+    suspend fun attachContent(id: String, uid: String, contentId: String, contentTitle: String)
 }

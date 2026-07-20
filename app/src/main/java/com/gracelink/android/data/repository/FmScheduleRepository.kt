@@ -18,4 +18,7 @@ class FmScheduleRepository @Inject constructor(
     suspend fun bookSlot(id: String, uid: String, name: String): Boolean = dao.bookSlot(id, uid, name) > 0
 
     suspend fun cancelBooking(id: String, uid: String): Boolean = dao.cancelBooking(id, uid) > 0
+
+    suspend fun attachContent(id: String, uid: String, contentId: String, contentTitle: String) =
+        dao.attachContent(id, uid, contentId, contentTitle)
 }

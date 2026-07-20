@@ -14,4 +14,6 @@ data class FmScheduleEntity(
     val category: ContentCategory,
     val bookedByUid: String? = null,
     val bookedByName: String? = null,
+    val contentId: String? = null,   // links to a ContentEntity (episode/sermon) to play during this slot
+    val contentTitle: String? = null,
 )

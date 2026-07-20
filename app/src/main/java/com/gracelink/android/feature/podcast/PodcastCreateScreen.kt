@@ -69,6 +69,8 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
     var epTitle by remember { mutableStateOf("") }
     var epUrl by remember { mutableStateOf("") }
     var epDuration by remember { mutableStateOf("") }
+    var coverUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    val coverPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> coverUri = uri }
 
     Column(Modifier.fillMaxSize().background(Obsidian)) {
         Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -90,6 +92,22 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
             Spacer(Modifier.height(10.dp))
             Field("Description", seriesDescription) { seriesDescription = it }
             Spacer(Modifier.height(10.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)).background(Slate800).clickable { coverPicker.launch("image/*") },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (coverUri != null) {
+                        coil.compose.AsyncImage(model = coverUri, contentDescription = "Cover", modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+                    } else {
+                        Icon(Icons.Rounded.Add, "Add cover", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+                Text(if (coverUri != null) "Cover image selected" else "Add a cover image (optional)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("Teaching", "Worship", "Regional", "Youth").forEach { c ->
                     Box(
@@ -101,9 +119,9 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
             }
             Spacer(Modifier.height(16.dp))
             GoldButton("Create Series", onClick = {
-                vm.createSeries(seriesTitle, seriesDescription, seriesCategory) { newId ->
+                vm.createSeries(seriesTitle, seriesDescription, seriesCategory, coverUri) { newId ->
                     activeSeriesId = newId
-                    seriesTitle = ""; seriesDescription = ""
+                    seriesTitle = ""; seriesDescription = ""; coverUri = null
                 }
             }, modifier = Modifier.fillMaxWidth())
 
@@ -135,7 +153,8 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
                     if (uri != null) {
                         val id = activeSeriesId
                         if (id != null) {
-                            vm.addEpisodeFromFile(id, epTitle, uri, epDuration.ifBlank { "\u2014" }) {
+                            val title = epTitle.ifBlank { "Episode \u2014 ${java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault()).format(java.util.Date())}" }
+                            vm.addEpisodeFromFile(id, title, uri, epDuration.ifBlank { "\u2014" }) {
                                 epTitle = ""; epDuration = ""
                             }
                         }
@@ -151,7 +170,7 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
                 } else {
                     GoldButton(
                         "Upload Audio File", icon = Icons.Rounded.Add,
-                        onClick = { if (epTitle.isNotBlank()) filePicker.launch("audio/*") },
+                        onClick = { filePicker.launch("audio/*") },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     if (state.uploadError != null) {
