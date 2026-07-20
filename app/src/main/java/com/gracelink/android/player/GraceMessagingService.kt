@@ -65,7 +65,7 @@ class GraceMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        val title = message.notification?.title ?: message.data["title"] ?: "GraceLink"
+        val title = message.notification?.title ?: message.data["title"] ?: "Faith Link"
         val body = message.notification?.body ?: message.data["body"] ?: ""
         val type = message.data["type"] ?: "content"
 

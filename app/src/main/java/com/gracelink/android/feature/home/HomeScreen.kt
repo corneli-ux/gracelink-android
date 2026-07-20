@@ -53,7 +53,7 @@ import com.gracelink.android.core.theme.TextSecondary
 import com.gracelink.android.data.db.entity.ContentEntity
 
 /**
- * GraceLink's home dashboard.
+ * Faith Link's home dashboard.
  *
  * Deliberately flat: no gradient hero boxes, no colored card soup. Typography
  * carries the hierarchy, hairline dividers separate sections, and the single
@@ -65,8 +65,6 @@ fun HomeScreen(
     onPlayContent: (String) -> Unit,
     onOpenLiveSession: (String) -> Unit,
     onOpenRadio: () -> Unit,
-    onOpenPodcasts: () -> Unit,
-    onOpenCommunity: () -> Unit,
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -128,15 +126,18 @@ fun HomeScreen(
             }
         }
 
-        // -- Quick links row (text + icon, no filled pills) ------------------
+        // -- Radio row -- the only entry point to Radio when nothing is
+        // currently live (Podcasts and Community already have their own
+        // bottom-nav tabs, so repeating them here was just duplication) ----
         item {
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 18.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                Modifier.fillMaxWidth().clickable(onClick = onOpenRadio).padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                QuickLink("Radio", Icons.Outlined.Radio, onOpenRadio, Modifier.weight(1f))
-                QuickLink("Podcasts", Icons.Outlined.Podcasts, onOpenPodcasts, Modifier.weight(1f))
-                QuickLink("Community", Icons.Outlined.Groups, onOpenCommunity, Modifier.weight(1f))
+                Icon(Icons.Outlined.Radio, null, tint = TextPrimary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(10.dp))
+                Text("Radio Schedule", style = MaterialTheme.typography.bodyLarge, color = TextPrimary, modifier = Modifier.weight(1f))
+                Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = TextMuted, modifier = Modifier.size(14.dp))
             }
             HorizontalDivider(color = Slate700, thickness = 0.75.dp)
         }
@@ -183,18 +184,6 @@ private fun SectionHeader(title: String) {
 }
 
 @Composable
-private fun QuickLink(label: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(icon, null, tint = TextPrimary, modifier = Modifier.size(22.dp))
-        Spacer(Modifier.height(6.dp))
-        Text(label, style = MaterialTheme.typography.labelMedium, color = TextSecondary)
-    }
-}
-
-@Composable
 private fun ContinueItem(item: ContentEntity, onClick: () -> Unit) {
     Column(
         Modifier.width(140.dp).clickable(onClick = onClick)
@@ -207,7 +196,7 @@ private fun ContinueItem(item: ContentEntity, onClick: () -> Unit) {
         Spacer(Modifier.height(10.dp))
         Text(item.title, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium), color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(2.dp))
-        Text(item.speaker ?: "GraceLink", style = MaterialTheme.typography.bodySmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(item.speaker ?: "Faith Link", style = MaterialTheme.typography.bodySmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -229,7 +218,7 @@ private fun RecommendedRow(item: ContentEntity, onClick: () -> Unit) {
         Column(Modifier.weight(1f)) {
             Text(item.title, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(2.dp))
-            Text(item.speaker ?: "GraceLink", style = MaterialTheme.typography.bodySmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(item.speaker ?: "Faith Link", style = MaterialTheme.typography.bodySmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.width(8.dp))
         Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = TextMuted, modifier = Modifier.size(14.dp))

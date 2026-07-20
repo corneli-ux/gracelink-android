@@ -144,7 +144,7 @@ fun PodcastsScreen(
                 item { Text("No episodes match", style = MaterialTheme.typography.bodyMedium, color = TextSecondary, modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) }
             }
             items(filteredEpisodes, key = { it.id }) { ep ->
-                EpisodeRow(ep, seriesTitleById[ep.podcastId] ?: "GraceLink") { onPlayEpisode(ep.id) }
+                EpisodeRow(ep, seriesTitleById[ep.podcastId] ?: "Faith Link") { onPlayEpisode(ep.id) }
             }
         }
     }

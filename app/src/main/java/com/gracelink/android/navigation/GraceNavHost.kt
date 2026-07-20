@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material3.Icon
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -35,7 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -76,24 +77,27 @@ import com.gracelink.android.feature.prayer.PrayerWallScreen
 import com.gracelink.android.feature.profile.ProfileScreen
 import com.gracelink.android.feature.registration.RegistrationScreen
 import com.gracelink.android.feature.splash.SplashScreen
-
-/**
- * Single source of truth for GraceLink navigation.
+import kotlinx.coroutines.launch
  *
- * Flow (no login page for now -- see Profile's "Set Up Profile" instead):
- *   Splash -> (first launch) Onboarding -> Home
- *   Splash -> (returning) Home directly
+ * Flow:
+ *   Splash -> (first launch) Onboarding -> Set Up Profile (mandatory) -> Home/Portal
+ *   Splash -> (returning, no profile yet) Set Up Profile (mandatory) -> Home/Portal
+ *   Splash -> (returning, profile exists) straight into Home, or the
+ *             matching Church/Pastor portal if that's the account's role
  *
- * There is no credential-based sign-in at the moment. Anyone can use the
- * app immediately. "Set Up Profile" (the old Registration screen,
- * repurposed) is reachable non-blockingly from Profile or from a few
- * identity-dependent actions (posting a prayer, writing an article) so
- * those actions have a name/role to attach to -- it is never a gate.
+ * "Set Up Profile" is NOT a credential login (no password) -- it's a
+ * mandatory one-time step that asks for a name and a role (Member /
+ * Individual Pastor / Church), so every identity-dependent feature
+ * (prayers, articles, portals) has something real to attach to. Once
+ * set up, the person lands directly in the surface that matches their
+ * role instead of always seeing the generic member Home.
  */
 @Composable
 fun GraceNavHost() {
     val navController = rememberNavController()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val profileGateVm: ProfileGateViewModel = hiltViewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -101,8 +105,22 @@ fun GraceNavHost() {
         currentRoute?.contains(route::class.simpleName ?: "") == true
     }
 
-    val startAfterSplash = remember {
-        if (AppPrefs.hasOnboarded(context)) GraceRoute.Home else GraceRoute.Onboarding
+    /** Where a signed-up person with this account type should land. */
+    fun destinationFor(accountType: com.gracelink.android.data.db.entity.AccountType): GraceRoute = when (accountType) {
+        com.gracelink.android.data.db.entity.AccountType.CHURCH -> GraceRoute.ChurchPortal
+        com.gracelink.android.data.db.entity.AccountType.PASTOR -> GraceRoute.PastorPortal
+        com.gracelink.android.data.db.entity.AccountType.PERSONAL -> GraceRoute.Home
+    }
+
+    /** After Splash/Onboarding: profile exists -> role-appropriate destination, else -> mandatory Set Up Profile. */
+    fun navigateAfterGate(popRoute: GraceRoute) {
+        scope.launch {
+            val type = profileGateVm.currentAccountType()
+            val destination = if (type != null) destinationFor(type) else GraceRoute.Registration
+            navController.navigate(destination) {
+                popUpTo(popRoute) { inclusive = true }
+            }
+        }
     }
 
     Scaffold(
@@ -144,8 +162,12 @@ fun GraceNavHost() {
                 composable<GraceRoute.Splash> {
                     SplashScreen(
                         onComplete = {
-                            navController.navigate(startAfterSplash) {
-                                popUpTo(GraceRoute.Splash) { inclusive = true }
+                            if (AppPrefs.hasOnboarded(context)) {
+                                navigateAfterGate(GraceRoute.Splash)
+                            } else {
+                                navController.navigate(GraceRoute.Onboarding) {
+                                    popUpTo(GraceRoute.Splash) { inclusive = true }
+                                }
                             }
                         }
                     )
@@ -155,16 +177,19 @@ fun GraceNavHost() {
                     OnboardingScreen(
                         onDone = {
                             AppPrefs.setOnboarded(context)
-                            navController.navigate(GraceRoute.Home) {
-                                popUpTo(GraceRoute.Onboarding) { inclusive = true }
-                            }
+                            navigateAfterGate(GraceRoute.Onboarding)
                         }
                     )
                 }
 
                 composable<GraceRoute.Registration> {
                     RegistrationScreen(
-                        onComplete = { navController.popBackStack() },
+                        onComplete = { accountType ->
+                            navController.navigate(destinationFor(accountType)) {
+                                popUpTo(GraceRoute.Registration) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
                         onBack = { navController.popBackStack() },
                     )
                 }
@@ -175,8 +200,6 @@ fun GraceNavHost() {
                         onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) },
                         onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) },
                         onOpenRadio = { navController.navigate(GraceRoute.Radio) },
-                        onOpenPodcasts = { navController.navigate(GraceRoute.Podcasts) },
-                        onOpenCommunity = { navController.navigate(GraceRoute.Community) },
                     )
                 }
 
@@ -214,7 +237,7 @@ fun GraceNavHost() {
                         onNavigateToPastorPortal = { navController.navigate(GraceRoute.PastorPortal) },
                         onSetupProfile = { navController.navigate(GraceRoute.Registration) },
                         onSignedOut = {
-                            navController.navigate(GraceRoute.Home) {
+                            navController.navigate(GraceRoute.Registration) {
                                 popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                             }
                         },

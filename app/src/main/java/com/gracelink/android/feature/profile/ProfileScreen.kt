@@ -200,7 +200,7 @@ fun ProfileScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Rounded.Logout, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text("Sign Out", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge) }
             }
         }
-        item { Spacer(Modifier.height(16.dp)); Text("GraceLink v1.0.0\nBuilt with care for the body of Christ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(20.dp), textAlign = TextAlign.Center) }
+        item { Spacer(Modifier.height(16.dp)); Text("Faith Link v1.0.0\nBuilt with care for the body of Christ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(20.dp), textAlign = TextAlign.Center) }
     }
 }
 

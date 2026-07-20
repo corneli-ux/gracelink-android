@@ -21,7 +21,7 @@ class RegistrationViewModel @Inject constructor(
     private val churchDao: ChurchDao,
 ) : ViewModel() {
 
-    fun registerPersonal(name: String, email: String, belief: BeliefSystem, onComplete: () -> Unit) = viewModelScope.launch {
+    fun registerPersonal(name: String, email: String, belief: BeliefSystem, onComplete: (AccountType) -> Unit) = viewModelScope.launch {
         // Use Firebase UID if available, otherwise generate one
         val firebaseUser = FirebaseAuth.getInstance().currentUser
         val uid = firebaseUser?.uid ?: "u_${System.currentTimeMillis()}"
@@ -50,7 +50,7 @@ class RegistrationViewModel @Inject constructor(
             bio = null,
         )
         userDao.upsert(user)
-        onComplete()
+        onComplete(AccountType.PERSONAL)
     }
 
     /**
@@ -58,7 +58,7 @@ class RegistrationViewModel @Inject constructor(
      * record linked via ownerUserId -- previously this only created the
      * profile, leaving Church Portal with nothing real to manage.
      */
-    fun registerChurch(name: String, pastorName: String, location: String, belief: BeliefSystem, email: String, onComplete: () -> Unit) = viewModelScope.launch {
+    fun registerChurch(name: String, pastorName: String, location: String, belief: BeliefSystem, email: String, onComplete: (AccountType) -> Unit) = viewModelScope.launch {
         val firebaseUser = FirebaseAuth.getInstance().currentUser
         val uid = firebaseUser?.uid ?: "church_${System.currentTimeMillis()}"
         val userEmail = firebaseUser?.email ?: email
@@ -109,10 +109,10 @@ class RegistrationViewModel @Inject constructor(
                 )
             )
         }
-        onComplete()
+        onComplete(AccountType.CHURCH)
     }
 
-    fun registerPastor(name: String, email: String, belief: BeliefSystem, onComplete: () -> Unit) = viewModelScope.launch {
+    fun registerPastor(name: String, email: String, belief: BeliefSystem, onComplete: (AccountType) -> Unit) = viewModelScope.launch {
         val firebaseUser = FirebaseAuth.getInstance().currentUser
         val uid = firebaseUser?.uid ?: "pastor_${System.currentTimeMillis()}"
         val userEmail = firebaseUser?.email ?: email
@@ -139,6 +139,6 @@ class RegistrationViewModel @Inject constructor(
             bio = null,
         )
         userDao.upsert(user)
-        onComplete()
+        onComplete(AccountType.PASTOR)
     }
 }

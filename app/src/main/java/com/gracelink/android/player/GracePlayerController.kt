@@ -79,7 +79,7 @@ class GracePlayerController @Inject constructor(
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(content.title)
-                    .setArtist(content.speaker ?: "GraceLink")
+                    .setArtist(content.speaker ?: "Faith Link")
                     .setArtworkUri(content.thumbnailUrl?.let { android.net.Uri.parse(it) })
                     .setMediaType(
                         if (content.type == com.gracelink.android.data.db.entity.ContentType.LIVE_RADIO)

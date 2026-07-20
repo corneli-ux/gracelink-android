@@ -180,9 +180,9 @@ fun AuthScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Spacer(Modifier.height(40.dp))
-            Image(painter = painterResource(id = R.drawable.faith_link_logo), contentDescription = "GraceLink", modifier = Modifier.size(72.dp))
+            Image(painter = painterResource(id = R.drawable.faith_link_logo), contentDescription = "Faith Link", modifier = Modifier.size(72.dp))
             Spacer(Modifier.height(16.dp))
-            Text("GraceLink", style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
+            Text("Faith Link", style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(6.dp))
             Text("Sign in or create account", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(32.dp))

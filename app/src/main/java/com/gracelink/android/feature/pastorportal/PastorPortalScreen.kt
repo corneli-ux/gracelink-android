@@ -107,7 +107,7 @@ fun PastorPortalScreen(
             Text("PUBLISH", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 1.2.sp)
             Spacer(modifier = Modifier.height(12.dp))
 
-            PortalAction("Radio Schedule", "Book a live slot on GraceLink Radio", Icons.Rounded.Radio, Gold400, onScheduleRadio)
+            PortalAction("Radio Schedule", "Book a live slot on Faith Link Radio", Icons.Rounded.Radio, Gold400, onScheduleRadio)
             Spacer(modifier = Modifier.height(10.dp))
             PortalAction("Start Live Space", "Host a live audio conversation", Icons.Rounded.Headphones, Emerald500, onStartSpace)
             Spacer(modifier = Modifier.height(10.dp))

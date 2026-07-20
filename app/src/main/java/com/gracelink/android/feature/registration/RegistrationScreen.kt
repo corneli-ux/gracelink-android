@@ -42,7 +42,7 @@ import com.gracelink.android.feature.auth.GoogleAuthData
  */
 @Composable
 fun RegistrationScreen(
-    onComplete: () -> Unit,
+    onComplete: (com.gracelink.android.data.db.entity.AccountType) -> Unit,
     onBack: () -> Unit = {},
     prefillName: String = "",
     prefillEmail: String = "",
@@ -69,7 +69,7 @@ fun RegistrationScreen(
             Text("Set Up Your Profile", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
             Spacer(Modifier.height(6.dp))
             Text(
-                if (accountType == null) "How will you be using GraceLink?" else "Tell us a bit about you",
+                if (accountType == null) "How will you be using Faith Link?" else "Tell us a bit about you",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
