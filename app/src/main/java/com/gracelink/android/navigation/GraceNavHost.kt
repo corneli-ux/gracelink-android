@@ -236,6 +236,7 @@ fun GraceNavHost() {
                         onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) },
                         onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) },
                         onOpenRadio = { navController.navigate(GraceRoute.Radio) },
+                        onOpenForum = { navController.navigate(GraceRoute.Forum) },
                     )
                 }
 
@@ -260,7 +261,8 @@ fun GraceNavHost() {
                         onOpenPrayer = { navController.navigate(GraceRoute.Prayer) },
                         onOpenEvents = { navController.navigate(GraceRoute.Events) },
                         onOpenArticles = { navController.navigate(GraceRoute.Articles) },
-                        onOpenFaith = { navController.navigate(GraceRoute.Faith) }
+                        onOpenFaith = { navController.navigate(GraceRoute.Faith) },
+                        onOpenForum = { navController.navigate(GraceRoute.Forum) },
                     )
                 }
 
@@ -382,6 +384,34 @@ fun GraceNavHost() {
                 composable<GraceRoute.Faith> {
                     FaithScreen(
                         onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
+                    )
+                }
+
+                composable<GraceRoute.Forum> {
+                    com.gracelink.android.feature.forum.ForumScreen(
+                        onOpenQuestion = { id -> navController.navigate(GraceRoute.QuestionDetail(id)) },
+                        onAskQuestion = { navController.navigate(GraceRoute.AskQuestion) },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
+                    )
+                }
+
+                composable<GraceRoute.AskQuestion> {
+                    com.gracelink.android.feature.forum.AskQuestionScreen(
+                        onBack = { navController.popBackStack() },
+                        onAsked = { id ->
+                            navController.navigate(GraceRoute.QuestionDetail(id)) {
+                                popUpTo(GraceRoute.AskQuestion) { inclusive = true }
+                            }
+                        },
+                    )
+                }
+
+                composable<GraceRoute.QuestionDetail> { entry ->
+                    val route = entry.toRoute<GraceRoute.QuestionDetail>()
+                    com.gracelink.android.feature.forum.QuestionDetailScreen(
+                        questionId = route.questionId,
+                        onBack = { navController.popBackStack() },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
                     )
                 }
 

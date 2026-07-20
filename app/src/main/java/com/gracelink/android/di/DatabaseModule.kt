@@ -35,4 +35,5 @@ object DatabaseModule {
     @Provides fun churchEventDao(db: GraceDatabase): ChurchEventDao = db.churchEventDao()
     @Provides fun faithProgressDao(db: GraceDatabase): FaithProgressDao = db.faithProgressDao()
     @Provides fun podcastDao(db: GraceDatabase): PodcastDao = db.podcastDao()
+    @Provides fun forumDao(db: GraceDatabase): ForumDao = db.forumDao()
 }

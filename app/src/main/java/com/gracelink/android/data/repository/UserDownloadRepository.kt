@@ -19,6 +19,7 @@ class UserRepository @Inject constructor(
     suspend fun setLanguage(uid: String, lang: ContentLanguage) = userDao.setLanguage(uid, lang)
     suspend fun setDataSaver(uid: String, enabled: Boolean) = userDao.setDataSaver(uid, enabled)
     suspend fun setNotifications(uid: String, enabled: Boolean) = userDao.setNotifications(uid, enabled)
+    suspend fun setPhotoUrl(uid: String, photoUrl: String) = userDao.setPhotoUrl(uid, photoUrl)
 
     /**
      * Signs out for real: clears the Firebase Auth session (previously this

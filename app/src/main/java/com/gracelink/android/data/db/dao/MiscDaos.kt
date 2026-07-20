@@ -46,6 +46,9 @@ interface UserDao {
 
     @Query("UPDATE users SET notificationsEnabled = :enabled WHERE uid = :uid")
     suspend fun setNotifications(uid: String, enabled: Boolean)
+
+    @Query("UPDATE users SET photoUrl = :photoUrl WHERE uid = :uid")
+    suspend fun setPhotoUrl(uid: String, photoUrl: String)
 }
 
 @Dao

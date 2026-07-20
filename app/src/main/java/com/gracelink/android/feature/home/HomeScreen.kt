@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Podcasts
 import androidx.compose.material.icons.outlined.Radio
+import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +67,7 @@ fun HomeScreen(
     onPlayContent: (String) -> Unit,
     onOpenLiveSession: (String) -> Unit,
     onOpenRadio: () -> Unit,
+    onOpenForum: () -> Unit,
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -155,6 +157,26 @@ fun HomeScreen(
                 Icon(Icons.Outlined.Radio, null, tint = TextPrimary, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(10.dp))
                 Text("Radio Schedule", style = MaterialTheme.typography.bodyLarge, color = TextPrimary, modifier = Modifier.weight(1f))
+                Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = TextMuted, modifier = Modifier.size(14.dp))
+            }
+            HorizontalDivider(color = Slate700, thickness = 0.75.dp)
+        }
+
+        // -- Feature highlight: the new public Forum -------------------------
+        item {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpenForum)
+                    .padding(horizontal = 24.dp, vertical = 18.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Rounded.Forum, null, tint = Gold500, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("New: Ask the community", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary)
+                    Text("Raise a question of faith \u2014 anyone can answer", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                }
                 Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = TextMuted, modifier = Modifier.size(14.dp))
             }
             HorizontalDivider(color = Slate700, thickness = 0.75.dp)

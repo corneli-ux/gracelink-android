@@ -1,5 +1,8 @@
 package com.gracelink.android.feature.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Article
 import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.Church
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.GraphicEq
@@ -63,12 +67,29 @@ fun ProfileScreen(
     val state by vm.state.collectAsStateWithLifecycle()
     val user = state.user
 
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) vm.uploadProfilePhoto(uri)
+    }
+
     LazyColumn(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding(), contentPadding = PaddingValues(bottom = 24.dp)) {
         // Header
         item {
             Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(72.dp).clip(CircleShape).background(Brush.horizontalGradient(listOf(Gold400, Emerald500))), contentAlignment = Alignment.Center) {
-                    Text(user?.displayName?.firstOrNull()?.uppercase() ?: "?", style = MaterialTheme.typography.headlineMedium, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
+                Box(
+                    Modifier.size(72.dp).clip(CircleShape).background(Brush.horizontalGradient(listOf(Gold400, Emerald500)))
+                        .clickable(enabled = user != null) { photoPicker.launch("image/*") },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when {
+                        state.isUploadingPhoto -> CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color(0xFF1A1408), strokeWidth = 2.dp)
+                        user?.photoUrl != null -> coil.compose.AsyncImage(model = user.photoUrl, contentDescription = "Profile photo", modifier = Modifier.fillMaxSize().clip(CircleShape), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+                        else -> Text(user?.displayName?.firstOrNull()?.uppercase() ?: "?", style = MaterialTheme.typography.headlineMedium, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
+                    }
+                    if (user != null && !state.isUploadingPhoto) {
+                        Box(Modifier.align(Alignment.BottomEnd).size(22.dp).clip(CircleShape).background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.CameraAlt, "Change photo", tint = Gold400, modifier = Modifier.size(14.dp))
+                        }
+                    }
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
@@ -92,6 +113,12 @@ fun ProfileScreen(
                         }
                     }
                 }
+            }
+        }
+
+        if (state.photoUploadError != null) {
+            item {
+                Text(state.photoUploadError ?: "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
             }
         }
 

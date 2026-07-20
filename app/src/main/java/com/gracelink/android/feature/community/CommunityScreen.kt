@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.Article
 import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Church
+import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material.icons.rounded.Spa
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,7 +41,8 @@ fun CommunityScreen(
     onOpenPrayer: () -> Unit,
     onOpenEvents: () -> Unit,
     onOpenArticles: () -> Unit,
-    onOpenFaith: () -> Unit
+    onOpenFaith: () -> Unit,
+    onOpenForum: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -63,6 +65,8 @@ fun CommunityScreen(
         CommunityRow("Articles", "Devotionals and teaching", Icons.Rounded.Article, onOpenArticles)
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(start = 24.dp))
         CommunityRow("Faith Journey", "Track your growth", Icons.Rounded.AutoStories, onOpenFaith)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(start = 24.dp))
+        CommunityRow("Forum", "Ask questions, help answer others'", Icons.Rounded.Forum, onOpenForum)
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(start = 24.dp))
     }
 }

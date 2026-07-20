@@ -52,13 +52,37 @@ object DatabaseProvider {
         }
     }
 
+    /** v11 -> v12: new questions/answers tables for the public Q&A forum. Brand new tables, so this is a plain CREATE TABLE -- no existing data at risk. */
+    private val MIGRATION_11_12 = object : androidx.room.migration.Migration(11, 12) {
+        override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `questions` (
+                    `id` TEXT NOT NULL, `authorId` TEXT NOT NULL, `authorName` TEXT NOT NULL,
+                    `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAt` INTEGER NOT NULL,
+                    `answerCount` INTEGER NOT NULL, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `answers` (
+                    `id` TEXT NOT NULL, `questionId` TEXT NOT NULL, `authorId` TEXT NOT NULL,
+                    `authorName` TEXT NOT NULL, `text` TEXT NOT NULL, `createdAt` INTEGER NOT NULL,
+                    `replyToAnswerId` TEXT, `replyToAuthorName` TEXT, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     fun get(context: Context): GraceDatabase = INSTANCE ?: synchronized(this) {
         INSTANCE ?: Room.databaseBuilder(
             context.applicationContext,
             GraceDatabase::class.java,
             "gracelink.db"
         )
-            .addMigrations(MIGRATION_10_11)
+            .addMigrations(MIGRATION_10_11, MIGRATION_11_12)
             .fallbackToDestructiveMigration()
             .build()
             .also { INSTANCE = it }
