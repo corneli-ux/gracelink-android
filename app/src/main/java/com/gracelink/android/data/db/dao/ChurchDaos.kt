@@ -55,6 +55,9 @@ interface ChurchMemberDao {
     @Query("SELECT COUNT(*) FROM church_members WHERE churchId = :churchId AND status = 'PENDING'")
     suspend fun countPending(churchId: String): Int
 
+    @Query("SELECT * FROM church_members WHERE id = :id")
+    suspend fun getById(id: String): ChurchMemberEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(member: ChurchMemberEntity)
 
@@ -66,6 +69,18 @@ interface ChurchMemberDao {
 
     @Query("UPDATE church_members SET isActive = 0 WHERE churchId = :churchId AND userId = :userId")
     suspend fun deactivate(churchId: String, userId: String)
+
+    @Query("UPDATE church_members SET role = :role WHERE id = :memberId")
+    suspend fun updateRole(memberId: String, role: ChurchRole)
+
+    @Query("UPDATE church_members SET adminNotes = :notes WHERE id = :memberId")
+    suspend fun updateAdminNotes(memberId: String, notes: String?)
+
+    @Query("UPDATE church_members SET phone = :phone, email = :email WHERE id = :memberId")
+    suspend fun updateContactInfo(memberId: String, phone: String?, email: String?)
+
+    @Query("UPDATE church_members SET status = 'REMOVED', isActive = 0 WHERE id = :memberId")
+    suspend fun removeMember(memberId: String)
 }
 
 @Dao

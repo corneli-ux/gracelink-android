@@ -92,13 +92,145 @@ object DatabaseProvider {
         }
     }
 
+    /**
+     * v13 -> v14: full church administration -- roles, announcements,
+     * groups + chat, direct messages, event RSVP, leadership, ministries,
+     * service times, admin notes, moderation log. New columns on existing
+     * tables use ALTER TABLE with defaults; everything else is a brand new
+     * table (plain CREATE TABLE) -- no existing data at risk either way.
+     */
+    private val MIGRATION_13_14 = object : androidx.room.migration.Migration(13, 14) {
+        override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE church_members ADD COLUMN role TEXT NOT NULL DEFAULT 'MEMBER'")
+            db.execSQL("ALTER TABLE church_members ADD COLUMN adminNotes TEXT")
+            db.execSQL("ALTER TABLE church_members ADD COLUMN phone TEXT")
+            db.execSQL("ALTER TABLE church_members ADD COLUMN email TEXT")
+
+            db.execSQL("ALTER TABLE churches ADD COLUMN vision TEXT")
+            db.execSQL("ALTER TABLE churches ADD COLUMN serviceTimesJson TEXT")
+            db.execSQL("ALTER TABLE churches ADD COLUMN address TEXT")
+            db.execSQL("ALTER TABLE churches ADD COLUMN latitude REAL")
+            db.execSQL("ALTER TABLE churches ADD COLUMN longitude REAL")
+
+            db.execSQL("ALTER TABLE church_events ADD COLUMN isRecurring INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE church_events ADD COLUMN recurrenceRule TEXT")
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `announcements` (
+                    `id` TEXT NOT NULL, `churchId` TEXT NOT NULL, `authorId` TEXT NOT NULL,
+                    `authorName` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL,
+                    `priority` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `expiresAt` INTEGER,
+                    `targetRolesJson` TEXT, `isPinned` INTEGER NOT NULL, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `church_groups` (
+                    `id` TEXT NOT NULL, `churchId` TEXT NOT NULL, `name` TEXT NOT NULL,
+                    `description` TEXT NOT NULL, `type` TEXT NOT NULL, `leaderUserId` TEXT,
+                    `leaderName` TEXT, `memberCount` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL,
+                    `isPrivate` INTEGER NOT NULL, `coverImageUrl` TEXT, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `group_members` (
+                    `id` TEXT NOT NULL, `groupId` TEXT NOT NULL, `churchId` TEXT NOT NULL,
+                    `userId` TEXT NOT NULL, `displayName` TEXT NOT NULL, `role` TEXT NOT NULL,
+                    `joinedAt` INTEGER NOT NULL, `isActive` INTEGER NOT NULL, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `event_rsvps` (
+                    `id` TEXT NOT NULL, `eventId` TEXT NOT NULL, `churchId` TEXT NOT NULL,
+                    `userId` TEXT NOT NULL, `displayName` TEXT NOT NULL, `status` TEXT NOT NULL,
+                    `respondedAt` INTEGER NOT NULL, `note` TEXT, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `leadership_team` (
+                    `id` TEXT NOT NULL, `churchId` TEXT NOT NULL, `userId` TEXT NOT NULL,
+                    `displayName` TEXT NOT NULL, `title` TEXT NOT NULL, `bio` TEXT,
+                    `photoUrl` TEXT, `sortOrder` INTEGER NOT NULL, `isPublic` INTEGER NOT NULL,
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `ministries` (
+                    `id` TEXT NOT NULL, `churchId` TEXT NOT NULL, `name` TEXT NOT NULL,
+                    `description` TEXT NOT NULL, `leaderUserId` TEXT, `leaderName` TEXT,
+                    `meetingInfo` TEXT, `coverImageUrl` TEXT, `sortOrder` INTEGER NOT NULL,
+                    `isActive` INTEGER NOT NULL, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `group_messages` (
+                    `id` TEXT NOT NULL, `groupId` TEXT NOT NULL, `churchId` TEXT NOT NULL,
+                    `senderId` TEXT NOT NULL, `senderName` TEXT NOT NULL, `text` TEXT NOT NULL,
+                    `type` TEXT NOT NULL, `mediaUrl` TEXT, `createdAt` INTEGER NOT NULL,
+                    `isDeleted` INTEGER NOT NULL, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `direct_messages` (
+                    `id` TEXT NOT NULL, `churchId` TEXT NOT NULL, `conversationId` TEXT NOT NULL,
+                    `senderId` TEXT NOT NULL, `senderName` TEXT NOT NULL, `receiverId` TEXT NOT NULL,
+                    `text` TEXT NOT NULL, `type` TEXT NOT NULL, `mediaUrl` TEXT,
+                    `createdAt` INTEGER NOT NULL, `isRead` INTEGER NOT NULL, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `service_times` (
+                    `id` TEXT NOT NULL, `churchId` TEXT NOT NULL, `dayOfWeek` INTEGER NOT NULL,
+                    `time` TEXT NOT NULL, `name` TEXT NOT NULL, `location` TEXT,
+                    `isOnline` INTEGER NOT NULL, `sortOrder` INTEGER NOT NULL, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `admin_notes` (
+                    `id` TEXT NOT NULL, `churchId` TEXT NOT NULL, `memberUserId` TEXT NOT NULL,
+                    `authorId` TEXT NOT NULL, `authorName` TEXT NOT NULL, `note` TEXT NOT NULL,
+                    `createdAt` INTEGER NOT NULL, `isPrivate` INTEGER NOT NULL, PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `moderation_actions` (
+                    `id` TEXT NOT NULL, `churchId` TEXT NOT NULL, `actorId` TEXT NOT NULL,
+                    `actorName` TEXT NOT NULL, `targetUserId` TEXT, `targetContentId` TEXT,
+                    `action` TEXT NOT NULL, `reason` TEXT NOT NULL, `createdAt` INTEGER NOT NULL,
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     fun get(context: Context): GraceDatabase = INSTANCE ?: synchronized(this) {
         INSTANCE ?: Room.databaseBuilder(
             context.applicationContext,
             GraceDatabase::class.java,
             "gracelink.db"
         )
-            .addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
+            .addMigrations(MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14)
             .fallbackToDestructiveMigration()
             .build()
             .also { INSTANCE = it }

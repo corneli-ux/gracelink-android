@@ -20,9 +20,11 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Article
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material.icons.rounded.Radio
@@ -63,6 +65,8 @@ fun ChurchPortalScreen(
     onCreateEvent: () -> Unit,
     onEditProfile: () -> Unit,
     onViewMembers: () -> Unit,
+    onOpenAnnouncements: () -> Unit,
+    onOpenGroups: () -> Unit,
     vm: ChurchPortalViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -133,6 +137,8 @@ fun ChurchPortalScreen(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             SectionLabel("Manage")
+            PortalAction("Announcements", Icons.Rounded.Campaign, onOpenAnnouncements)
+            PortalAction("Groups", Icons.Rounded.Groups, onOpenGroups)
             PortalAction("Radio Schedule", Icons.Rounded.Radio, onScheduleRadio)
             PortalAction("Start Live Space", Icons.Rounded.Headphones, onStartSpace)
             PortalAction("Podcasts", Icons.Rounded.Podcasts, onOpenPodcasts)

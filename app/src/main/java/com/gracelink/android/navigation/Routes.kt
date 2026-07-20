@@ -55,6 +55,22 @@ sealed interface GraceRoute {
     @Serializable data object PodcastCreate : GraceRoute
     @Serializable data object EventCreate : GraceRoute
     @Serializable data object WritePost : GraceRoute
+
+    // Church administration (roles, announcements, groups, RSVP, leadership, ministries)
+    @Serializable data object ChurchAnnouncements : GraceRoute
+    @Serializable data object CreateAnnouncement : GraceRoute
+    @Serializable data object ChurchGroups : GraceRoute
+    @Serializable data class GroupDetail(val groupId: String) : GraceRoute
+    @Serializable data object CreateGroup : GraceRoute
+    @Serializable data class GroupChat(val groupId: String) : GraceRoute
+    @Serializable data object ChurchLeadership : GraceRoute
+    @Serializable data object ChurchMinistries : GraceRoute
+    @Serializable data object CreateMinistry : GraceRoute
+    @Serializable data object ChurchServiceTimes : GraceRoute
+    @Serializable data class EventRsvp(val eventId: String) : GraceRoute
+    @Serializable data class MemberDetail(val memberId: String) : GraceRoute
+    @Serializable data object ModerationLog : GraceRoute
+    @Serializable data object ChurchInsights : GraceRoute
 }
 
 /**

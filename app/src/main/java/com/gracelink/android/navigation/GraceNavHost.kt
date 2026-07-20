@@ -309,6 +309,8 @@ fun GraceNavHost() {
                         onCreateEvent = { navController.navigate(GraceRoute.EventCreate) },
                         onEditProfile = { navController.navigate(GraceRoute.ChurchEditProfile) },
                         onViewMembers = { navController.navigate(GraceRoute.ChurchMembers) },
+                        onOpenAnnouncements = { navController.navigate(GraceRoute.ChurchAnnouncements) },
+                        onOpenGroups = { navController.navigate(GraceRoute.ChurchGroups) },
                     )
                 }
 
@@ -319,8 +321,46 @@ fun GraceNavHost() {
                 }
 
                 composable<GraceRoute.ChurchMembers> {
-                    com.gracelink.android.feature.churchportal.ChurchMembersScreen(
-                        onBack = { navController.popBackStack() }
+                    com.gracelink.android.feature.members.ChurchMembersScreen(
+                        onBack = { navController.popBackStack() },
+                        onMemberClick = { id -> navController.navigate(GraceRoute.MemberDetail(id)) },
+                    )
+                }
+
+                composable<GraceRoute.MemberDetail> { entry ->
+                    val route = entry.toRoute<GraceRoute.MemberDetail>()
+                    com.gracelink.android.feature.churchportal.MemberDetailScreen(
+                        memberId = route.memberId,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+
+                composable<GraceRoute.ChurchAnnouncements> {
+                    com.gracelink.android.feature.announcements.AnnouncementsScreen(
+                        onBack = { navController.popBackStack() },
+                        onCreate = { navController.navigate(GraceRoute.CreateAnnouncement) },
+                    )
+                }
+
+                composable<GraceRoute.CreateAnnouncement> {
+                    com.gracelink.android.feature.announcements.CreateAnnouncementScreen(
+                        onBack = { navController.popBackStack() },
+                        onCreated = { navController.popBackStack() },
+                    )
+                }
+
+                composable<GraceRoute.ChurchGroups> {
+                    com.gracelink.android.feature.groups.GroupsScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenGroup = { /* group detail screen not built yet */ },
+                        onCreate = { navController.navigate(GraceRoute.CreateGroup) },
+                    )
+                }
+
+                composable<GraceRoute.CreateGroup> {
+                    com.gracelink.android.feature.groups.CreateGroupScreen(
+                        onBack = { navController.popBackStack() },
+                        onCreated = { navController.popBackStack() },
                     )
                 }
 
