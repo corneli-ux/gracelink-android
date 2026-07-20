@@ -28,6 +28,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,7 +50,7 @@ private val DAYS = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
 @Composable
 fun RadioBookingScreen(onBack: () -> Unit, vm: RadioBookingViewModel = hiltViewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
-    var attachingSlotId by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    var attachingSlotId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(state.message) {
         if (state.message != null) {
