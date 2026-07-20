@@ -23,10 +23,21 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+    }
 
-        // Default app config — replace stream URLs with real ones before release
-        buildConfigField("String", "DEFAULT_LIVE_STREAM_URL", "\"https://example.com/gracelink/live.m3u8\"")
-        buildConfigField("String", "API_BASE_URL", "\"https://api.gracelink.app/\"")
+    signingConfigs {
+        getByName("debug") {
+            // Fixed, checked-in debug key (app/debug.keystore) instead of relying
+            // on each machine/CI-runner's own auto-generated keystore. GitHub
+            // Actions runners are ephemeral -- without this, every build would get
+            // a brand-new random signing key and therefore a different SHA-1,
+            // making it impossible to register a stable fingerprint for Google
+            // Sign-In in Firebase Console (it would break again on the next build).
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {

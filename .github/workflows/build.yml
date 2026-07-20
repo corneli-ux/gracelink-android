@@ -45,16 +45,11 @@ jobs:
           set -o pipefail
           gradle :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build_output.log
 
-      - name: Print debug keystore SHA-1 (needed for Google Sign-In in Firebase Console)
+      - name: Print debug keystore SHA-1 (for reference / Firebase Console verification)
         if: always()
         run: |
-          echo "::warning::HOME is $HOME"
-          FOUND=$(find / -iname "debug.keystore" 2>/dev/null | head -5)
-          echo "::warning::Found keystores: ${FOUND:-none}"
-          for KS in $FOUND; do
-            FPRINT=$(keytool -list -v -keystore "$KS" -alias androiddebugkey -storepass android -keypass android 2>/dev/null | grep "SHA1:" | head -1)
-            echo "::warning::$KS -> ${FPRINT:-could not read}"
-          done
+          FPRINT=$(keytool -list -v -keystore app/debug.keystore -alias androiddebugkey -storepass android -keypass android 2>/dev/null | grep "SHA1:" | head -1)
+          echo "::warning::Debug keystore ${FPRINT}"
 
       - name: Surface compiler errors as annotations
         if: failure()
