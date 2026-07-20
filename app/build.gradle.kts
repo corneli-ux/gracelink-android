@@ -25,18 +25,11 @@ android {
         vectorDrawables.useSupportLibrary = true
 
         // Short git commit SHA baked into the app, so any installed build
-        // can be identified exactly (shown on the sign-in screen). Falls
-        // back to "local" outside of git/CI so local builds don't fail.
-        val gitSha = try {
-            val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
-                .redirectErrorStream(true)
-                .start()
-            val output = process.inputStream.bufferedReader().readText().trim()
-            process.waitFor()
-            output.ifBlank { "local" }
-        } catch (e: Exception) {
-            "local"
-        }
+        // can be identified exactly (shown on the sign-in screen). Read from
+        // an env var (set by CI, or absent for local builds) rather than
+        // shelling out to git here -- starting external processes during
+        // Gradle configuration is unsupported under configuration cache.
+        val gitSha = (System.getenv("GIT_SHA") ?: "local").take(8)
         buildConfigField("String", "GIT_SHA", "\"$gitSha\"")
     }
 

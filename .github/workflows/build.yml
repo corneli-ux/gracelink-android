@@ -41,6 +41,8 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Build debug APK
+        env:
+          GIT_SHA: ${{ github.sha }}
         run: |
           set -o pipefail
           gradle :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build_output.log
