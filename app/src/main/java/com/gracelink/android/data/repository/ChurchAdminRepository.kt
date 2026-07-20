@@ -50,6 +50,7 @@ class ChurchAdminRepository @Inject constructor(
 
     // ── Groups ─────────────────────────────────────────────────
     fun groups(churchId: String) = groupDao.forChurch(churchId)
+    suspend fun getGroup(id: String) = groupDao.getById(id)
     suspend fun createGroup(
         churchId: String, name: String, description: String,
         type: GroupType, leaderUserId: String?, leaderName: String?, isPrivate: Boolean

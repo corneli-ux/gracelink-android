@@ -28,6 +28,8 @@ import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material.icons.rounded.Radio
+import androidx.compose.material.icons.rounded.SupervisorAccount
+import androidx.compose.material.icons.rounded.VolunteerActivism
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,6 +69,8 @@ fun ChurchPortalScreen(
     onViewMembers: () -> Unit,
     onOpenAnnouncements: () -> Unit,
     onOpenGroups: () -> Unit,
+    onOpenLeadership: () -> Unit,
+    onOpenMinistries: () -> Unit,
     vm: ChurchPortalViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -139,6 +143,8 @@ fun ChurchPortalScreen(
             SectionLabel("Manage")
             PortalAction("Announcements", Icons.Rounded.Campaign, onOpenAnnouncements)
             PortalAction("Groups", Icons.Rounded.Groups, onOpenGroups)
+            PortalAction("Leadership Team", Icons.Rounded.SupervisorAccount, onOpenLeadership)
+            PortalAction("Ministries", Icons.Rounded.VolunteerActivism, onOpenMinistries)
             PortalAction("Radio Schedule", Icons.Rounded.Radio, onScheduleRadio)
             PortalAction("Start Live Space", Icons.Rounded.Headphones, onStartSpace)
             PortalAction("Podcasts", Icons.Rounded.Podcasts, onOpenPodcasts)
