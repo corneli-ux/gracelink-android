@@ -71,6 +71,7 @@ fun ChurchPortalScreen(
     onOpenGroups: () -> Unit,
     onOpenLeadership: () -> Unit,
     onOpenMinistries: () -> Unit,
+    onOpenEventRsvp: (String) -> Unit,
     vm: ChurchPortalViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -136,7 +137,7 @@ fun ChurchPortalScreen(
             if (state.upcomingEvents.isEmpty()) {
                 Text("No events yet", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 16.dp))
             } else {
-                state.upcomingEvents.forEach { EventRow(it) }
+                state.upcomingEvents.forEach { evt -> EventRow(evt) { onOpenEventRsvp(evt.id) } }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
@@ -186,8 +187,8 @@ private fun PendingMemberRow(member: ChurchMemberEntity, onApprove: () -> Unit, 
 }
 
 @Composable
-private fun EventRow(event: ChurchEventEntity) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+private fun EventRow(event: ChurchEventEntity, onClick: () -> Unit) {
+    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 10.dp)) {
         Text(event.title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
         Text(
             SimpleDateFormat("EEE, MMM d \u00b7 h:mm a", Locale.getDefault()).format(Date(event.startTime)) +

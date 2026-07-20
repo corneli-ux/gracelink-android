@@ -139,6 +139,9 @@ interface ChurchEventDao {
     @Query("SELECT * FROM church_events WHERE churchId = :churchId ORDER BY startTime ASC")
     fun forChurch(churchId: String): Flow<List<ChurchEventEntity>>
 
+    @Query("SELECT * FROM church_events WHERE id = :id")
+    suspend fun getById(id: String): ChurchEventEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(event: ChurchEventEntity)
 }

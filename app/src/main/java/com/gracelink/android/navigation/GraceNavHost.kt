@@ -313,6 +313,7 @@ fun GraceNavHost() {
                         onOpenGroups = { navController.navigate(GraceRoute.ChurchGroups) },
                         onOpenLeadership = { navController.navigate(GraceRoute.ChurchLeadership) },
                         onOpenMinistries = { navController.navigate(GraceRoute.ChurchMinistries) },
+                        onOpenEventRsvp = { id -> navController.navigate(GraceRoute.EventRsvp(id)) },
                     )
                 }
 
@@ -393,6 +394,15 @@ fun GraceNavHost() {
                 composable<GraceRoute.ChurchMinistries> {
                     com.gracelink.android.feature.ministries.MinistriesScreen(
                         onBack = { navController.popBackStack() },
+                    )
+                }
+
+                composable<GraceRoute.EventRsvp> { entry ->
+                    val route = entry.toRoute<GraceRoute.EventRsvp>()
+                    com.gracelink.android.feature.events.EventRsvpScreen(
+                        eventId = route.eventId,
+                        onBack = { navController.popBackStack() },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
                     )
                 }
 
