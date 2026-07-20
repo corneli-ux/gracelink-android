@@ -47,7 +47,7 @@ class RadioBookingViewModel @Inject constructor(
     fun selectDay(day: String) { selectedDay.value = day }
 
     fun bookSlot(slotId: String) = viewModelScope.launch {
-        val user = state.value.me
+        val user = userRepo.currentOnce()
         if (user == null) {
             message.value = "Set up your profile first"
             return@launch
@@ -57,7 +57,7 @@ class RadioBookingViewModel @Inject constructor(
     }
 
     fun cancelBooking(slotId: String) = viewModelScope.launch {
-        val user = state.value.me ?: return@launch
+        val user = userRepo.currentOnce() ?: return@launch
         repo.cancelBooking(slotId, user.uid)
         message.value = "Booking cancelled"
     }

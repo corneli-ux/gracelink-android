@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gracelink.android.data.db.dao.ArticleDao
 import com.gracelink.android.data.db.dao.ChurchDao
+import com.gracelink.android.data.db.dao.ChurchEventDao
 import com.gracelink.android.data.db.dao.ChurchMemberDao
 import com.gracelink.android.data.db.dao.PodcastDao
 import com.gracelink.android.data.db.dao.UserDao
 import com.gracelink.android.data.db.entity.ChurchEntity
+import com.gracelink.android.data.db.entity.ChurchEventEntity
 import com.gracelink.android.data.db.entity.ChurchMemberEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,6 +29,7 @@ data class ChurchPortalState(
     val approvedCount: Int = 0,
     val articleCount: Int = 0,
     val podcastCount: Int = 0,
+    val upcomingEvents: List<ChurchEventEntity> = emptyList(),
 )
 
 @HiltViewModel
@@ -36,6 +39,7 @@ class ChurchPortalViewModel @Inject constructor(
     private val memberDao: ChurchMemberDao,
     private val articleDao: ArticleDao,
     private val podcastDao: PodcastDao,
+    private val eventDao: ChurchEventDao,
 ) : ViewModel() {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -53,7 +57,8 @@ class ChurchPortalViewModel @Inject constructor(
                         memberDao.approvedForChurch(church.id),
                         articleDao.forAuthor(uid),
                         podcastDao.seriesByAuthor(uid),
-                    ) { pending, approved, articles, podcasts ->
+                        eventDao.forChurch(church.id),
+                    ) { pending, approved, articles, podcasts, events ->
                         ChurchPortalState(
                             myUid = uid,
                             church = church,
@@ -61,6 +66,7 @@ class ChurchPortalViewModel @Inject constructor(
                             approvedCount = approved.size,
                             articleCount = articles.size,
                             podcastCount = podcasts.size,
+                            upcomingEvents = events,
                         )
                     }
                 }

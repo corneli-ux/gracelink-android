@@ -204,11 +204,6 @@ fun GraceNavHost() {
                                 popUpTo(GraceRoute.Auth) { inclusive = true }
                             }
                         },
-                        onRegister = {
-                            navController.navigate(GraceRoute.Registration) {
-                                popUpTo(GraceRoute.Auth) { inclusive = true }
-                            }
-                        },
                     )
                 }
 

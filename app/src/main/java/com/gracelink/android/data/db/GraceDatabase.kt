@@ -18,7 +18,7 @@ import com.gracelink.android.data.db.entity.*
         ChurchEventEntity::class, FaithProgressEntity::class,
         PodcastSeriesEntity::class, PodcastEpisodeEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = false,
 )
 @TypeConverters(EnumConverters::class)

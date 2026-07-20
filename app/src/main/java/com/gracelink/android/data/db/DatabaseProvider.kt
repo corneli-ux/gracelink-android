@@ -13,7 +13,6 @@ import com.gracelink.android.data.db.entity.LiveSessionEntity
 import com.gracelink.android.data.db.entity.LiveSessionStatus
 import com.gracelink.android.data.db.entity.PrayerEntity
 import com.gracelink.android.data.db.entity.PrayerStatus
-import com.gracelink.android.data.db.entity.UserEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -177,24 +176,13 @@ object DatabaseProvider {
             }
             if (chats.isNotEmpty()) db.chatDao().insertAll(chats)
 
-            // User
-            val userObj = data.getJSONObject("user")
-            db.userDao().upsert(
-                UserEntity(
-                    uid = userObj.getString("uid"),
-                    displayName = userObj.getString("displayName"),
-                    email = userObj.getString("email"),
-                    photoUrl = if (userObj.isNull("photoUrl")) null else userObj.optString("photoUrl"),
-                    preferredLanguage = ContentLanguage.valueOf(userObj.optString("preferredLanguage", "EN")),
-                    createdAt = userObj.optLong("createdAt"),
-                    totalMinutes = userObj.optInt("totalMinutes"),
-                    completedItems = userObj.optInt("completedItems"),
-                    prayersOffered = userObj.optInt("prayersOffered"),
-                    streakDays = userObj.optInt("streakDays"),
-                    dataSaverEnabled = userObj.optBoolean("dataSaverEnabled"),
-                    notificationsEnabled = userObj.optBoolean("notificationsEnabled"),
-                )
-            )
+            // NOTE: deliberately NOT seeding a demo UserEntity here anymore.
+            // A fake pre-existing "you" profile was satisfying the app's
+            // "has this person set up their real profile yet" check on every
+            // fresh install, which made Registration get skipped entirely --
+            // Google sign-in would drop straight into the app because the
+            // seeded demo user already looked like a completed signup.
+            // Real profiles now only ever come from Auth + Registration.
 
             // FM Schedule
             try {
