@@ -78,6 +78,9 @@ import com.gracelink.android.feature.profile.ProfileScreen
 import com.gracelink.android.feature.registration.RegistrationScreen
 import com.gracelink.android.feature.splash.SplashScreen
 import kotlinx.coroutines.launch
+
+/**
+ * Single source of truth for Faith Link navigation.
  *
  * Flow:
  *   Splash -> (first launch) Onboarding -> Set Up Profile (mandatory) -> Home/Portal
