@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.data.db.entity.GroupMessageEntity
+import com.gracelink.android.data.repository.GroupChatMessage
 
 @Composable
 fun GroupChatScreen(groupId: String, onBack: () -> Unit, vm: GroupChatViewModel = hiltViewModel()) {
@@ -93,7 +93,7 @@ fun GroupChatScreen(groupId: String, onBack: () -> Unit, vm: GroupChatViewModel 
 }
 
 @Composable
-private fun MessageBubble(msg: GroupMessageEntity, isMine: Boolean) {
+private fun MessageBubble(msg: GroupChatMessage, isMine: Boolean) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start) {
         Column(
             Modifier

@@ -55,7 +55,7 @@ import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.core.theme.Violet400
-import com.gracelink.android.data.db.entity.ChatMessageEntity
+import com.gracelink.android.data.repository.LiveChatMessage
 import org.json.JSONArray
 
 @Composable
@@ -124,7 +124,7 @@ fun LiveSessionScreen(sessionId: String, onBack: () -> Unit, vm: LiveSessionView
                     }
                 }
             }
-            items(state.messages, key = { it.id }) { msg -> ChatBubble(msg) }
+            items(state.messages, key = { it.id }) { msg -> ChatBubble(msg, isMine = msg.userId == state.myUid) }
         }
 
         // Input
@@ -148,13 +148,13 @@ fun LiveSessionScreen(sessionId: String, onBack: () -> Unit, vm: LiveSessionView
 }
 
 @Composable
-private fun ChatBubble(msg: ChatMessageEntity) {
-    val alignment = if (msg.isMine) Alignment.End else Alignment.Start
+private fun ChatBubble(msg: LiveChatMessage, isMine: Boolean) {
+    val alignment = if (isMine) Alignment.End else Alignment.Start
     val bubbleColor = when {
         msg.isHost -> Gold500.copy(alpha = 0.18f)
         msg.isModerator -> Violet400.copy(alpha = 0.15f)
         msg.isQuestion -> Emerald500.copy(alpha = 0.15f)
-        msg.isMine -> Slate800
+        isMine -> Slate800
         else -> Slate800.copy(alpha = 0.7f)
     }
     val nameColor = when {
@@ -165,7 +165,7 @@ private fun ChatBubble(msg: ChatMessageEntity) {
     }
 
     Column(Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalAlignment = alignment) {
-        if (!msg.isMine) {
+        if (!isMine) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(msg.displayName, style = MaterialTheme.typography.labelSmall, color = nameColor, fontWeight = FontWeight.SemiBold)
                 if (msg.isHost) { Spacer(Modifier.width(4.dp)); Box(Modifier.clip(RoundedCornerShape(4.dp)).background(Gold500).padding(horizontal = 4.dp, vertical = 1.dp)) { Text("HOST", style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A0F00)) } }
