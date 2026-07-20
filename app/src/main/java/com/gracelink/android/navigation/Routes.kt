@@ -3,12 +3,11 @@ package com.gracelink.android.navigation
 import kotlinx.serialization.Serializable
 
 /**
- * Type-safe navigation routes for GraceLink.
+ * Type-safe navigation routes for Faith Link.
  *
- * Flow: Splash -> (first launch only) Onboarding -> Home. There is no
- * mandatory login right now; "Registration" doubles as a lightweight,
- * non-blocking "Set Up Profile" step (name + role: Member / Pastor /
- * Church) reachable from Profile whenever an action needs an identity.
+ * Flow: Splash -> Onboarding (first launch only) -> Auth (create/sign in
+ * with Google) -> Registration (pick account type + enter details) ->
+ * Home / Church Portal / Pastor Studio, matching the chosen type.
  */
 @Serializable
 sealed interface GraceRoute {
@@ -16,6 +15,7 @@ sealed interface GraceRoute {
     // Pre-auth / first-run
     @Serializable data object Splash : GraceRoute
     @Serializable data object Onboarding : GraceRoute
+    @Serializable data object Auth : GraceRoute
     @Serializable data object Registration : GraceRoute
 
     // Single unified hub -- replaces the old forced PortalHub step

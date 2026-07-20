@@ -81,7 +81,7 @@ fun HomeScreen(
         item {
             Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 20.dp)) {
                 Text(
-                    "GRACELINK",
+                    "FAITH LINK",
                     style = MaterialTheme.typography.labelMedium,
                     color = TextMuted,
                     letterSpacing = 2.sp,

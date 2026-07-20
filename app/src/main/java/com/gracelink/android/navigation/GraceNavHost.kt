@@ -115,11 +115,17 @@ fun GraceNavHost() {
         com.gracelink.android.data.db.entity.AccountType.PERSONAL -> GraceRoute.Home
     }
 
-    /** After Splash/Onboarding: profile exists -> role-appropriate destination, else -> mandatory Set Up Profile. */
-    fun navigateAfterGate(popRoute: GraceRoute) {
+    /**
+     * Checks whether a profile already exists and routes accordingly,
+     * popping back to [popRoute]. If no profile exists, goes to
+     * [ifNoProfile] -- Auth for a fresh app launch (need to create/sign in
+     * to an account first), or straight to Registration if we already know
+     * an account was just created (skips a redundant profile check).
+     */
+    fun routeByProfile(popRoute: GraceRoute, ifNoProfile: GraceRoute) {
         scope.launch {
             val type = profileGateVm.currentAccountType()
-            val destination = if (type != null) destinationFor(type) else GraceRoute.Registration
+            val destination = if (type != null) destinationFor(type) else ifNoProfile
             navController.navigate(destination) {
                 popUpTo(popRoute) { inclusive = true }
             }
@@ -166,7 +172,7 @@ fun GraceNavHost() {
                     SplashScreen(
                         onComplete = {
                             if (AppPrefs.hasOnboarded(context)) {
-                                navigateAfterGate(GraceRoute.Splash)
+                                routeByProfile(GraceRoute.Splash, GraceRoute.Auth)
                             } else {
                                 navController.navigate(GraceRoute.Onboarding) {
                                     popUpTo(GraceRoute.Splash) { inclusive = true }
@@ -180,8 +186,29 @@ fun GraceNavHost() {
                     OnboardingScreen(
                         onDone = {
                             AppPrefs.setOnboarded(context)
-                            navigateAfterGate(GraceRoute.Onboarding)
+                            routeByProfile(GraceRoute.Onboarding, GraceRoute.Auth)
                         }
+                    )
+                }
+
+                composable<GraceRoute.Auth> {
+                    com.gracelink.android.feature.auth.AuthScreen(
+                        onSignInComplete = {
+                            // Existing Firebase account signed back in -- if a local
+                            // profile already exists (they've done this before), skip
+                            // straight to their portal instead of Registration again.
+                            routeByProfile(GraceRoute.Auth, GraceRoute.Registration)
+                        },
+                        onNewUserNeedsRegistration = { _, _ ->
+                            navController.navigate(GraceRoute.Registration) {
+                                popUpTo(GraceRoute.Auth) { inclusive = true }
+                            }
+                        },
+                        onRegister = {
+                            navController.navigate(GraceRoute.Registration) {
+                                popUpTo(GraceRoute.Auth) { inclusive = true }
+                            }
+                        },
                     )
                 }
 
