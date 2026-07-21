@@ -48,9 +48,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.components.GhostButton
 import com.gracelink.android.core.components.GoldButton
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Obsidian
-import com.gracelink.android.core.theme.Slate800
 
 /**
  * Podcast publishing for pastors/churches. Episode audio can be uploaded
@@ -73,7 +70,7 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
     var coverUri by remember { mutableStateOf<android.net.Uri?>(null) }
     val coverPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri -> coverUri = uri }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
         Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface)
@@ -96,7 +93,7 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)).background(Slate800).clickable { coverPicker.launch("image/*") },
+                    Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable { coverPicker.launch("image/*") },
                     contentAlignment = Alignment.Center,
                 ) {
                     if (coverUri != null) {
@@ -112,7 +109,7 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("Teaching", "Worship", "Regional", "Youth").forEach { c ->
                     Box(
-                        Modifier.clip(RoundedCornerShape(20.dp)).background(if (c == seriesCategory) Gold400 else Slate800).clickable { seriesCategory = c }.padding(horizontal = 14.dp, vertical = 8.dp)
+                        Modifier.clip(RoundedCornerShape(20.dp)).background(if (c == seriesCategory) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant).clickable { seriesCategory = c }.padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
                         Text(c, style = MaterialTheme.typography.labelMedium, color = if (c == seriesCategory) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -132,11 +129,11 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
             state.mySeries.forEach { series ->
                 val selected = activeSeriesId == series.id
                 Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (selected) Gold400.copy(alpha = 0.15f) else Slate800).clickable { activeSeriesId = series.id }.padding(14.dp),
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant).clickable { activeSeriesId = series.id }.padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(series.title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-                    Text(series.category, style = MaterialTheme.typography.labelSmall, color = Gold400)
+                    Text(series.category, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.height(8.dp))
             }
@@ -164,7 +161,7 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
 
                 if (state.isUploading) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Gold400, strokeWidth = 2.dp)
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
                         Spacer(Modifier.width(10.dp))
                         Text("Uploading\u2026", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -203,7 +200,7 @@ private fun Field(label: String, value: String, onChange: (String) -> Unit) {
     OutlinedTextField(
         value = value, onValueChange = onChange, modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(label) },
-        colors = TextFieldDefaults.colors(focusedContainerColor = Slate800, unfocusedContainerColor = Slate800, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400),
+        colors = TextFieldDefaults.colors(focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary),
         shape = RoundedCornerShape(12.dp),
     )
 }
