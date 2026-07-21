@@ -26,9 +26,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gracelink.android.core.components.GoldButton
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Obsidian
-import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.BeliefSystem
 import com.gracelink.android.feature.auth.GoogleAuthData
@@ -58,10 +55,10 @@ fun RegistrationScreen(
     var location by remember { mutableStateOf("") }
     var selectedBelief by remember { mutableStateOf(BeliefSystem.NONDENOMINATIONAL) }
 
-    Box(Modifier.fillMaxSize().statusBarsPadding().background(Brush.verticalGradient(listOf(Obsidian, Slate800)))) {
+    Box(Modifier.fillMaxSize().statusBarsPadding().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.surfaceVariant)))) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Slate800).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface)
                 }
             }
@@ -92,11 +89,11 @@ fun RegistrationScreen(
                     Field("Location", location) { location = it }
                 }
                 Spacer(Modifier.height(16.dp))
-                Text("Belief System", style = MaterialTheme.typography.titleSmall, color = Gold400, fontWeight = FontWeight.SemiBold)
+                Text("Belief System", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(8.dp))
                 BeliefSystem.values().take(8).forEach { belief ->
-                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (belief == selectedBelief) Gold400.copy(alpha = 0.15f) else Slate800).clickable { selectedBelief = belief }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = belief == selectedBelief, onClick = { selectedBelief = belief }, colors = RadioButtonDefaults.colors(selectedColor = Gold400))
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (belief == selectedBelief) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant).clickable { selectedBelief = belief }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = belief == selectedBelief, onClick = { selectedBelief = belief }, colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary))
                         Spacer(Modifier.width(8.dp))
                         Text(belief.displayName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                     }
@@ -113,7 +110,7 @@ fun RegistrationScreen(
                     }
                 }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(10.dp))
-                Text("Choose a different role", style = MaterialTheme.typography.bodySmall, color = Gold400, modifier = Modifier.clickable { accountType = null })
+                Text("Choose a different role", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { accountType = null })
             }
         }
     }
@@ -127,10 +124,10 @@ private fun AccountType?.label(): String = when (this) {
 
 @Composable
 private fun RoleCard(icon: ImageVector, title: String, desc: String, onClick: () -> Unit) {
-    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Slate800).clickable(onClick = onClick).padding(20.dp)) {
+    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onClick).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-                Icon(icon, null, tint = Gold400, modifier = Modifier.size(24.dp))
+            Box(Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+                Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
             }
             Spacer(Modifier.width(16.dp))
             Column { Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold); Text(desc, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -140,7 +137,7 @@ private fun RoleCard(icon: ImageVector, title: String, desc: String, onClick: ()
 
 @Composable
 private fun Field(label: String, value: String, onChange: (String) -> Unit) {
-    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Slate800).padding(horizontal = 12.dp, vertical = 4.dp)) {
-        TextField(value = value, onValueChange = onChange, modifier = Modifier.fillMaxWidth(), placeholder = { Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
+    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 12.dp, vertical = 4.dp)) {
+        TextField(value = value, onValueChange = onChange, modifier = Modifier.fillMaxWidth(), placeholder = { Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
     }
 }
