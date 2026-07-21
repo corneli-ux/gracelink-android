@@ -152,13 +152,21 @@ dependencies {
     // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
 
-    // Firebase
+    // Firebase -- Storage removed, replaced by Supabase Storage above.
+    // Auth/Firestore/Messaging stay as they are.
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.storage)
     implementation(libs.firebase.messaging)
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+
+    // Supabase Storage -- replaces Firebase Storage for media uploads
+    // (profile photos, church photos, podcast covers/episodes). Firebase
+    // Auth/Firestore stay as they are; only file storage moves, since
+    // that's the piece Firebase now requires the paid Blaze plan for.
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.5.0"))
+    implementation("io.github.jan-tennert.supabase:storage-kt")
+    implementation("io.ktor:ktor-client-android:3.4.0")
 
     // Desugaring for java.time on older API levels
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
