@@ -109,7 +109,13 @@ fun ChurchPortalScreen(
             }
 
             // Identity -- plain text, no card
-            Text(church.name, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(church.name, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
+                if (church.verificationStatus == VerificationStatus.VERIFIED) {
+                    Spacer(Modifier.width(6.dp))
+                    com.gracelink.android.core.components.VerifiedBadge(size = 18.dp)
+                }
+            }
             Spacer(Modifier.height(4.dp))
             Text(
                 church.verificationStatus.name.lowercase().replaceFirstChar { it.uppercase() } + " \u00b7 ${church.memberCount} members",

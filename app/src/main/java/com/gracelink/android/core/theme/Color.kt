@@ -38,6 +38,15 @@ val Emerald500 = Color(0xFF3FB88A)   // slightly muted emerald
 val Emerald600 = Color(0xFF2D9A72)
 val Emerald700 = Color(0xFF1F7A5A)
 
+// ── Platinum (verification badge, distinct from the warm brand gold) ───────
+// Rich sapphire-to-violet -- reads as premium/verified without competing
+// with the app's gold accent used everywhere else. First applied to church
+// verification checkmarks; previewed on Splash's glow to see how a
+// platinum-toned accent would feel elsewhere before any wider rollout.
+val PlatinumBlue = Color(0xFF3D5AFE)
+val PlatinumViolet = Color(0xFF8B5CF6)
+val PlatinumGradient = listOf(PlatinumBlue, PlatinumViolet)
+
 // ── Semantic ────────────────────────────────────────────────────────────────
 val LiveRed = Color(0xFFFF3B3B)
 val LiveRedDark = Color(0xFFDC2626)

@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Campaign
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Church
 import androidx.compose.material.icons.rounded.People
 import androidx.compose.material.icons.rounded.Podcasts
@@ -68,7 +67,8 @@ fun ChurchDetailScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(church.name, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                 if (church.verificationStatus == VerificationStatus.VERIFIED) {
-                    Icon(Icons.Rounded.CheckCircle, "Verified", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    com.gracelink.android.core.components.VerifiedBadge(size = 18.dp)
                 }
             }
             Text(church.location, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

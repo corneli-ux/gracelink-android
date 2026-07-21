@@ -68,13 +68,15 @@ fun SplashScreen(onComplete: () -> Unit) {
                     .size(120.dp)
                     .scale(scale)
             ) {
-                // Subtle glow behind logo
+                // Subtle glow behind logo -- previewing the new platinum
+                // verification color here rather than the usual gold, per
+                // request, to see how a platinum-toned accent reads
                 Box(
                     Modifier
                         .fillMaxSize()
                         .background(
                             Brush.radialGradient(
-                                listOf(MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha), MaterialTheme.colorScheme.primary.copy(alpha = 0f))
+                                listOf(com.gracelink.android.core.theme.PlatinumBlue.copy(alpha = glowAlpha), com.gracelink.android.core.theme.PlatinumBlue.copy(alpha = 0f))
                             )
                         )
                 )

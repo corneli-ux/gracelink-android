@@ -10,7 +10,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Church
 import androidx.compose.material.icons.rounded.Handshake
 import androidx.compose.material.icons.rounded.People
@@ -159,7 +158,7 @@ private fun ChurchRow(church: ChurchEntity, isMember: Boolean, isChurchOrPastorV
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(church.name, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
-                    if (isVerified) { Spacer(Modifier.width(6.dp)); Icon(Icons.Rounded.CheckCircle, "Verified", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(15.dp)) }
+                    if (isVerified) { Spacer(Modifier.width(6.dp)); com.gracelink.android.core.components.VerifiedBadge(size = 15.dp) }
                 }
                 Text(church.location, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
