@@ -20,6 +20,7 @@ sealed interface GraceRoute {
 
     // Single unified hub -- replaces the old forced PortalHub step
     @Serializable data object Home : GraceRoute
+    @Serializable data object Timeline : GraceRoute
 
     // Core destinations (bottom nav)
     @Serializable data object Podcasts : GraceRoute
@@ -83,6 +84,7 @@ sealed interface GraceRoute {
  */
 val bottomNavRoutes = listOf(
     GraceRoute.Home,
+    GraceRoute.Timeline,
     GraceRoute.Podcasts,
     GraceRoute.LiveSpaces,
     GraceRoute.Community,

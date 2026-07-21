@@ -82,6 +82,27 @@ fun ChurchDetailScreen(
                 Spacer(Modifier.weight(1f))
                 MembershipAction(state, isGuest, onRequireSignIn, onJoin = { vm.joinChurch() }, onCollaborate = { showCollaborateDialog = true })
             }
+            Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "${state.followerCount} following on Timeline", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                Row(
+                    Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (state.isFollowing) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary)
+                        .clickable { if (isGuest) onRequireSignIn() else vm.toggleFollow() }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Text(
+                        if (state.isFollowing) "Following" else "Follow",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (state.isFollowing) MaterialTheme.colorScheme.onSurface else Color(0xFF1A0F00),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
             if (church.verificationStatus == VerificationStatus.PENDING) {
                 Spacer(Modifier.height(6.dp))
                 Text("Verification pending", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

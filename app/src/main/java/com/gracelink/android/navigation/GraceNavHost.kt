@@ -19,11 +19,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Headphones
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Podcasts
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Timeline
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material3.Icon
@@ -227,6 +229,18 @@ fun GraceNavHost() {
                         onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) },
                         onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) },
                         onOpenForum = { navController.navigate(GraceRoute.Forum) },
+                    )
+                }
+
+                composable<GraceRoute.Timeline> {
+                    com.gracelink.android.feature.timeline.TimelineScreen(
+                        onOpenArticle = { id -> navController.navigate(GraceRoute.ArticleDetail(id)) },
+                        onOpenPodcast = { id -> navController.navigate(GraceRoute.PodcastDetail(id)) },
+                        onOpenPrayer = { navController.navigate(GraceRoute.Prayer) },
+                        onOpenEvent = { id -> navController.navigate(GraceRoute.EventRsvp(id)) },
+                        onOpenQuestion = { id -> navController.navigate(GraceRoute.QuestionDetail(id)) },
+                        onFindChurches = { navController.navigate(GraceRoute.Churches) },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
                     )
                 }
 
@@ -655,6 +669,7 @@ private fun GraceFloatingBottomBar(
 
 private fun GraceRoute.icons(): Triple<ImageVector, ImageVector, String> = when (this) {
     GraceRoute.Home -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "Home")
+    GraceRoute.Timeline -> Triple(Icons.Rounded.Timeline, Icons.Outlined.Timeline, "Timeline")
     GraceRoute.Podcasts -> Triple(Icons.Rounded.Podcasts, Icons.Outlined.Podcasts, "Podcasts")
     GraceRoute.LiveSpaces -> Triple(Icons.Rounded.Headphones, Icons.Outlined.Headphones, "Live")
     GraceRoute.Community -> Triple(Icons.Rounded.Groups, Icons.Outlined.Groups, "Community")

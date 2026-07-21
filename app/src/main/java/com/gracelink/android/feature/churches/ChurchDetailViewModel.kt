@@ -6,6 +6,7 @@ import com.gracelink.android.data.db.dao.*
 import com.gracelink.android.data.db.entity.*
 import com.gracelink.android.data.repository.ChurchAdminRepository
 import com.gracelink.android.data.repository.CollaborationRepository
+import com.gracelink.android.data.repository.FollowRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -23,6 +24,8 @@ data class ChurchDetailState(
     val myName: String = "",
     val myAccountType: AccountType = AccountType.PERSONAL,
     val myCollaborationRequest: CollaborationRequestEntity? = null,
+    val isFollowing: Boolean = false,
+    val followerCount: Int = 0,
 )
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -44,6 +47,7 @@ class ChurchDetailViewModel @Inject constructor(
     private val userDao: UserDao,
     private val collaborationRepo: CollaborationRepository,
     private val adminRepo: ChurchAdminRepository,
+    private val followRepo: FollowRepository,
 ) : ViewModel() {
 
     private val churchId = MutableStateFlow("")
@@ -88,7 +92,12 @@ class ChurchDetailViewModel @Inject constructor(
     val state: StateFlow<ChurchDetailState> = combine(baseFlow, contentFlow) { base, content ->
         base to content
     }.flatMapLatest { (base, content) ->
-        collaborationRepo.sentBy(base.uid).map { sent ->
+        val churchId = base.church?.id
+        combine(
+            collaborationRepo.sentBy(base.uid),
+            if (churchId == null) flowOf(false) else followRepo.isFollowing(base.uid, churchId),
+            if (churchId == null) flowOf(0) else followRepo.followerCount(churchId),
+        ) { sent, following, followerCount ->
             ChurchDetailState(
                 church = base.church,
                 members = base.members,
@@ -101,11 +110,21 @@ class ChurchDetailViewModel @Inject constructor(
                 myName = myName.value,
                 myAccountType = myAccountType.value,
                 myCollaborationRequest = sent.firstOrNull { it.toChurchId == base.church?.id },
+                isFollowing = following,
+                followerCount = followerCount,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ChurchDetailState())
 
     fun load(id: String) { churchId.value = id }
+
+    fun toggleFollow() = viewModelScope.launch {
+        val s = state.value
+        val church = s.church ?: return@launch
+        if (s.myId.isBlank() || s.myId == "u_demo") return@launch
+        if (s.isFollowing) followRepo.unfollow(s.myId, church.id)
+        else followRepo.follow(s.myId, church.id, church.name)
+    }
 
     fun joinChurch() = viewModelScope.launch {
         val church = state.value.church ?: return@launch
