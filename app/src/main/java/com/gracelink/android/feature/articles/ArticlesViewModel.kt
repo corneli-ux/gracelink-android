@@ -23,7 +23,8 @@ class ArticlesViewModel @Inject constructor(
     private val articleDao: ArticleDao,
     private val commentDao: ArticleCommentDao,
     private val likeDao: ArticleLikeDao,
-    userRepo: UserRepository,
+    private val churchDao: ChurchDao,
+    private val userRepo: UserRepository,
 ) : ViewModel() {
 
     private val showWrite = MutableStateFlow(false)
@@ -34,14 +35,23 @@ class ArticlesViewModel @Inject constructor(
 
     fun showWriteDialog(show: Boolean) { showWrite.value = show }
 
+    /**
+     * Resolves the real account type and church via a direct suspend query
+     * instead of hardcoding PERSONAL/null. That hardcoding meant an article
+     * written by a Church or Pastor account here was silently misattributed
+     * as a plain personal post with no church link -- it would never show
+     * up on that church's own public profile, since that page queries
+     * articles by churchId.
+     */
     fun writeArticle(title: String, content: String) = viewModelScope.launch {
-        val s = state.value
+        val user = userRepo.currentOnce() ?: return@launch
+        val church = if (user.accountType == AccountType.CHURCH) churchDao.byOwnerOnce(user.uid) else null
         val article = ArticleEntity(
             id = "art_${System.currentTimeMillis()}",
-            authorId = s.myId,
-            authorName = s.myName,
-            authorType = AccountType.PERSONAL,
-            churchId = null,
+            authorId = user.uid,
+            authorName = church?.name ?: user.displayName,
+            authorType = user.accountType,
+            churchId = church?.id,
             title = title,
             content = content,
             publishedAt = System.currentTimeMillis(),
