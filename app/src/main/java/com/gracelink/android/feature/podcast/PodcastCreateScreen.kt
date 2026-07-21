@@ -28,12 +28,14 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +62,17 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
     val state by vm.state.collectAsStateWithLifecycle()
     var activeSeriesId by remember { mutableStateOf<String?>(null) }
 
+    // Uploading an episode needs a series to belong to first. If you
+    // already have one, select it automatically -- previously this
+    // stayed null until you tapped an existing series, so returning
+    // users saw no upload option at all until they noticed they had to
+    // pick one, which read as "there's no way to upload audio."
+    LaunchedEffect(state.mySeries) {
+        if (activeSeriesId == null) {
+            state.mySeries.firstOrNull()?.let { activeSeriesId = it.id }
+        }
+    }
+
     var seriesTitle by remember { mutableStateOf("") }
     var seriesDescription by remember { mutableStateOf("") }
     var seriesCategory by remember { mutableStateOf("Teaching") }
@@ -85,6 +98,7 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
             }
 
             Text("New Series", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+            Text("Podcasts are organized into series -- create one first, then upload episodes to it below", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(10.dp))
             Field("Series title", seriesTitle) { seriesTitle = it }
             Spacer(Modifier.height(10.dp))
@@ -140,7 +154,13 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
 
             if (activeSeriesId != null) {
                 Spacer(Modifier.height(20.dp))
-                Text("Add Episode", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(Modifier.height(20.dp))
+                Text("Upload Episode", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    "To: ${state.mySeries.firstOrNull { it.id == activeSeriesId }?.title ?: "your series"}",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary,
+                )
                 Spacer(Modifier.height(10.dp))
                 Field("Episode title", epTitle) { epTitle = it }
                 Spacer(Modifier.height(10.dp))
