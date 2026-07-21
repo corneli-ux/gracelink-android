@@ -42,7 +42,7 @@ fun ChurchMembersScreen(
         }
     }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
         Row(
             Modifier.fillMaxWidth().padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -66,11 +66,11 @@ fun ChurchMembersScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Gold500,
-                unfocusedBorderColor = Slate700,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                 focusedTextColor = TextPrimary,
                 unfocusedTextColor = TextPrimary,
-                cursorColor = Gold500
+                cursorColor = MaterialTheme.colorScheme.primary
             ),
             singleLine = true,
             shape = RoundedCornerShape(12.dp)
@@ -79,7 +79,7 @@ fun ChurchMembersScreen(
         LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)) {
             items(filtered, key = { it.id }) { member ->
                 MemberRow(member) { onMemberClick(member.id) }
-                HorizontalDivider(color = Slate700, thickness = 0.5.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
             }
         }
     }
@@ -98,12 +98,12 @@ private fun MemberRow(member: ChurchMemberEntity, onClick: () -> Unit) {
             Modifier
                 .size(42.dp)
                 .clip(CircleShape)
-                .background(Slate800),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 member.displayName.take(1).uppercase(),
-                color = Gold500,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -115,7 +115,7 @@ private fun MemberRow(member: ChurchMemberEntity, onClick: () -> Unit) {
                     if (member.status != MemberStatus.APPROVED) " · ${member.status.name}" else "",
                 style = MaterialTheme.typography.bodySmall,
                 color = when (member.status) {
-                    MemberStatus.PENDING -> Gold500
+                    MemberStatus.PENDING -> MaterialTheme.colorScheme.primary
                     MemberStatus.REJECTED, MemberStatus.REMOVED -> LiveRed
                     else -> TextSecondary
                 }
