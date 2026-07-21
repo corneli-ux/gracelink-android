@@ -31,8 +31,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gracelink.android.R
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Obsidian
 import kotlinx.coroutines.delay
 
 @Composable
@@ -57,7 +55,7 @@ fun SplashScreen(onComplete: () -> Unit) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Obsidian),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -76,7 +74,7 @@ fun SplashScreen(onComplete: () -> Unit) {
                         .fillMaxSize()
                         .background(
                             Brush.radialGradient(
-                                listOf(Gold400.copy(alpha = glowAlpha), Gold400.copy(alpha = 0f))
+                                listOf(MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha), MaterialTheme.colorScheme.primary.copy(alpha = 0f))
                             )
                         )
                 )

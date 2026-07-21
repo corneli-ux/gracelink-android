@@ -31,7 +31,7 @@ fun GroupsScreen(
 ) {
     val groups by vm.groups.collectAsStateWithLifecycle()
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
         Row(
             Modifier.fillMaxWidth().padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -63,7 +63,7 @@ fun GroupsScreen(
             LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)) {
                 items(groups, key = { it.id }) { group ->
                     GroupRow(group) { onOpenGroup(group.id) }
-                    HorizontalDivider(color = Slate700, thickness = 0.5.dp)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
                 }
             }
         }
@@ -82,7 +82,7 @@ private fun GroupRow(group: ChurchGroupEntity, onClick: () -> Unit) {
         Box(
             Modifier
                 .size(44.dp)
-                .background(Slate800, RoundedCornerShape(10.dp)),
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(Icons.Rounded.Group, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))

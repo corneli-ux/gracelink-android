@@ -39,10 +39,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gracelink.android.core.components.GoldButton
 import com.gracelink.android.core.components.GhostButton
-import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Obsidian
-import com.gracelink.android.core.theme.Slate800
-import com.gracelink.android.core.theme.Slate950
 
 private data class Page(val icon: ImageVector, val title: String, val body: String)
 
@@ -59,7 +55,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Obsidian, Slate950, Slate800)))
+            .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)))
     ) {
         Column(
             Modifier
@@ -93,10 +89,10 @@ fun OnboardingScreen(onDone: () -> Unit) {
                         Modifier
                             .size(112.dp)
                             .clip(CircleShape)
-                            .background(Brush.radialGradient(listOf(Gold500.copy(alpha = 0.4f), Color.Transparent))),
+                            .background(Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), Color.Transparent))),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(page.icon, null, tint = Gold500, modifier = Modifier.size(48.dp))
+                        Icon(page.icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
                     }
                     Spacer(Modifier.height(32.dp))
                     Text(
@@ -117,7 +113,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
 
             Row(Modifier.padding(vertical = 20.dp), horizontalArrangement = Arrangement.Center) {
                 repeat(pages.size) { i ->
-                    val color = if (i == pager.currentPage) Gold500 else Slate800
+                    val color = if (i == pager.currentPage) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
                     Box(
                         Modifier
                             .padding(horizontal = 4.dp)
@@ -132,7 +128,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
                 Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Slate800)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -154,7 +150,7 @@ private fun LangChip(label: String, code: String, modifier: Modifier, selected: 
     Box(
         modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) Brush.horizontalGradient(listOf(Gold500, Gold500)) else Brush.verticalGradient(listOf(Slate950, Slate950)))
+            .background(if (selected) Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)) else Brush.verticalGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface)))
             .padding(vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {

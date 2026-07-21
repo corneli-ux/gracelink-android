@@ -33,7 +33,7 @@ fun AnnouncementsScreen(
 ) {
     val announcements by vm.announcements.collectAsStateWithLifecycle()
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
         // Top bar
         Row(
             Modifier.fillMaxWidth().padding(8.dp),
@@ -81,7 +81,7 @@ private fun AnnouncementCard(item: AnnouncementEntity) {
     Column(
         Modifier
             .fillMaxWidth()
-            .background(Slate900, RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
