@@ -196,7 +196,7 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
                         if (granted) vm.startRecording()
                     }
                     GhostButton(
-                        "Record Now (noise suppression on)", icon = Icons.Rounded.Add,
+                        "Record Now", icon = Icons.Rounded.Add,
                         onClick = {
                             val granted = androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED
                             if (granted) vm.startRecording() else micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)

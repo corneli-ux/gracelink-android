@@ -2,9 +2,6 @@ package com.gracelink.android.player
 
 import android.content.Context
 import android.media.MediaRecorder
-import android.media.audiofx.AcousticEchoCanceler
-import android.media.audiofx.AutomaticGainControl
-import android.media.audiofx.NoiseSuppressor
 import android.os.Build
 import java.io.File
 
@@ -14,21 +11,25 @@ import java.io.File
  * create a fresh instance (or call stop() then start() again) rather than
  * reusing across unrelated recordings.
  *
- * Applies real Android platform audio effects (NoiseSuppressor,
- * AcousticEchoCanceler, AutomaticGainControl) where the device actually
- * supports them -- this is a genuine, if modest, noise-reduction step
- * during recording, not a marketing claim. It is NOT the same thing as
- * ML-based post-processing denoising (RNNoise-style), which would need
- * either a bundled ML model or an FFmpeg-class DSP pipeline -- a much
- * larger, separate undertaking that isn't pretended to be covered here.
+ * NOISE/ECHO/GAIN HANDLING, corrected after getting this wrong once: the
+ * android.media.audiofx effects (NoiseSuppressor, AcousticEchoCanceler,
+ * AutomaticGainControl) attach to an AudioRecord session id via
+ * AudioRecord.getAudioSessionId() -- MediaRecorder has no equivalent public
+ * method to get a session id to attach them to, so those effects genuinely
+ * cannot be wired onto a MediaRecorder-based recorder this way (an earlier
+ * version of this file tried to and didn't compile). The real, documented
+ * way to get this benefit while still using MediaRecorder is the audio
+ * SOURCE itself: VOICE_COMMUNICATION (rather than plain MIC) is specifically
+ * documented to "take advantage of echo cancellation or automatic gain
+ * control if available" on the device, routing through the same processing
+ * path phone calls use. It's not user-controllable per-effect and not
+ * every device applies it, but it's genuine platform-level processing
+ * during recording, not a fake toggle.
  */
 class VoiceRecorder(private val context: Context) {
 
     private var recorder: MediaRecorder? = null
     private var outputFile: File? = null
-    private var noiseSuppressor: NoiseSuppressor? = null
-    private var echoCanceler: AcousticEchoCanceler? = null
-    private var gainControl: AutomaticGainControl? = null
 
     /** Starts recording to a new temp file in the app's cache dir. Returns that file's path. */
     fun start(): String {
@@ -39,46 +40,17 @@ class VoiceRecorder(private val context: Context) {
         val mr = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(context) else MediaRecorder()
 
         mr.apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
             setAudioEncodingBitRate(96_000)
             setAudioSamplingRate(44_100)
             setOutputFile(file.absolutePath)
             prepare()
+            start()
         }
-        applyAudioEffects(mr.getAudioSessionId())
-        mr.start()
         recorder = mr
         return file.absolutePath
-    }
-
-    /** Enables whichever platform noise-reduction effects this specific
-     * device actually supports. Every one of these is optional and
-     * device-dependent -- absence of support is normal, not an error. */
-    private fun applyAudioEffects(audioSessionId: Int) {
-        try {
-            if (NoiseSuppressor.isAvailable()) {
-                noiseSuppressor = NoiseSuppressor.create(audioSessionId)?.apply { enabled = true }
-            }
-        } catch (_: Exception) { /* device doesn't support it -- fine, recording still works */ }
-        try {
-            if (AcousticEchoCanceler.isAvailable()) {
-                echoCanceler = AcousticEchoCanceler.create(audioSessionId)?.apply { enabled = true }
-            }
-        } catch (_: Exception) { }
-        try {
-            if (AutomaticGainControl.isAvailable()) {
-                gainControl = AutomaticGainControl.create(audioSessionId)?.apply { enabled = true }
-            }
-        } catch (_: Exception) { }
-    }
-
-    private fun releaseAudioEffects() {
-        try { noiseSuppressor?.release() } catch (_: Exception) { }
-        try { echoCanceler?.release() } catch (_: Exception) { }
-        try { gainControl?.release() } catch (_: Exception) { }
-        noiseSuppressor = null; echoCanceler = null; gainControl = null
     }
 
     /** Stops recording and releases the recorder. Returns the recorded file path, or null if nothing was recorded. */
@@ -95,7 +67,6 @@ class VoiceRecorder(private val context: Context) {
             return null
         } finally {
             recorder = null
-            releaseAudioEffects()
         }
         return path
     }
@@ -110,7 +81,6 @@ class VoiceRecorder(private val context: Context) {
         } catch (_: Exception) {
         } finally {
             recorder = null
-            releaseAudioEffects()
             outputFile?.delete()
             outputFile = null
         }

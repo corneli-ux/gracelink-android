@@ -118,9 +118,10 @@ class PodcastCreateViewModel @Inject constructor(
     }
 
     /** Record an episode directly in-app instead of picking an existing
-     * file -- benefits from VoiceRecorder's built-in platform noise
-     * suppression (NoiseSuppressor/AcousticEchoCanceler/AutomaticGainControl,
-     * on devices that support them) during the recording itself. */
+     * file -- uses VOICE_COMMUNICATION as the recording source, which
+     * routes through the device's built-in echo/noise/gain processing
+     * on devices that support it (see VoiceRecorder for why this is the
+     * source setting rather than attaching audiofx effects directly). */
     fun startRecording() {
         if (isRecording.value) return
         try {
