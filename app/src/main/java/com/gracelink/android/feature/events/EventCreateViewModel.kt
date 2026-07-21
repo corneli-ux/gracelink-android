@@ -18,12 +18,15 @@ import javax.inject.Inject
 class EventCreateViewModel @Inject constructor(
     private val eventDao: ChurchEventDao,
     private val churchDao: ChurchDao,
-    userRepo: UserRepository,
+    private val userRepo: UserRepository,
 ) : ViewModel() {
 
     val me: StateFlow<UserEntity?> = userRepo.current()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    /** Resolves the user directly via a one-shot suspend query rather than
+     * trusting me.value, which could still be null if tapped before this
+     * screen's first real state emission arrives. */
     fun createEvent(
         title: String,
         description: String,
@@ -35,7 +38,7 @@ class EventCreateViewModel @Inject constructor(
         category: String,
         onDone: () -> Unit,
     ) = viewModelScope.launch {
-        val user = me.value ?: return@launch
+        val user = userRepo.currentOnce() ?: return@launch
         // Churches get a real church record as the host; individual pastors
         // host under their own profile id/name (no church backing needed).
         val church = churchDao.byOwnerOnce(user.uid)

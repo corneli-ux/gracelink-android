@@ -19,40 +19,40 @@ class AnnouncementsViewModel @Inject constructor(
     private val userDao: UserDao,
 ) : ViewModel() {
 
-    // Cached so create() doesn't need to re-resolve the church separately.
-    private val currentChurchId = MutableStateFlow<String?>(null)
-    private val currentAuthor = MutableStateFlow<Pair<String, String>?>(null) // uid to name
-
     @OptIn(ExperimentalCoroutinesApi::class)
     val announcements = userDao.current()
         .flatMapLatest { user ->
             val uid = user?.uid
-            currentAuthor.value = if (user != null) user.uid to user.displayName else null
             if (uid == null) {
-                currentChurchId.value = null
                 flowOf(emptyList())
             } else {
                 churchDao.byOwner(uid).flatMapLatest { church ->
-                    currentChurchId.value = church?.id
                     if (church == null) flowOf(emptyList()) else repo.announcements(church.id)
                 }
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun create(title: String, body: String, priority: AnnouncementPriority, onDone: () -> Unit) {
-        val churchId = currentChurchId.value ?: return
-        val author = currentAuthor.value ?: return
-        viewModelScope.launch {
-            repo.createAnnouncement(
-                churchId = churchId,
-                authorId = author.first,
-                authorName = author.second,
-                title = title,
-                body = body,
-                priority = priority,
-            )
-            onDone()
-        }
+    /**
+     * Resolves the church/author directly via a one-shot suspend query
+     * rather than reading a cached value from [announcements]'s collection
+     * side effects. That StateFlow only updates once something actually
+     * collects it (WhileSubscribed) -- on a create-only screen that never
+     * displays the list, nothing ever does, so the cached values stayed
+     * null forever and create() silently no-op'd, leaving the "Publish"
+     * button spinning forever since its onDone callback never fired.
+     */
+    fun create(title: String, body: String, priority: AnnouncementPriority, onDone: () -> Unit) = viewModelScope.launch {
+        val user = userDao.currentOnce() ?: return@launch
+        val church = churchDao.byOwnerOnce(user.uid) ?: return@launch
+        repo.createAnnouncement(
+            churchId = church.id,
+            authorId = user.uid,
+            authorName = user.displayName,
+            title = title,
+            body = body,
+            priority = priority,
+        )
+        onDone()
     }
 }

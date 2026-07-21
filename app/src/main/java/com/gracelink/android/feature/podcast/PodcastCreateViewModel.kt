@@ -30,7 +30,7 @@ data class PodcastCreateState(
 class PodcastCreateViewModel @Inject constructor(
     private val repo: PodcastRepository,
     private val mediaUpload: MediaUploadRepository,
-    userRepo: UserRepository,
+    private val userRepo: UserRepository,
 ) : ViewModel() {
 
     private val isUploading = MutableStateFlow(false)
@@ -49,9 +49,17 @@ class PodcastCreateViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PodcastCreateState())
 
+    /**
+     * Resolves the author via a direct one-shot suspend query rather than
+     * trusting state.value, which could still be the default (blank uid)
+     * if this is tapped before the screen's first real state emission --
+     * this screen does collect state, unlike Announcements/Groups/Forum's
+     * create screens, but a fast tap right as the screen opens could still
+     * race the async user/church resolution and silently no-op.
+     */
     fun createSeries(title: String, description: String, category: String, coverUri: Uri?, onDone: (String) -> Unit) = viewModelScope.launch {
-        val s = state.value
-        if (s.myUid.isBlank() || title.isBlank()) return@launch
+        val user = userRepo.currentOnce() ?: return@launch
+        if (title.isBlank()) return@launch
         isUploading.value = coverUri != null
         uploadError.value = null
         try {
@@ -59,9 +67,9 @@ class PodcastCreateViewModel @Inject constructor(
                 mediaUpload.uploadContentUri(uri, "podcasts/covers/${System.currentTimeMillis()}_${title.take(20).replace(" ", "_")}")
             }
             val id = repo.createSeries(
-                authorId = s.myUid,
-                authorName = s.myName,
-                authorType = s.myAccountType,
+                authorId = user.uid,
+                authorName = user.displayName,
+                authorType = user.accountType,
                 churchId = null,
                 title = title,
                 description = description,

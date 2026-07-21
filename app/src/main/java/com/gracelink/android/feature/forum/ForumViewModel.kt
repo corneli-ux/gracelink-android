@@ -23,7 +23,7 @@ data class ForumState(
 @HiltViewModel
 class ForumViewModel @Inject constructor(
     private val repo: ForumRepository,
-    userRepo: UserRepository,
+    private val userRepo: UserRepository,
 ) : ViewModel() {
 
     val state: StateFlow<ForumState> = combine(repo.allQuestions(), userRepo.current()) { questions, user ->
@@ -35,10 +35,13 @@ class ForumViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ForumState())
 
+    /** Resolves the asker directly via a one-shot suspend query rather than
+     * reading state.value, which stays at its default (blank uid) forever
+     * on a create-only screen that never collects [state]. */
     fun askQuestion(title: String, body: String, onDone: (String) -> Unit) = viewModelScope.launch {
-        val s = state.value
-        if (s.myUid.isBlank() || title.isBlank()) return@launch
-        val id = repo.askQuestion(s.myUid, s.myName, title, body)
+        val user = userRepo.currentOnce() ?: return@launch
+        if (title.isBlank()) return@launch
+        val id = repo.askQuestion(user.uid, user.displayName, title, body)
         onDone(id)
     }
 }
