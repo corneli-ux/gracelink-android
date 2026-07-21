@@ -28,7 +28,7 @@ fun CreateAnnouncementScreen(
     var priority by remember { mutableStateOf(AnnouncementPriority.NORMAL) }
     var isLoading by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
         Row(
             Modifier.fillMaxWidth().padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -76,8 +76,8 @@ fun CreateAnnouncementScreen(
                         onClick = { priority = p },
                         label = { Text(p.name) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Gold500.copy(alpha = 0.2f),
-                            selectedLabelColor = Gold500
+                            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            selectedLabelColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -94,13 +94,13 @@ fun CreateAnnouncementScreen(
                 },
                 enabled = !isLoading && title.isNotBlank() && body.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Gold500),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(Modifier.size(22.dp), color = Obsidian, strokeWidth = 2.dp)
+                    CircularProgressIndicator(Modifier.size(22.dp), color = MaterialTheme.colorScheme.background, strokeWidth = 2.dp)
                 } else {
-                    Text("Publish", color = Obsidian, fontWeight = FontWeight.SemiBold)
+                    Text("Publish", color = MaterialTheme.colorScheme.background, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -109,11 +109,11 @@ fun CreateAnnouncementScreen(
 
 @Composable
 private fun textFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Gold500,
-    unfocusedBorderColor = Slate700,
-    focusedLabelColor = Gold500,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
     unfocusedLabelColor = TextSecondary,
-    cursorColor = Gold500,
+    cursorColor = MaterialTheme.colorScheme.primary,
     focusedTextColor = TextPrimary,
     unfocusedTextColor = TextPrimary
 )
