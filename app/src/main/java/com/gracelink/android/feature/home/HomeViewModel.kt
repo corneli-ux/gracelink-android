@@ -12,7 +12,9 @@ import com.gracelink.android.data.repository.ChurchActivityItem
 import com.gracelink.android.data.repository.ChurchActivityRepository
 import com.gracelink.android.data.repository.ContentRepository
 import com.gracelink.android.data.repository.LiveSessionRepository
+import com.gracelink.android.data.repository.LiveSpaceRepository
 import com.gracelink.android.data.repository.UserRepository
+import com.gracelink.android.feature.audioconnect.AudioSpace
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,6 +31,7 @@ data class HomeState(
     val userName: String = "",
     val liveRadio: List<ContentEntity> = emptyList(),
     val liveSession: LiveSessionEntity? = null,
+    val liveSpace: AudioSpace? = null,
     val continueListening: List<ContentEntity> = emptyList(),
     val recommended: List<ContentEntity> = emptyList(),
     val churchName: String? = null,
@@ -39,6 +42,7 @@ private data class HomeBase(
     val liveRadio: List<ContentEntity>,
     val library: List<ContentEntity>,
     val liveSession: LiveSessionEntity?,
+    val liveSpace: AudioSpace?,
     val userName: String,
 )
 
@@ -46,6 +50,7 @@ private data class HomeBase(
 class HomeViewModel @Inject constructor(
     private val contentRepo: ContentRepository,
     private val liveRepo: LiveSessionRepository,
+    private val liveSpaceRepo: LiveSpaceRepository,
     private val memberDao: ChurchMemberDao,
     private val churchDao: ChurchDao,
     private val activityRepo: ChurchActivityRepository,
@@ -56,9 +61,10 @@ class HomeViewModel @Inject constructor(
         contentRepo.liveRadio(),
         contentRepo.library(),
         liveRepo.byStatus(LiveSessionStatus.LIVE),
+        liveSpaceRepo.activeSpaces(),
         userRepo.current(),
-    ) { liveRadio, library, liveSessions, user ->
-        HomeBase(liveRadio, library, liveSessions.firstOrNull(), user?.displayName ?: "")
+    ) { liveRadio, library, liveSessions, liveSpaces, user ->
+        HomeBase(liveRadio, library, liveSessions.firstOrNull(), liveSpaces.firstOrNull(), user?.displayName ?: "")
     }
 
     /** A member's home should surface what their own church has posted --
@@ -85,6 +91,7 @@ class HomeViewModel @Inject constructor(
             userName = base.userName,
             liveRadio = base.liveRadio,
             liveSession = base.liveSession,
+            liveSpace = base.liveSpace,
             continueListening = base.library.take(3),
             recommended = base.library.shuffled().take(6),
             churchName = churchInfo.second,

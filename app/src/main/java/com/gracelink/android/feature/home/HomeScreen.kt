@@ -63,6 +63,7 @@ fun HomeScreen(
     onPlayContent: (String) -> Unit,
     onOpenLiveSession: (String) -> Unit,
     onOpenForum: () -> Unit,
+    onJoinLiveSpace: () -> Unit,
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -100,6 +101,32 @@ fun HomeScreen(
                     Text("\u2014 ${verse.reference}", style = MaterialTheme.typography.labelMedium, color = TextMuted)
                 }
                 Spacer(Modifier.height(16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
+            }
+        }
+
+        // -- Live Audio Space -- X-Spaces-style banner: if anyone is
+        // hosting a live space right now, surface it prominently so
+        // people actually discover and join it, independent of whether
+        // radio happens to be live too.
+        if (state.liveSpace != null) {
+            item {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable { onJoinLiveSpace() }
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(8.dp).clip(CircleShape).background(LiveRed))
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("LIVE AUDIO SPACE", style = MaterialTheme.typography.labelSmall, color = LiveRed, fontWeight = FontWeight.Bold)
+                        Text(state.liveSpace.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Hosted by ${state.liveSpace.hostName} \u00b7 ${state.liveSpace.participantCount} listening", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                    }
+                    Text("Join", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
             }
         }

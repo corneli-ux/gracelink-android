@@ -231,6 +231,7 @@ fun GraceNavHost() {
                         onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) },
                         onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) },
                         onOpenForum = { navController.navigate(GraceRoute.Forum) },
+                        onJoinLiveSpace = { navController.navigate(GraceRoute.LiveSpaces) },
                     )
                 }
 
