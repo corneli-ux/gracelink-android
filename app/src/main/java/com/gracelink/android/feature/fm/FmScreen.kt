@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,18 +38,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.components.LiveBadge
-import com.gracelink.android.core.theme.Emerald500
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Slate800
-import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.data.db.entity.ContentCategory
 import com.gracelink.android.data.db.entity.FmScheduleEntity
 
@@ -89,7 +84,7 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
         LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")) { day ->
                 val selected = day == state.selectedDay
-                Box(Modifier.clip(RoundedCornerShape(12.dp)).background(if (selected) Gold500 else Slate800).clickable { vm.selectDay(day) }.padding(horizontal = 16.dp, vertical = 10.dp)) {
+                Box(Modifier.clip(RoundedCornerShape(12.dp)).background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant).clickable { vm.selectDay(day) }.padding(horizontal = 16.dp, vertical = 10.dp)) {
                     Text(day, style = MaterialTheme.typography.labelLarge, color = if (selected) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface)
                 }
             }
@@ -98,7 +93,7 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
         Spacer(Modifier.height(16.dp))
 
         // Schedule list
-        LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)) {
             val daySchedule = state.schedule.filter { it.day == state.selectedDay }
             val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
             val today = FmViewModel.today()
@@ -112,6 +107,7 @@ fun FmScreen(vm: FmViewModel = hiltViewModel()) {
             items(daySchedule, key = { it.id }) { slot ->
                 val isNow = slot.startHour <= currentHour && currentHour < (slot.startHour + 2) && state.selectedDay == today
                 ScheduleCard(slot, isNow)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
         }
     }
@@ -129,7 +125,7 @@ private fun LivePlayerHero(slot: FmScheduleEntity, isPlaying: Boolean, isLoading
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(24.dp))
-            .background(Brush.linearGradient(listOf(Gold500.copy(alpha = 0.28f), Slate900)))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(20.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -137,7 +133,7 @@ private fun LivePlayerHero(slot: FmScheduleEntity, isPlaying: Boolean, isLoading
                 Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(Gold500)
+                    .background(MaterialTheme.colorScheme.primary)
                     .clickable(onClick = onToggle),
                 contentAlignment = Alignment.Center
             ) {
@@ -154,7 +150,7 @@ private fun LivePlayerHero(slot: FmScheduleEntity, isPlaying: Boolean, isLoading
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = Gold500, fontWeight = FontWeight.Bold)
+                    Text("NOW PLAYING", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     if (isPlaying) {
                         Spacer(Modifier.width(8.dp))
                         EqualizerBars(bar1, bar2, bar3)
@@ -178,7 +174,7 @@ private fun EqualizerBars(a: Float, b: Float, c: Float) {
                     .width(3.dp)
                     .height((h * 10).dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(Gold500)
+                    .background(MaterialTheme.colorScheme.primary)
             )
         }
     }
@@ -186,31 +182,28 @@ private fun EqualizerBars(a: Float, b: Float, c: Float) {
 
 @Composable
 private fun ScheduleCard(slot: FmScheduleEntity, isNow: Boolean) {
-    val bg = if (isNow) Brush.horizontalGradient(listOf(Gold400.copy(alpha = 0.2f), Slate800)) else Brush.verticalGradient(listOf(Slate800, Slate800))
-    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(bg).padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.width(70.dp)) {
-                Icon(Icons.Rounded.Schedule, null, tint = if (isNow) Gold400 else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.height(4.dp))
-                Text(if (slot.timeSlot.length >= 5) slot.timeSlot.substring(0, 5) else slot.timeSlot, style = MaterialTheme.typography.labelLarge, color = if (isNow) Gold400 else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
-                Text(if (slot.timeSlot.length >= 13) slot.timeSlot.substring(8, 13) else "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Column(Modifier.weight(1f)) {
-                Text(
-                    slot.preacher.ifBlank { "Open \u2014 book this slot" },
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = if (slot.preacher.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(slot.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
-                Spacer(Modifier.height(6.dp))
-                CategoryChip(slot.category)
-            }
-            if (isNow) {
-                Box(Modifier.clip(CircleShape).background(Gold400).padding(horizontal = 10.dp, vertical = 5.dp)) {
-                    Text("NOW", style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
-                }
+    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.width(70.dp)) {
+            Icon(Icons.Rounded.Schedule, null, tint = if (isNow) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.height(4.dp))
+            Text(if (slot.timeSlot.length >= 5) slot.timeSlot.substring(0, 5) else slot.timeSlot, style = MaterialTheme.typography.labelLarge, color = if (isNow) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
+            Text(if (slot.timeSlot.length >= 13) slot.timeSlot.substring(8, 13) else "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Column(Modifier.weight(1f)) {
+            Text(
+                slot.preacher.ifBlank { "Open \u2014 book this slot" },
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = if (slot.preacher.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(slot.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2)
+            Spacer(Modifier.height(6.dp))
+            CategoryChip(slot.category)
+        }
+        if (isNow) {
+            Box(Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primary).padding(horizontal = 10.dp, vertical = 5.dp)) {
+                Text("NOW", style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -219,8 +212,8 @@ private fun ScheduleCard(slot: FmScheduleEntity, isNow: Boolean) {
 @Composable
 private fun CategoryChip(category: ContentCategory) {
     val color = when (category) {
-        ContentCategory.WORSHIP -> Gold400
-        ContentCategory.TEACHING -> Emerald500
+        ContentCategory.WORSHIP -> MaterialTheme.colorScheme.primary
+        ContentCategory.TEACHING -> MaterialTheme.colorScheme.secondary
         ContentCategory.REGIONAL -> Color(0xFF5AB8E0)
         ContentCategory.DEBATES -> Color(0xFFB89CD9)
         ContentCategory.TESTIMONY -> Color(0xFFF43F5E)
