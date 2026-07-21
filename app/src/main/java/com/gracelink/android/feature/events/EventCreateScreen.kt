@@ -41,9 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.components.GoldButton
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Obsidian
-import com.gracelink.android.core.theme.Slate800
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -65,7 +62,7 @@ fun EventCreateScreen(onBack: () -> Unit, onCreated: () -> Unit, vm: EventCreate
     var meetingLink by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
         Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface) }
             Text("Create Event", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
@@ -82,7 +79,7 @@ fun EventCreateScreen(onBack: () -> Unit, onCreated: () -> Unit, vm: EventCreate
             Field("Description", description) { description = it }
             Spacer(Modifier.height(16.dp))
 
-            Text("Category", style = MaterialTheme.typography.titleSmall, color = Gold400, fontWeight = FontWeight.SemiBold)
+            Text("Category", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(CATEGORIES) { c ->
@@ -91,7 +88,7 @@ fun EventCreateScreen(onBack: () -> Unit, onCreated: () -> Unit, vm: EventCreate
             }
 
             Spacer(Modifier.height(16.dp))
-            Text("When", style = MaterialTheme.typography.titleSmall, color = Gold400, fontWeight = FontWeight.SemiBold)
+            Text("When", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(DAY_OFFSETS) { d ->
@@ -109,7 +106,7 @@ fun EventCreateScreen(onBack: () -> Unit, onCreated: () -> Unit, vm: EventCreate
             Spacer(Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Online event", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-                Switch(checked = isOnline, onCheckedChange = { isOnline = it }, colors = SwitchDefaults.colors(checkedThumbColor = Gold400, checkedTrackColor = Gold400.copy(alpha = 0.4f)))
+                Switch(checked = isOnline, onCheckedChange = { isOnline = it }, colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary, checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)))
             }
             Spacer(Modifier.height(10.dp))
             if (isOnline) {
@@ -150,7 +147,7 @@ fun EventCreateScreen(onBack: () -> Unit, onCreated: () -> Unit, vm: EventCreate
 
 @Composable
 private fun Chip(label: String, selected: Boolean, onClick: () -> Unit) {
-    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(if (selected) Gold400 else Slate800).clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 8.dp)) {
+    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 8.dp)) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = if (selected) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -160,7 +157,7 @@ private fun Field(label: String, value: String, onChange: (String) -> Unit) {
     OutlinedTextField(
         value = value, onValueChange = onChange, modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(label) },
-        colors = TextFieldDefaults.colors(focusedContainerColor = Slate800, unfocusedContainerColor = Slate800, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400),
+        colors = TextFieldDefaults.colors(focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary),
         shape = RoundedCornerShape(12.dp),
     )
 }
