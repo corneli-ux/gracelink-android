@@ -117,17 +117,6 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
-    // Hilt's own annotation processor transitively pulls in an older
-    // kotlin-metadata-jvm that only understands metadata format up to
-    // 2.2.0. This project's Kotlin compiler (2.3.10) produces 2.3.0
-    // metadata, which the older version can't read: "Provided Metadata
-    // instance has version 2.3.0, while maximum supported version is
-    // 2.2.0." Forcing a version that matches the Kotlin version in use.
-    implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.10")
-    // hiltJavaCompileDebug is a javac-based task with its own separate
-    // annotation processor classpath -- the implementation dependency
-    // above doesn't reach it. Forcing the same version there too.
-    annotationProcessor("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.10")
 
     // Media3 ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
@@ -181,4 +170,19 @@ dependencies {
 
     // Desugaring for java.time on older API levels
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
+}
+
+// Dagger/Hilt 2.57 (bumped above) unshades its internal kotlin-metadata-jvm
+// dependency, which is what makes this override actually effective -- on
+// the previous Hilt version (2.56) this same library was shaded/relocated
+// inside Dagger's own jar (dagger.spi.internal.shaded....jarjarred...),
+// so no external dependency configuration could reach it at all, no
+// matter which one it was added to. Forces the version that understands
+// this project's Kotlin 2.3.10 compiler's 2.3.0 metadata format, fixing
+// "Provided Metadata instance has version 2.3.0, while maximum supported
+// version is 2.2.0" during hiltJavaCompileDebug.
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.10")
+    }
 }
