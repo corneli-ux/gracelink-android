@@ -60,10 +60,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.gracelink.android.core.components.GoldButton
 import com.gracelink.android.core.components.LiveBadge
-import com.gracelink.android.core.theme.Emerald500
-import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Slate800
-import com.gracelink.android.core.theme.Slate900
 
 @Composable
 fun PlayerScreen(
@@ -88,7 +84,7 @@ fun PlayerScreen(
         Column(Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState()).statusBarsPadding().padding(bottom = 32.dp)) {
             // Top bar
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Slate800).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface)
                 }
                 Spacer(Modifier.weight(1f))
@@ -97,11 +93,11 @@ fun PlayerScreen(
             Spacer(Modifier.height(12.dp))
 
             // Album art
-            Box(Modifier.fillMaxWidth().padding(horizontal = 32.dp).height(320.dp).clip(RoundedCornerShape(24.dp)).background(Slate800)) {
+            Box(Modifier.fillMaxWidth().padding(horizontal = 32.dp).height(320.dp).clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surfaceVariant)) {
                 AsyncImage(model = content?.thumbnailUrl, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
                 Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.45f)))))
                 if (state.player.isLoading) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold500) }
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
                 }
             }
             Spacer(Modifier.height(24.dp))
@@ -120,7 +116,7 @@ fun PlayerScreen(
                     value = state.player.currentPositionMs.toFloat(),
                     onValueChange = { vm.seekTo(it.toLong()) },
                     valueRange = 0f..state.player.durationMs.coerceAtLeast(1L).toFloat(),
-                    colors = SliderDefaults.colors(thumbColor = Gold500, activeTrackColor = Gold500, inactiveTrackColor = Slate800)
+                    colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.primary, activeTrackColor = MaterialTheme.colorScheme.primary, inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant)
                 )
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(fmtTime(state.player.currentPositionMs), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -134,20 +130,20 @@ fun PlayerScreen(
                 Icon(Icons.Rounded.Speed, "Speed", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).clickable { showSpeed = true }.padding(6.dp))
                 Icon(Icons.Rounded.Replay10, "Back 10s", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(44.dp).clickable { vm.seekTo((state.player.currentPositionMs - 10_000).coerceAtLeast(0)) }.padding(6.dp))
                 Box(
-                    Modifier.size(72.dp).clip(RoundedCornerShape(22.dp)).background(Brush.horizontalGradient(listOf(Gold500, Gold500.copy(alpha = 0.85f)))).clickable { vm.togglePlayPause() },
+                    Modifier.size(72.dp).clip(RoundedCornerShape(22.dp)).background(MaterialTheme.colorScheme.primary).clickable { vm.togglePlayPause() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(if (state.player.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow, "Play/Pause", tint = Color(0xFF1A0F00), modifier = Modifier.size(36.dp))
                 }
                 Icon(Icons.Rounded.Forward30, "Forward 30s", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(44.dp).clickable { vm.seekTo((state.player.currentPositionMs + 30_000).coerceAtMost(state.player.durationMs)) }.padding(6.dp))
-                Icon(Icons.Rounded.Bedtime, "Sleep", tint = if (state.sleepTimer != null) Gold500 else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).clickable { showSleep = true }.padding(6.dp))
+                Icon(Icons.Rounded.Bedtime, "Sleep", tint = if (state.sleepTimer != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).clickable { showSleep = true }.padding(6.dp))
             }
             Spacer(Modifier.height(20.dp))
 
             // Secondary
             Row(Modifier.fillMaxWidth().padding(horizontal = 28.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Secondary(if (state.isFavorite) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder, "Favorite", if (state.isFavorite) Gold500 else MaterialTheme.colorScheme.onSurfaceVariant) { vm.toggleFavorite() }
-                Secondary(Icons.Rounded.Download, if (state.isDownloaded) "Downloaded" else "Download", if (state.isDownloaded) Emerald500 else MaterialTheme.colorScheme.onSurfaceVariant) { vm.download() }
+                Secondary(if (state.isFavorite) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder, "Favorite", if (state.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) { vm.toggleFavorite() }
+                Secondary(Icons.Rounded.Download, if (state.isDownloaded) "Downloaded" else "Download", if (state.isDownloaded) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant) { vm.download() }
             }
 
             Spacer(Modifier.weight(1f))
@@ -176,13 +172,13 @@ private fun Secondary(icon: ImageVector, label: String, tint: Color, onClick: ()
 @Composable
 private fun SpeedSheet(current: Float, onPick: (Float) -> Unit, onDismiss: () -> Unit) {
     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)).clickable(onClick = onDismiss)) {
-        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(Slate900).padding(24.dp).clickable(enabled = false) {}) {
+        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(MaterialTheme.colorScheme.background).padding(24.dp).clickable(enabled = false) {}) {
             Column {
                 Text("Playback Speed", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(16.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f).forEach { s ->
-                        Box(Modifier.clip(RoundedCornerShape(10.dp)).background(if (s == current) Gold500 else Slate800).clickable { onPick(s) }.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        Box(Modifier.clip(RoundedCornerShape(10.dp)).background(if (s == current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant).clickable { onPick(s) }.padding(horizontal = 12.dp, vertical = 10.dp)) {
                             Text("${s}x", color = if (s == current) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface)
                         }
                     }
@@ -195,19 +191,19 @@ private fun SpeedSheet(current: Float, onPick: (Float) -> Unit, onDismiss: () ->
 @Composable
 private fun SleepSheet(current: Int?, onPick: (Int?) -> Unit, onDismiss: () -> Unit) {
     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)).clickable(onClick = onDismiss)) {
-        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(Slate900).padding(24.dp).clickable(enabled = false) {}) {
+        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(MaterialTheme.colorScheme.background).padding(24.dp).clickable(enabled = false) {}) {
             Column {
                 Text("Sleep Timer", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(16.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     listOf(5, 10, 15, 30, 45, 60).forEach { m ->
-                        Box(Modifier.clip(RoundedCornerShape(10.dp)).background(if (m == current) Gold500 else Slate800).clickable { onPick(m) }.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                        Box(Modifier.clip(RoundedCornerShape(10.dp)).background(if (m == current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant).clickable { onPick(m) }.padding(horizontal = 12.dp, vertical = 10.dp)) {
                             Text("${m}m", color = if (m == current) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
                 Spacer(Modifier.height(12.dp))
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Slate800).clickable { onPick(null) }.padding(vertical = 10.dp), contentAlignment = Alignment.Center) { Text("Off", color = MaterialTheme.colorScheme.onSurface) }
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable { onPick(null) }.padding(vertical = 10.dp), contentAlignment = Alignment.Center) { Text("Off", color = MaterialTheme.colorScheme.onSurface) }
             }
         }
     }
