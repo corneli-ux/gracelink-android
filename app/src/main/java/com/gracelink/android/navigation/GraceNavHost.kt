@@ -275,6 +275,7 @@ fun GraceNavHost() {
                         onNavigateToFaith = { navController.navigate(GraceRoute.Faith) },
                         onNavigateToArticles = { navController.navigate(GraceRoute.Articles) },
                         onNavigateToChurches = { navController.navigate(GraceRoute.Churches) },
+                        onNavigateToPastors = { navController.navigate(GraceRoute.Pastors) },
                         onNavigateToChurchPortal = { navController.navigate(GraceRoute.ChurchPortal) },
                         onNavigateToPastorPortal = { navController.navigate(GraceRoute.PastorPortal) },
                         onSetupProfile = { navController.navigate(GraceRoute.Registration) },
@@ -307,6 +308,22 @@ fun GraceNavHost() {
                         churchId = route.churchId,
                         onBack = { navController.popBackStack() },
                         onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
+                    )
+                }
+
+                composable<GraceRoute.Pastors> {
+                    com.gracelink.android.feature.pastors.PastorsScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenPastor = { uid -> navController.navigate(GraceRoute.PastorProfile(uid)) },
+                    )
+                }
+
+                composable<GraceRoute.PastorProfile> { entry ->
+                    val route = entry.toRoute<GraceRoute.PastorProfile>()
+                    com.gracelink.android.feature.pastors.PastorProfileScreen(
+                        pastorUid = route.pastorUid,
+                        onBack = { navController.popBackStack() },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
                     )
                 }
 

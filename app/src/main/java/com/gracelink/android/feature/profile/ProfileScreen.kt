@@ -14,6 +14,7 @@ import androidx.compose.material.icons.rounded.Article
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.Church
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Language
@@ -51,6 +52,7 @@ fun ProfileScreen(
     onNavigateToFaith: () -> Unit = {},
     onNavigateToArticles: () -> Unit = {},
     onNavigateToChurches: () -> Unit = {},
+    onNavigateToPastors: () -> Unit = {},
     onNavigateToChurchPortal: () -> Unit = {},
     onNavigateToPastorPortal: () -> Unit = {},
     onSetupProfile: () -> Unit = {},
@@ -171,6 +173,8 @@ fun ProfileScreen(
                 Clickable(Icons.Rounded.Article, "My Articles", "Write and manage your articles", onNavigateToArticles)
                 Divider()
                 Clickable(Icons.Rounded.Church, "Find Churches", "Join a church & become a member", onNavigateToChurches)
+                Divider()
+                Clickable(Icons.Rounded.Person, "Find Pastors", "Follow individual pastors", onNavigateToPastors)
                 if (user?.accountType == AccountType.CHURCH) {
                     Divider()
                     Clickable(Icons.Rounded.Church, "Church Portal", "Manage members, events & articles", onNavigateToChurchPortal)

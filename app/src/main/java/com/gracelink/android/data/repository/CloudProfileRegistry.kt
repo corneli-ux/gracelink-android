@@ -3,6 +3,9 @@ package com.gracelink.android.data.repository
 import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.BeliefSystem
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,6 +23,13 @@ data class CloudProfileEntry(
     val churchPhone: String?,
 )
 
+data class PastorProfile(
+    val uid: String,
+    val displayName: String,
+    val beliefSystem: BeliefSystem,
+    val bio: String?,
+)
+
 /**
  * A small Firestore-backed registry mapping a Firebase UID to enough of
  * their profile (and, for churches, their church record) to fully
@@ -33,12 +43,18 @@ data class CloudProfileEntry(
  * "enough to route correctly and not look broken" (identity + the church
  * record's own fields), not a full offline sync of articles/podcasts/
  * members -- that's a bigger project of its own.
+ *
+ * Also doubles as the only cross-user directory in the app: Room's
+ * UserDao only ever holds the CURRENT device's signed-in user, so finding
+ * OTHER users (e.g. browsing individual pastors to follow) has to go
+ * through this Firestore collection instead.
  */
 @Singleton
 class CloudProfileRegistry @Inject constructor(
     private val firestore: FirebaseFirestore,
 ) {
-    private fun docFor(uid: String) = firestore.collection("users_registry").document(uid)
+    private val collection = firestore.collection("users_registry")
+    private fun docFor(uid: String) = collection.document(uid)
 
     suspend fun writePersonal(uid: String, displayName: String, beliefSystem: BeliefSystem) {
         writeSafely(
@@ -51,12 +67,13 @@ class CloudProfileRegistry @Inject constructor(
         )
     }
 
-    suspend fun writePastor(uid: String, displayName: String, beliefSystem: BeliefSystem) {
+    suspend fun writePastor(uid: String, displayName: String, beliefSystem: BeliefSystem, bio: String? = null) {
         writeSafely(
             uid, mapOf(
                 "accountType" to AccountType.PASTOR.name,
                 "displayName" to displayName,
                 "beliefSystem" to beliefSystem.name,
+                "bio" to (bio ?: ""),
                 "updatedAt" to System.currentTimeMillis(),
             )
         )
@@ -117,5 +134,31 @@ class CloudProfileRegistry @Inject constructor(
         } catch (_: Exception) {
             null
         }
+    }
+
+    /** Every individual pastor account, for the pastor discovery screen --
+     * the only place in the app that needs to browse users across devices. */
+    fun allPastors(): Flow<List<PastorProfile>> = callbackFlow {
+        val registration = collection
+            .whereEqualTo("accountType", AccountType.PASTOR.name)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                val pastors = snapshot?.documents?.mapNotNull { doc ->
+                    val name = doc.getString("displayName") ?: return@mapNotNull null
+                    val belief = doc.getString("beliefSystem")?.let { runCatching { BeliefSystem.valueOf(it) }.getOrNull() } ?: BeliefSystem.NONDENOMINATIONAL
+                    PastorProfile(uid = doc.id, displayName = name, beliefSystem = belief, bio = doc.getString("bio")?.ifBlank { null })
+                } ?: emptyList()
+                trySend(pastors)
+            }
+        awaitClose { registration.remove() }
+    }
+
+    suspend fun getPastor(uid: String): PastorProfile? {
+        val entry = read(uid) ?: return null
+        if (entry.accountType != AccountType.PASTOR) return null
+        return PastorProfile(uid = uid, displayName = entry.displayName, beliefSystem = entry.beliefSystem, bio = entry.bio?.ifBlank { null })
     }
 }
