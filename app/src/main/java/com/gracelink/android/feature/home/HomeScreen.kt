@@ -44,10 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.core.theme.LiveRed
-import com.gracelink.android.core.theme.Obsidian
-import com.gracelink.android.core.theme.Slate700
 import com.gracelink.android.core.theme.TextMuted
 import com.gracelink.android.core.theme.TextPrimary
 import com.gracelink.android.core.theme.TextSecondary
@@ -74,7 +71,7 @@ fun HomeScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Obsidian)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding(),
         contentPadding = PaddingValues(bottom = 40.dp),
     ) {
@@ -96,14 +93,14 @@ fun HomeScreen(
             val verse = remember { com.gracelink.android.core.BibleVerseProvider.verseOfTheDay(context) }
             if (verse != null) {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 4.dp)) {
-                    Text("VERSE OF THE DAY", style = MaterialTheme.typography.labelSmall, color = Gold500, letterSpacing = 1.sp)
+                    Text("VERSE OF THE DAY", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp)
                     Spacer(Modifier.height(6.dp))
                     Text("\u201c${verse.text}\u201d", style = MaterialTheme.typography.bodyLarge.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic), color = TextPrimary)
                     Spacer(Modifier.height(4.dp))
                     Text("\u2014 ${verse.reference}", style = MaterialTheme.typography.labelMedium, color = TextMuted)
                 }
                 Spacer(Modifier.height(16.dp))
-                HorizontalDivider(color = Slate700, thickness = 0.75.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
             }
         }
 
@@ -127,14 +124,14 @@ fun HomeScreen(
                         Text(
                             "Join",
                             style = MaterialTheme.typography.labelLarge,
-                            color = Gold500,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.clickable { state.liveSession?.let { onOpenLiveSession(it.id) } }
                         )
                     } else {
-                        Icon(Icons.Outlined.PlayCircleOutline, null, tint = Gold500, modifier = Modifier.size(28.dp))
+                        Icon(Icons.Outlined.PlayCircleOutline, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
                     }
                 }
-                HorizontalDivider(color = Slate700, thickness = 0.75.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
             }
         }
 
@@ -152,7 +149,7 @@ fun HomeScreen(
             }
             items(state.churchActivity.size) { index ->
                 ChurchActivityRow(state.churchActivity[index])
-                HorizontalDivider(color = Slate700, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 24.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 24.dp))
             }
             item { Spacer(Modifier.height(16.dp)) }
         }
@@ -166,7 +163,7 @@ fun HomeScreen(
                     .padding(horizontal = 24.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Rounded.Forum, null, tint = Gold500, modifier = Modifier.size(22.dp))
+                Icon(Icons.Rounded.Forum, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
                     Text("New: Ask the community", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary)
@@ -174,7 +171,7 @@ fun HomeScreen(
                 }
                 Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = TextMuted, modifier = Modifier.size(14.dp))
             }
-            HorizontalDivider(color = Slate700, thickness = 0.75.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
         }
 
         // -- Continue Listening ---------------------------------------------
@@ -192,7 +189,7 @@ fun HomeScreen(
                     }
                 }
                 Spacer(Modifier.height(20.dp))
-                HorizontalDivider(color = Slate700, thickness = 0.75.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
             }
         }
 
@@ -202,7 +199,7 @@ fun HomeScreen(
             val item = state.recommended[index]
             RecommendedRow(item) { onPlayContent(item.id) }
             if (index != state.recommended.lastIndex) {
-                HorizontalDivider(color = Slate700, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 24.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 24.dp))
             }
         }
     }
@@ -246,10 +243,10 @@ private fun ChurchActivityRow(item: com.gracelink.android.data.repository.Church
             ActivityRowContent(Icons.Outlined.Podcasts, "Article", item.entity.title, item.entity.content)
     }
     Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp), verticalAlignment = Alignment.Top) {
-        Icon(icon, null, tint = Gold500, modifier = Modifier.size(18.dp))
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = Gold500)
+            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
             Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(snippet, style = MaterialTheme.typography.bodySmall, color = TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
