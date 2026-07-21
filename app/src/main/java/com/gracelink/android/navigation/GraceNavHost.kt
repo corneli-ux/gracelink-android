@@ -108,13 +108,6 @@ fun GraceNavHost() {
         currentRoute?.contains(route::class.simpleName ?: "") == true
     }
 
-    /** Where a signed-up person with this account type should land. */
-    fun destinationFor(accountType: com.gracelink.android.data.db.entity.AccountType): GraceRoute = when (accountType) {
-        com.gracelink.android.data.db.entity.AccountType.CHURCH -> GraceRoute.ChurchPortal
-        com.gracelink.android.data.db.entity.AccountType.PASTOR -> GraceRoute.PastorPortal
-        com.gracelink.android.data.db.entity.AccountType.PERSONAL -> GraceRoute.Home
-    }
-
     /**
      * Checks whether a profile already exists (or can be restored -- see
      * ProfileGateViewModel) and routes accordingly, popping back to
@@ -124,18 +117,20 @@ fun GraceNavHost() {
      * the whole app instead of going anywhere. Now swiping back from a
      * portal always lands on Home.
      */
+    /**
+     * Checks whether a profile already exists (or can be restored -- see
+     * ProfileGateViewModel) and routes accordingly, popping back to
+     * [popRoute]. Always lands on Home -- previously this auto-navigated
+     * Church/Pastor accounts straight into their portal on top of Home,
+     * which looked like "the app opens directly into Church Portal"
+     * instead of showing Home first. The portal is one tap away from
+     * Home/Profile for whoever wants it, not the forced landing screen.
+     */
     fun routeByProfile(popRoute: GraceRoute, ifNoProfile: GraceRoute) {
         scope.launch {
             val type = profileGateVm.restoreOrCheckProfile()
-            if (type == null) {
-                navController.navigate(ifNoProfile) { popUpTo(popRoute) { inclusive = true } }
-            } else {
-                navController.navigate(GraceRoute.Home) { popUpTo(popRoute) { inclusive = true } }
-                val portal = destinationFor(type)
-                if (portal != GraceRoute.Home) {
-                    navController.navigate(portal)
-                }
-            }
+            val destination = if (type == null) ifNoProfile else GraceRoute.Home
+            navController.navigate(destination) { popUpTo(popRoute) { inclusive = true } }
         }
     }
 
@@ -216,14 +211,10 @@ fun GraceNavHost() {
 
                 composable<GraceRoute.Registration> {
                     RegistrationScreen(
-                        onComplete = { accountType ->
+                        onComplete = { _ ->
                             navController.navigate(GraceRoute.Home) {
                                 popUpTo(GraceRoute.Registration) { inclusive = true }
                                 launchSingleTop = true
-                            }
-                            val portal = destinationFor(accountType)
-                            if (portal != GraceRoute.Home) {
-                                navController.navigate(portal)
                             }
                         },
                         onBack = { navController.popBackStack() },
@@ -279,6 +270,13 @@ fun GraceNavHost() {
                                 popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
                             }
                         },
+                        onOpenDownloads = { navController.navigate(GraceRoute.DownloadsManager) },
+                    )
+                }
+
+                composable<GraceRoute.DownloadsManager> {
+                    com.gracelink.android.feature.downloads.DownloadsManagerScreen(
+                        onBack = { navController.popBackStack() },
                     )
                 }
 

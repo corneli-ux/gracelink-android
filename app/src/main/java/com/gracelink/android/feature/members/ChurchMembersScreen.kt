@@ -42,7 +42,7 @@ fun ChurchMembersScreen(
         }
     }
 
-    Column(Modifier.fillMaxSize().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
         Row(
             Modifier.fillMaxWidth().padding(8.dp),
             verticalAlignment = Alignment.CenterVertically

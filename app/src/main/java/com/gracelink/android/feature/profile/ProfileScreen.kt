@@ -21,9 +21,7 @@ import androidx.compose.material.icons.rounded.Login
 import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Savings
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Spa
 import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.material3.*
@@ -62,6 +60,7 @@ fun ProfileScreen(
     onNavigateToPastorPortal: () -> Unit = {},
     onSetupProfile: () -> Unit = {},
     onSignedOut: () -> Unit = {},
+    onOpenDownloads: () -> Unit = {},
     vm: ProfileViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -207,11 +206,7 @@ fun ProfileScreen(
             SettingsCard {
                 LanguageRow(user?.preferredLanguage ?: ContentLanguage.EN) { vm.setLanguage(it) }
                 Divider()
-                Clickable(Icons.Rounded.Palette, "Appearance", "Dark theme (recommended for media)") {}
-                Divider()
-                Clickable(Icons.Rounded.Download, "Downloads Manager", "${state.downloadsCount} items \u2022 Manage storage") {}
-                Divider()
-                Clickable(Icons.Rounded.Settings, "Advanced", "Playback, account, privacy") {}
+                Clickable(Icons.Rounded.Download, "Downloads Manager", "${state.downloadsCount} items \u2022 Manage storage", onOpenDownloads)
             }
             Spacer(Modifier.height(20.dp))
         }

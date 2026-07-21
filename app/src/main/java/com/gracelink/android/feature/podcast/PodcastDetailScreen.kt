@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -59,7 +60,7 @@ fun PodcastDetailScreen(
     LaunchedEffect(podcastId) { vm.load(podcastId) }
     val series = state.series
 
-    Box(Modifier.fillMaxSize().background(Obsidian)) {
+    Box(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
         LazyColumn(contentPadding = PaddingValues(bottom = 100.dp)) {
             item {
                 Box(Modifier.fillMaxWidth().height(320.dp)) {

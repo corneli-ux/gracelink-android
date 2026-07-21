@@ -58,7 +58,7 @@ fun RegistrationScreen(
     var location by remember { mutableStateOf("") }
     var selectedBelief by remember { mutableStateOf(BeliefSystem.NONDENOMINATIONAL) }
 
-    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Obsidian, Slate800)))) {
+    Box(Modifier.fillMaxSize().statusBarsPadding().background(Brush.verticalGradient(listOf(Obsidian, Slate800)))) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Slate800).clickable(onClick = onBack), contentAlignment = Alignment.Center) {

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -64,7 +65,7 @@ fun EventCreateScreen(onBack: () -> Unit, onCreated: () -> Unit, vm: EventCreate
     var meetingLink by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
 
-    Column(Modifier.fillMaxSize().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
         Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface) }
             Text("Create Event", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)

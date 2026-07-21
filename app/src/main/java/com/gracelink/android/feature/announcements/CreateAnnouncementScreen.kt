@@ -28,7 +28,7 @@ fun CreateAnnouncementScreen(
     var priority by remember { mutableStateOf(AnnouncementPriority.NORMAL) }
     var isLoading by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
         Row(
             Modifier.fillMaxWidth().padding(8.dp),
             verticalAlignment = Alignment.CenterVertically

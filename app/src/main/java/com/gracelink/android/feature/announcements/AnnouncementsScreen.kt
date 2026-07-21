@@ -33,7 +33,7 @@ fun AnnouncementsScreen(
 ) {
     val announcements by vm.announcements.collectAsStateWithLifecycle()
 
-    Column(Modifier.fillMaxSize().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
         // Top bar
         Row(
             Modifier.fillMaxWidth().padding(8.dp),

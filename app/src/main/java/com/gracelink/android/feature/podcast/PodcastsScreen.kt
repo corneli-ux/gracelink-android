@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -83,7 +84,7 @@ fun PodcastsScreen(
             (query.isBlank() || ep.title.contains(query, true) || (seriesTitleById[ep.podcastId]?.contains(query, true) == true))
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(Obsidian)) {
+    Column(modifier = Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
             Text("Podcasts", style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
             Text("Sermons \u2022 Teaching \u2022 Worship \u2022 Debates", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
