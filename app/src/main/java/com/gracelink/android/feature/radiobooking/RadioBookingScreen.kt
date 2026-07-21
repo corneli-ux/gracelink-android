@@ -40,10 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Obsidian
-import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.data.db.entity.FmScheduleEntity
 
 private val DAYS = listOf("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
@@ -60,7 +56,7 @@ fun RadioBookingScreen(onBack: () -> Unit, vm: RadioBookingViewModel = hiltViewM
         }
     }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
         Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface)
@@ -75,13 +71,13 @@ fun RadioBookingScreen(onBack: () -> Unit, vm: RadioBookingViewModel = hiltViewM
         )
 
         if (state.message != null) {
-            Text(state.message ?: "", style = MaterialTheme.typography.labelMedium, color = Gold500, modifier = Modifier.padding(horizontal = 20.dp).padding(bottom = 8.dp))
+            Text(state.message ?: "", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 20.dp).padding(bottom = 8.dp))
         }
 
         LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(DAYS) { day ->
                 val selected = day == state.selectedDay
-                Box(Modifier.clip(RoundedCornerShape(12.dp)).background(if (selected) Gold400 else Slate800).clickable { vm.selectDay(day) }.padding(horizontal = 16.dp, vertical = 10.dp)) {
+                Box(Modifier.clip(RoundedCornerShape(12.dp)).background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant).clickable { vm.selectDay(day) }.padding(horizontal = 16.dp, vertical = 10.dp)) {
                     Text(day, style = MaterialTheme.typography.labelLarge, color = if (selected) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface)
                 }
             }
@@ -134,7 +130,7 @@ private fun AttachContentDialog(
         Box(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(Slate800)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(20.dp)
                 .clickable(enabled = false) {},
         ) {
@@ -153,7 +149,7 @@ private fun AttachContentDialog(
                 } else {
                     episodes.forEach { ep ->
                         Row(
-                            Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Obsidian).clickable { onPick(ep) }.padding(14.dp),
+                            Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.background).clickable { onPick(ep) }.padding(14.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(ep.title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
@@ -169,10 +165,10 @@ private fun AttachContentDialog(
 
 @Composable
 private fun SlotRow(slot: FmScheduleEntity, isMine: Boolean, isTaken: Boolean, onBook: () -> Unit, onCancel: () -> Unit, onAttachContent: () -> Unit) {
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Slate800).padding(14.dp)) {
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.width(70.dp)) {
-                Icon(Icons.Rounded.Schedule, null, tint = if (isMine) Gold400 else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.Schedule, null, tint = if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.height(4.dp))
                 Text(if (slot.timeSlot.length >= 5) slot.timeSlot.substring(0, 5) else slot.timeSlot, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
             }
@@ -188,10 +184,10 @@ private fun SlotRow(slot: FmScheduleEntity, isMine: Boolean, isTaken: Boolean, o
                 isMine -> Box(Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.error).clickable(onClick = onCancel).padding(horizontal = 14.dp, vertical = 8.dp)) {
                     Text("Cancel", style = MaterialTheme.typography.labelMedium, color = Color.White)
                 }
-                isTaken -> Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Slate800).padding(horizontal = 14.dp, vertical = 8.dp)) {
+                isTaken -> Box(Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 14.dp, vertical = 8.dp)) {
                     Text("Booked", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                else -> Box(Modifier.clip(RoundedCornerShape(20.dp)).background(Gold500).clickable(onClick = onBook).padding(horizontal = 14.dp, vertical = 8.dp)) {
+                else -> Box(Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.primary).clickable(onClick = onBook).padding(horizontal = 14.dp, vertical = 8.dp)) {
                     Text("Book", style = MaterialTheme.typography.labelMedium, color = Color(0xFF1A0F00), fontWeight = FontWeight.SemiBold)
                 }
             }
@@ -199,13 +195,13 @@ private fun SlotRow(slot: FmScheduleEntity, isMine: Boolean, isTaken: Boolean, o
         if (isMine) {
             Spacer(Modifier.height(10.dp))
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Obsidian).clickable(onClick = onAttachContent).padding(horizontal = 12.dp, vertical = 10.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.background).clickable(onClick = onAttachContent).padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     slot.contentTitle?.let { "Playing: $it" } ?: "No content attached yet \u2014 tap to select",
                     style = MaterialTheme.typography.labelMedium,
-                    color = if (slot.contentTitle != null) Gold400 else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (slot.contentTitle != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
             }
