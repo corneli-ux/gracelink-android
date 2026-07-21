@@ -35,6 +35,7 @@ import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MicOff
 import androidx.compose.material.icons.rounded.People
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,10 +59,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.components.GoldButton
 import com.gracelink.android.core.components.LiveBadge
-import com.gracelink.android.core.theme.Emerald500
-import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Slate800
-import com.gracelink.android.core.theme.Slate900
 
 @Composable
 fun AudioConnectScreen(vm: AudioConnectViewModel = hiltViewModel()) {
@@ -118,7 +115,7 @@ private fun SpacesListView(
                 Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Gold500)
+                    .background(MaterialTheme.colorScheme.primary)
                     .clickable(onClick = onCreate),
                 contentAlignment = Alignment.Center
             ) {
@@ -132,7 +129,7 @@ private fun SpacesListView(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(40.dp))
-                Icon(Icons.Rounded.People, null, tint = Gold500.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
+                Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
                 Spacer(Modifier.height(10.dp))
                 Text("No live spaces right now", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                 Text("Start one to begin a live conversation", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -140,10 +137,10 @@ private fun SpacesListView(
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(state.spaces, key = { it.id }) { space ->
                     SpaceCard(space) { onJoin(space) }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
         }
@@ -152,40 +149,36 @@ private fun SpacesListView(
 
 @Composable
 private fun SpaceCard(space: AudioSpace, onJoin: () -> Unit) {
-    Box(
+    Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(Brush.horizontalGradient(listOf(Gold500.copy(alpha = 0.15f), Slate800)))
             .clickable(onClick = onJoin)
-            .padding(16.dp)
+            .padding(vertical = 16.dp)
     ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                LiveBadge()
-                Spacer(Modifier.width(8.dp))
-                Icon(Icons.Rounded.People, null, tint = Gold500, modifier = Modifier.size(14.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("${space.participantCount} listening", style = MaterialTheme.typography.labelMedium, color = Gold500)
-                Spacer(Modifier.weight(1f))
-                Text(formatDuration(System.currentTimeMillis() - space.startedAt), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Spacer(Modifier.height(10.dp))
-            Text(space.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(4.dp))
-            Text("Hosted by ${space.hostName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(4.dp))
-            Text(space.topic, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(12.dp))
-            Box(
-                Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(Gold500)
-                    .clickable(onClick = onJoin)
-                    .padding(horizontal = 20.dp, vertical = 10.dp)
-            ) {
-                Text("Join Space", color = Color(0xFF1A0F00), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-            }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            LiveBadge()
+            Spacer(Modifier.width(8.dp))
+            Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.width(4.dp))
+            Text("${space.participantCount} listening", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.weight(1f))
+            Text(formatDuration(System.currentTimeMillis() - space.startedAt), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(10.dp))
+        Text(space.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(4.dp))
+        Text("Hosted by ${space.hostName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(4.dp))
+        Text(space.topic, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(12.dp))
+        Box(
+            Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable(onClick = onJoin)
+                .padding(horizontal = 20.dp, vertical = 10.dp)
+        ) {
+            Text("Join Space", color = Color(0xFF1A0F00), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -207,15 +200,15 @@ private fun ActiveSpaceView(
     ) {
         // Top bar
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Slate800).clickable(onClick = onLeave), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onLeave), contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.ArrowBack, "Leave", tint = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(Modifier.width(12.dp))
             LiveBadge()
             Spacer(Modifier.weight(1f))
-            Icon(Icons.Rounded.People, null, tint = Gold500, modifier = Modifier.size(16.dp))
+            Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(4.dp))
-            Text("${space.participantCount}", style = MaterialTheme.typography.labelLarge, color = Gold500)
+            Text("${space.participantCount}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
 
         // Space info
@@ -244,16 +237,16 @@ private fun ActiveSpaceView(
                 Modifier
                     .size(120.dp * ringScale)
                     .clip(CircleShape)
-                    .background(Gold500.copy(alpha = ringAlpha))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = ringAlpha))
             )
             Box(
                 Modifier
                     .size(120.dp)
                     .clip(CircleShape)
-                    .background(Brush.radialGradient(listOf(Gold500.copy(alpha = 0.3f), Color.Transparent))),
+                    .background(Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), Color.Transparent))),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Rounded.People, null, tint = Gold500, modifier = Modifier.size(48.dp))
+                Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
             }
         }
 
@@ -265,7 +258,7 @@ private fun ActiveSpaceView(
                 .fillMaxWidth()
                 .padding(20.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Slate900)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(20.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
@@ -276,7 +269,7 @@ private fun ActiveSpaceView(
                     Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(if (isMicOn) Gold500 else Slate800)
+                        .background(if (isMicOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                         .clickable(onClick = onMicToggle),
                     contentAlignment = Alignment.Center
                 ) {
@@ -292,7 +285,7 @@ private fun ActiveSpaceView(
                     Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(if (isHandRaised) Emerald500 else Slate800)
+                        .background(if (isHandRaised) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant)
                         .clickable(onClick = onHandRaise),
                     contentAlignment = Alignment.Center
                 ) {
@@ -332,7 +325,7 @@ private fun CreateSpaceDialog(onCreate: (String, String) -> Unit, onDismiss: () 
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                .background(Slate900)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(20.dp)
                 .clickable(enabled = false) {}
         ) {
@@ -342,17 +335,17 @@ private fun CreateSpaceDialog(onCreate: (String, String) -> Unit, onDismiss: () 
                 Text("Create a live audio room for discussion", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(16.dp))
 
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Slate800).padding(horizontal = 12.dp, vertical = 4.dp)) {
-                    TextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Space title (e.g. Bible Study)", color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 12.dp, vertical = 4.dp)) {
+                    TextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Space title (e.g. Bible Study)", color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
                 }
                 Spacer(Modifier.height(12.dp))
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Slate800).padding(horizontal = 12.dp, vertical = 4.dp)) {
-                    TextField(value = topic, onValueChange = { topic = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Topic (e.g. Romans 8)", color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { if (title.isNotBlank()) onCreate(title, topic) }))
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 12.dp, vertical = 4.dp)) {
+                    TextField(value = topic, onValueChange = { topic = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Topic (e.g. Romans 8)", color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { if (title.isNotBlank()) onCreate(title, topic) }))
                 }
                 Spacer(Modifier.height(20.dp))
                 GoldButton("Start Space", onClick = { if (title.isNotBlank()) onCreate(title, topic) }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(10.dp))
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Slate800).clickable(onClick = onDismiss).padding(vertical = 14.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onDismiss).padding(vertical = 14.dp), contentAlignment = Alignment.Center) {
                     Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                 }
             }
