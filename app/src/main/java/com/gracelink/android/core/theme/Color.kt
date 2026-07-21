@@ -23,13 +23,17 @@ val TextSecondary = Color(0xFFC4BBA8)  // muted cream
 val TextMuted = Color(0xFF8A8275)      // dim warm grey
 val TextSubtle = Color(0xFF5C5648)
 
-// ── Brand gold (warm, matches logo #D1BE9B) ─────────────────────────────────
-val Gold200 = Color(0xFFF0E6D2)
-val Gold300 = Color(0xFFE5D5B8)
-val Gold400 = Color(0xFFD1BE9B)   // exact logo gold
-val Gold500 = Color(0xFFD1BE9B)   // primary accent = logo color
-val Gold600 = Color(0xFFB8A585)
-val Gold700 = Color(0xFF968868)
+// ── Brand gold (enriched per request -- was a pale muted cream D1BE9B,
+// now a deeper, more saturated gold. This maps directly to
+// MaterialTheme.colorScheme.primary in Theme.kt, so every button, badge,
+// and accent built against theme colors picks this up automatically --
+// no per-screen changes needed) ─────────────────────────────────────────
+val Gold200 = Color(0xFFF2DFA0)
+val Gold300 = Color(0xFFE6C866)
+val Gold400 = Color(0xFFD4A017)   // rich amber-gold, primary accent
+val Gold500 = Color(0xFFC9911A)
+val Gold600 = Color(0xFFA9760F)
+val Gold700 = Color(0xFF7D5A0C)
 
 // ── Emerald (secondary accent for success/prayer) ───────────────────────────
 val Emerald300 = Color(0xFF7BD9A8)

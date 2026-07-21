@@ -35,6 +35,7 @@ data class AudioConnectState(
     val activeSpace: AudioSpace? = null,
     val isMicOn: Boolean = false,
     val isHandRaised: Boolean = false,
+    val createError: String? = null,
 )
 
 @HiltViewModel
@@ -47,6 +48,7 @@ class AudioConnectViewModel @Inject constructor(
     private val activeSpaceId = MutableStateFlow<String?>(null)
     private val isMicOn = MutableStateFlow(false)
     private val isHandRaised = MutableStateFlow(false)
+    private val createError = MutableStateFlow<String?>(null)
 
     val state: StateFlow<AudioConnectState> = combine(
         repo.activeSpaces(), isCreating, activeSpaceId, isMicOn, isHandRaised,
@@ -58,17 +60,40 @@ class AudioConnectViewModel @Inject constructor(
             isMicOn = mic,
             isHandRaised = hand,
         )
+    }.let { baseFlow ->
+        combine(baseFlow, createError) { base, error -> base.copy(createError = error) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AudioConnectState())
 
     fun showCreateDialog(show: Boolean) {
         isCreating.value = show
+        if (show) createError.value = null
     }
 
+    /**
+     * Previously this had no error handling at all -- if the Firestore
+     * write failed for any reason (network, security rules, anything),
+     * the exception was silently swallowed by the coroutine and
+     * isCreating never got reset, leaving the dialog open with no
+     * feedback and no space ever actually going live. Now failures
+     * surface a real message instead of just doing nothing.
+     */
     fun createSpace(title: String, topic: String) = viewModelScope.launch {
-        val user = userRepo.currentOnce() ?: return@launch
-        val id = repo.createSpace(title, topic, user.uid, user.displayName)
-        activeSpaceId.value = id
-        isCreating.value = false
+        createError.value = null
+        try {
+            val user = userRepo.currentOnce() ?: run {
+                createError.value = "You need to be signed in to go live."
+                return@launch
+            }
+            if (title.isBlank()) {
+                createError.value = "Give your space a title first."
+                return@launch
+            }
+            val id = repo.createSpace(title, topic, user.uid, user.displayName)
+            activeSpaceId.value = id
+            isCreating.value = false
+        } catch (e: Exception) {
+            createError.value = "Couldn't go live: ${e.message ?: "please check your connection and try again"}"
+        }
     }
 
     fun joinSpace(space: AudioSpace) = viewModelScope.launch {

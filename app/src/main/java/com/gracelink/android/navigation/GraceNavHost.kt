@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -659,14 +660,18 @@ private fun GraceFloatingBottomBar(
                             Icon(
                                 imageVector = if (selected) selectedIcon else unselectedIcon,
                                 contentDescription = label,
-                                tint = if (selected) Gold500 else TextSecondary
+                                tint = if (selected) Gold500 else TextSecondary,
+                                modifier = Modifier.size(22.dp),
                             )
                         },
                         label = {
                             Text(
                                 text = label,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (selected) Gold500 else TextSecondary
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                color = if (selected) Gold500 else TextSecondary,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Clip,
+                                softWrap = false,
                             )
                         },
                         colors = NavigationBarItemDefaults.colors(
@@ -689,7 +694,7 @@ private fun GraceRoute.icons(): Triple<ImageVector, ImageVector, String> = when 
     GraceRoute.Timeline -> Triple(Icons.Rounded.Timeline, Icons.Outlined.Timeline, "Timeline")
     GraceRoute.Podcasts -> Triple(Icons.Rounded.Podcasts, Icons.Outlined.Podcasts, "Podcasts")
     GraceRoute.LiveSpaces -> Triple(Icons.Rounded.Headphones, Icons.Outlined.Headphones, "Live")
-    GraceRoute.Community -> Triple(Icons.Rounded.Groups, Icons.Outlined.Groups, "Community")
+    GraceRoute.Community -> Triple(Icons.Rounded.Groups, Icons.Outlined.Groups, "Church")
     GraceRoute.Profile -> Triple(Icons.Rounded.Person, Icons.Outlined.Person, "Me")
     else -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "")
 }

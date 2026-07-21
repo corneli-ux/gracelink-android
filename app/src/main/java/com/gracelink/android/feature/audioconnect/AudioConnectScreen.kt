@@ -83,6 +83,7 @@ fun AudioConnectScreen(vm: AudioConnectViewModel = hiltViewModel()) {
 
     if (state.isCreating) {
         CreateSpaceDialog(
+            errorMessage = state.createError,
             onCreate = { title, topic -> vm.createSpace(title, topic) },
             onDismiss = { vm.showCreateDialog(false) },
         )
@@ -315,7 +316,7 @@ private fun ActiveSpaceView(
 }
 
 @Composable
-private fun CreateSpaceDialog(onCreate: (String, String) -> Unit, onDismiss: () -> Unit) {
+private fun CreateSpaceDialog(errorMessage: String?, onCreate: (String, String) -> Unit, onDismiss: () -> Unit) {
     var title by remember { mutableStateOf("") }
     var topic by remember { mutableStateOf("") }
 
@@ -343,6 +344,9 @@ private fun CreateSpaceDialog(onCreate: (String, String) -> Unit, onDismiss: () 
                     TextField(value = topic, onValueChange = { topic = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Topic (e.g. Romans 8)", color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { if (title.isNotBlank()) onCreate(title, topic) }))
                 }
                 Spacer(Modifier.height(20.dp))
+                if (errorMessage != null) {
+                    Text(errorMessage, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(bottom = 10.dp))
+                }
                 GoldButton("Start Space", onClick = { if (title.isNotBlank()) onCreate(title, topic) }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(10.dp))
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onDismiss).padding(vertical = 14.dp), contentAlignment = Alignment.Center) {

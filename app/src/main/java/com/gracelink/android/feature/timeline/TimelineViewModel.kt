@@ -2,22 +2,22 @@ package com.gracelink.android.feature.timeline
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gracelink.android.data.db.dao.ChurchDao
 import com.gracelink.android.data.repository.BiblicalReaction
 import com.gracelink.android.data.repository.FollowRepository
 import com.gracelink.android.data.repository.ReactionRepository
-import com.gracelink.android.data.repository.TimelineComment
 import com.gracelink.android.data.repository.TimelineCommentRepository
 import com.gracelink.android.data.repository.TimelineItem
 import com.gracelink.android.data.repository.TimelineRepository
 import com.gracelink.android.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -36,6 +36,7 @@ class TimelineViewModel @Inject constructor(
     private val followRepo: FollowRepository,
     private val reactionRepo: ReactionRepository,
     private val commentRepo: TimelineCommentRepository,
+    private val churchDao: ChurchDao,
     private val userRepo: UserRepository,
 ) : ViewModel() {
 
@@ -46,8 +47,22 @@ class TimelineViewModel @Inject constructor(
             flowOf(TimelineState())
         } else {
             followRepo.followedIdsFor(uid).flatMapLatest { followedIds ->
-                timelineRepo.feedFor(followedIds).let { feedFlow ->
-                    combine(feedFlow, flowOf(followedIds)) { items, ids ->
+                // Content is authored under the account's own uid (Article/Podcast/
+                // Prayer/Question) OR under the church's own id (Event) -- these are
+                // NOT the same value for a church. Following a church stores its
+                // church.id, so without this enrichment, everything except Events
+                // would never match. For each followed church id, resolve its real
+                // owner uid too and match against both.
+                val matchIdsFlow = kotlinx.coroutines.flow.flow {
+                    val enriched = mutableSetOf<String>()
+                    enriched.addAll(followedIds)
+                    for (id in followedIds) {
+                        churchDao.getById(id)?.ownerUserId?.let { enriched.add(it) }
+                    }
+                    emit(enriched.toList())
+                }
+                matchIdsFlow.flatMapLatest { matchIds ->
+                    combine(timelineRepo.feedFor(matchIds), flowOf(followedIds)) { items, ids ->
                         TimelineState(items = items, myUid = uid, myName = user.displayName, isGuest = false, isFollowingAnyone = ids.isNotEmpty())
                     }
                 }
