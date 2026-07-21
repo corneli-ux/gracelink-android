@@ -55,7 +55,7 @@ fun RegistrationScreen(
     var location by remember { mutableStateOf("") }
     var selectedBelief by remember { mutableStateOf(BeliefSystem.NONDENOMINATIONAL) }
 
-    Box(Modifier.fillMaxSize().statusBarsPadding().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.surfaceVariant)))) {
+    Box(Modifier.fillMaxSize().statusBarsPadding().imePadding().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.surfaceVariant)))) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onBack), contentAlignment = Alignment.Center) {

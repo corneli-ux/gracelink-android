@@ -1,6 +1,7 @@
 package com.gracelink.android.feature.leadership
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -46,7 +47,7 @@ fun LeadershipScreen(onBack: () -> Unit, vm: LeadershipViewModel = hiltViewModel
     val state by vm.state.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().imePadding().background(MaterialTheme.colorScheme.background)) {
         Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface)

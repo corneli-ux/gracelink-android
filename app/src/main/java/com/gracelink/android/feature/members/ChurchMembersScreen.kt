@@ -42,7 +42,7 @@ fun ChurchMembersScreen(
         }
     }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
+    Column(Modifier.fillMaxSize().statusBarsPadding().imePadding().background(MaterialTheme.colorScheme.background)) {
         Row(
             Modifier.fillMaxWidth().padding(8.dp),
             verticalAlignment = Alignment.CenterVertically

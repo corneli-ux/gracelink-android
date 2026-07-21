@@ -33,7 +33,7 @@ fun ArticlesScreen(onRequireSignIn: () -> Unit = {}, onOpenArticle: (String) -> 
     val rest = if (featured != null) state.articles.drop(1) else emptyList()
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+        Column(Modifier.fillMaxSize().statusBarsPadding().imePadding()) {
             Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Articles", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)

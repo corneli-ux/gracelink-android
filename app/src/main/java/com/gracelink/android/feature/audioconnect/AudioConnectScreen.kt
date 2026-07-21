@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -100,7 +101,7 @@ private fun SpacesListView(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
+            .statusBarsPadding().imePadding()
     ) {
         Row(
             Modifier
@@ -197,7 +198,7 @@ private fun ActiveSpaceView(
         Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.background)))
-            .statusBarsPadding()
+            .statusBarsPadding().imePadding()
     ) {
         // Top bar
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {

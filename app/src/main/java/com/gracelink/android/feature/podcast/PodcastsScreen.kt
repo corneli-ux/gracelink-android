@@ -3,6 +3,7 @@ package com.gracelink.android.feature.podcast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -78,7 +79,7 @@ fun PodcastsScreen(
             (query.isBlank() || ep.title.contains(query, true) || (seriesTitleById[ep.podcastId]?.contains(query, true) == true))
     }
 
-    Column(modifier = Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
+    Column(modifier = Modifier.fillMaxSize().statusBarsPadding().imePadding().background(MaterialTheme.colorScheme.background)) {
         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
             Text("Podcasts", style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
             Text("Sermons \u2022 Teaching \u2022 Worship \u2022 Debates", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
