@@ -56,10 +56,24 @@ jobs:
       - name: Surface compiler errors as annotations
         if: failure()
         run: |
-          grep -n -i -E "error:|^e: |FAILURE:|exception|what went wrong" /tmp/build_output.log | head -60 | while IFS= read -r line; do
-            escaped=$(echo "$line" | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g')
-            echo "::error::${escaped}"
-          done
+          # Targeted at the lines that actually describe *why* something
+          # failed (Caused by:, Kotlin compiler errors, AAR metadata detail
+          # lines, "requires"/"Recommended action" messages), explicitly
+          # excluding raw stack trace frames ("at ...") -- those matched the
+          # old broad "exception" keyword too (class names like
+          # CatchExceptionTaskExecuter contain the substring "Exception"),
+          # which meant a failure with several stacked task failures could
+          # fill the entire head -60 window with repeated frames and never
+          # reach the actual cause. Deduplicated since the same frame/line
+          # can repeat across multiple failed tasks.
+          grep -n -i -E "Caused by:|^e: |error:|FAILURE:|what went wrong|Execution failed for task|Dependency '|requires .*(compile|Gradle|API)|Recommended action|Unresolved reference|None of the following|is currently compiled against|Minimum supported" /tmp/build_output.log \
+            | grep -v -i -E "^\s*[0-9]+:\s*at " \
+            | awk '!seen[$0]++' \
+            | head -80 \
+            | while IFS= read -r line; do
+                escaped=$(echo "$line" | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g')
+                echo "::error::${escaped}"
+              done
           echo "---- full tail for context ----"
           tail -n 200 /tmp/build_output.log
 
