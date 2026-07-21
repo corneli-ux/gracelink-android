@@ -47,7 +47,7 @@ class VoiceRecorder(private val context: Context) {
             setOutputFile(file.absolutePath)
             prepare()
         }
-        applyAudioEffects(mr.audioSessionId)
+        applyAudioEffects(mr.getAudioSessionId())
         mr.start()
         recorder = mr
         return file.absolutePath
