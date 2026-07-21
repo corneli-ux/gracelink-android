@@ -18,6 +18,12 @@ data class TimelineComment(
     val authorName: String = "",
     val text: String = "",
     val createdAt: Long = 0,
+    // If this comment is itself a reply to another comment (not just the
+    // original post), both fields are set so the UI can clearly show
+    // "so-and-so replying to so-and-so" -- same pattern as the Forum's
+    // answer threading, which this was missing entirely before.
+    val replyToCommentId: String? = null,
+    val replyToAuthorName: String? = null,
 )
 
 /**
@@ -47,11 +53,15 @@ class TimelineCommentRepository @Inject constructor(
         awaitClose { registration.remove() }
     }
 
-    suspend fun addComment(contentType: String, contentId: String, authorId: String, authorName: String, text: String) {
+    suspend fun addComment(
+        contentType: String, contentId: String, authorId: String, authorName: String, text: String,
+        replyToCommentId: String? = null, replyToAuthorName: String? = null,
+    ) {
         val id = "tc_${System.currentTimeMillis()}"
         val comment = TimelineComment(
             id = id, contentType = contentType, contentId = contentId,
             authorId = authorId, authorName = authorName, text = text, createdAt = System.currentTimeMillis(),
+            replyToCommentId = replyToCommentId, replyToAuthorName = replyToAuthorName,
         )
         collection.document(id).set(comment).await()
     }

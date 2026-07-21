@@ -91,9 +91,20 @@ class ArticleDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     val article = MutableStateFlow<ArticleEntity?>(null)
+
+    // Comments are keyed off a stable articleId, not off `article` itself.
+    // Previously `comments` was derived via article.flatMapLatest { ... } --
+    // but addComment() and toggleLike() both reassign article.value (to a
+    // freshly-fetched ArticleEntity, to refresh the like/comment counts
+    // shown on screen), and flatMapLatest restarts its downstream flow on
+    // every new upstream value. Every comment submitted was cancelling and
+    // re-subscribing the comments query, which visibly emptied and
+    // reloaded the list -- reading exactly like "fluctuating" or "the
+    // comment didn't go through" even though it actually had.
+    private val articleId = MutableStateFlow<String?>(null)
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    val comments: StateFlow<List<ArticleCommentEntity>> = article.flatMapLatest { a ->
-        if (a != null) commentDao.forArticle(a.id) else flowOf(emptyList())
+    val comments: StateFlow<List<ArticleCommentEntity>> = articleId.flatMapLatest { id ->
+        if (id != null) commentDao.forArticle(id) else flowOf(emptyList())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val myId = MutableStateFlow("u_demo")
@@ -109,6 +120,7 @@ class ArticleDetailViewModel @Inject constructor(
     }
 
     fun load(articleId: String) = viewModelScope.launch {
+        this@ArticleDetailViewModel.articleId.value = articleId
         article.value = articleDao.getById(articleId)
     }
 

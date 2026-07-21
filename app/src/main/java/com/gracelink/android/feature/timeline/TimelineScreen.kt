@@ -207,30 +207,57 @@ private fun TimelineCard(item: TimelineItem, vm: TimelineViewModel, onOpen: () -
 private fun CommentSection(item: TimelineItem, vm: TimelineViewModel) {
     val comments by vm.commentsFor(item).collectAsState(initial = emptyList())
     var text by remember { mutableStateOf("") }
+    var replyTarget by remember { mutableStateOf<com.gracelink.android.data.repository.TimelineComment?>(null) }
 
     Column {
         comments.forEach { c ->
             Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                Text(c.authorName, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(c.authorName, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+                    if (c.replyToAuthorName != null) {
+                        Text(" replying to ${c.replyToAuthorName}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
                 Text(c.text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "Reply", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.clickable { replyTarget = c }.padding(top = 2.dp),
+                )
             }
         }
         if (comments.isEmpty()) {
             Text("No comments yet", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 6.dp))
         }
+
+        // Reply-target chip -- makes it unmistakable who a reply is going to
+        replyTarget?.let { target ->
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)).padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Replying to ${target.authorName}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                Text("\u2715", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable { replyTarget = null })
+            }
+        }
+
         Row(
             Modifier.fillMaxWidth().imePadding().clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TextField(
                 value = text, onValueChange = { text = it }, modifier = Modifier.weight(1f),
-                placeholder = { Text("Add a comment\u2026", style = MaterialTheme.typography.bodySmall) },
+                placeholder = { Text(if (replyTarget != null) "Write your reply\u2026" else "Add a comment\u2026", style = MaterialTheme.typography.bodySmall) },
                 colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent),
                 textStyle = MaterialTheme.typography.bodySmall,
             )
             Text(
                 "Post", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { if (text.isNotBlank()) { vm.addComment(item, text.trim()); text = "" } }.padding(8.dp),
+                modifier = Modifier.clickable {
+                    if (text.isNotBlank()) {
+                        vm.addComment(item, text.trim(), replyTarget)
+                        text = ""; replyTarget = null
+                    }
+                }.padding(8.dp),
             )
         }
     }

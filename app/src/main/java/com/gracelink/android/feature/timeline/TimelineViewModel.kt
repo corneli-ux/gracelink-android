@@ -84,10 +84,13 @@ class TimelineViewModel @Inject constructor(
         else reactionRepo.react(item.contentType, item.contentId, uid, reaction)
     }
 
-    fun addComment(item: TimelineItem, text: String) = viewModelScope.launch {
+    fun addComment(item: TimelineItem, text: String, replyTo: com.gracelink.android.data.repository.TimelineComment? = null) = viewModelScope.launch {
         val s = state.value
         if (s.myUid.isBlank() || text.isBlank()) return@launch
-        commentRepo.addComment(item.contentType, item.contentId, s.myUid, s.myName, text)
+        commentRepo.addComment(
+            item.contentType, item.contentId, s.myUid, s.myName, text,
+            replyToCommentId = replyTo?.id, replyToAuthorName = replyTo?.authorName,
+        )
     }
 
     /**
