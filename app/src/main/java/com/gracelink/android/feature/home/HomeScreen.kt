@@ -109,7 +109,8 @@ fun HomeScreen(
         // hosting a live space right now, surface it prominently so
         // people actually discover and join it, independent of whether
         // radio happens to be live too.
-        if (state.liveSpace != null) {
+        val liveSpace = state.liveSpace
+        if (liveSpace != null) {
             item {
                 Row(
                     Modifier
@@ -122,8 +123,8 @@ fun HomeScreen(
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
                         Text("LIVE AUDIO SPACE", style = MaterialTheme.typography.labelSmall, color = LiveRed, fontWeight = FontWeight.Bold)
-                        Text(state.liveSpace.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("Hosted by ${state.liveSpace.hostName} \u00b7 ${state.liveSpace.participantCount} listening", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        Text(liveSpace.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Hosted by ${liveSpace.hostName} \u00b7 ${liveSpace.participantCount} listening", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
                     }
                     Text("Join", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 }
