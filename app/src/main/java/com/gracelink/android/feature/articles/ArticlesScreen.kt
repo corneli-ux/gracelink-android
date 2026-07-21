@@ -17,16 +17,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Slate800
-import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.ArticleEntity
 
@@ -44,7 +40,7 @@ fun ArticlesScreen(onRequireSignIn: () -> Unit = {}, onOpenArticle: (String) -> 
                     Text("Insights from churches & believers", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Box(
-                    Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(Gold400).clickable {
+                    Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.primary).clickable {
                         if (state.isGuest) onRequireSignIn() else vm.showWriteDialog(true)
                     },
                     contentAlignment = Alignment.Center
@@ -56,18 +52,23 @@ fun ArticlesScreen(onRequireSignIn: () -> Unit = {}, onOpenArticle: (String) -> 
             if (state.articles.isEmpty()) {
                 EmptyState()
             } else {
-                LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                LazyColumn(contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)) {
                     if (featured != null) {
                         item {
-                            Text("Featured", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), color = Gold400)
+                            Text("Featured", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.primary)
                             Spacer(Modifier.height(8.dp))
                             FeaturedCard(featured, { vm.toggleLike(featured.id) }, { onOpenArticle(featured.id) })
+                            Spacer(Modifier.height(8.dp))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }
                     if (rest.isNotEmpty()) {
                         item { Spacer(Modifier.height(4.dp)); Text("More", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
-                    items(rest, key = { it.id }) { article -> ArticleCard(article, { vm.toggleLike(article.id) }, { onOpenArticle(article.id) }) }
+                    items(rest, key = { it.id }) { article ->
+                        ArticleCard(article, { vm.toggleLike(article.id) }, { onOpenArticle(article.id) })
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
                 }
             }
         }
@@ -82,7 +83,7 @@ private fun EmptyState() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(Icons.Rounded.AutoStories, null, tint = Gold400.copy(alpha = 0.6f), modifier = Modifier.size(48.dp))
+        Icon(Icons.Rounded.AutoStories, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), modifier = Modifier.size(48.dp))
         Spacer(Modifier.height(12.dp))
         Text("No articles yet", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
         Text("Be the first to share a devotional or teaching", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -95,17 +96,15 @@ private fun FeaturedCard(article: ArticleEntity, onLike: () -> Unit, onOpen: () 
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(Brush.horizontalGradient(listOf(Gold400.copy(alpha = 0.14f), Slate800)))
             .clickable(onClick = onOpen)
-            .padding(18.dp)
+            .padding(vertical = 4.dp)
     ) {
         AuthorRow(article)
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(12.dp))
         Text(article.title, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(8.dp))
         Text(article.content, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 4, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(12.dp))
         EngagementRow(article, liked, { liked = !liked; onLike() })
     }
 }
@@ -113,13 +112,13 @@ private fun FeaturedCard(article: ArticleEntity, onLike: () -> Unit, onOpen: () 
 @Composable
 private fun ArticleCard(article: ArticleEntity, onLike: () -> Unit, onOpen: () -> Unit) {
     var liked by remember { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Slate800).clickable(onClick = onOpen).padding(16.dp)) {
+    Column(Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(vertical = 12.dp)) {
         AuthorRow(article)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
         Text(article.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(6.dp))
         Text(article.content, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 3, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
         EngagementRow(article, liked, { liked = !liked; onLike() })
     }
 }
@@ -127,8 +126,8 @@ private fun ArticleCard(article: ArticleEntity, onLike: () -> Unit, onOpen: () -
 @Composable
 private fun AuthorRow(article: ArticleEntity) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-            Text(article.authorName.firstOrNull()?.uppercase() ?: "?", style = MaterialTheme.typography.labelLarge, color = Gold400, fontWeight = FontWeight.Bold)
+        Box(Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+            Text(article.authorName.firstOrNull()?.uppercase() ?: "?", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
@@ -136,7 +135,7 @@ private fun AuthorRow(article: ArticleEntity) {
             Text(formatTime(article.publishedAt), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (article.authorType == AccountType.CHURCH) {
-            Box(Modifier.clip(RoundedCornerShape(4.dp)).background(Gold400).padding(horizontal = 6.dp, vertical = 2.dp)) {
+            Box(Modifier.clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.primary).padding(horizontal = 6.dp, vertical = 2.dp)) {
                 Text("CHURCH", style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A0F00), fontWeight = FontWeight.Bold)
             }
         }
@@ -146,7 +145,7 @@ private fun AuthorRow(article: ArticleEntity) {
 @Composable
 private fun EngagementRow(article: ArticleEntity, liked: Boolean, onLike: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(if (liked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, "Like", tint = if (liked) Gold400 else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp).clickable(onClick = onLike))
+        Icon(if (liked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, "Like", tint = if (liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp).clickable(onClick = onLike))
         Spacer(Modifier.width(4.dp))
         Text("${article.likeCount}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.width(16.dp))
@@ -161,15 +160,15 @@ private fun WriteDialog(onPublish: (String, String) -> Unit, onDismiss: () -> Un
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.7f)).clickable(onClick = onDismiss)) {
-        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(Slate900).padding(24.dp).clickable(enabled = false) {}) {
+        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(MaterialTheme.colorScheme.background).padding(24.dp).clickable(enabled = false) {}) {
             Column {
                 Text("Write Article", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(16.dp))
-                OutlinedTextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Title") }, colors = TextFieldDefaults.colors(focusedContainerColor = Slate800, unfocusedContainerColor = Slate800, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400), shape = RoundedCornerShape(12.dp))
+                OutlinedTextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Title") }, colors = TextFieldDefaults.colors(focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(12.dp))
                 Spacer(Modifier.height(12.dp))
-                OutlinedTextField(value = content, onValueChange = { content = it }, modifier = Modifier.fillMaxWidth().height(150.dp), placeholder = { Text("Write your article...") }, colors = TextFieldDefaults.colors(focusedContainerColor = Slate800, unfocusedContainerColor = Slate800, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400), shape = RoundedCornerShape(12.dp))
+                OutlinedTextField(value = content, onValueChange = { content = it }, modifier = Modifier.fillMaxWidth().height(150.dp), placeholder = { Text("Write your article...") }, colors = TextFieldDefaults.colors(focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary), shape = RoundedCornerShape(12.dp))
                 Spacer(Modifier.height(16.dp))
-                Button(onClick = { if (title.isNotBlank() && content.isNotBlank()) onPublish(title, content) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Gold400, contentColor = Color(0xFF1A0F00))) { Text("Publish") }
+                Button(onClick = { if (title.isNotBlank() && content.isNotBlank()) onPublish(title, content) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color(0xFF1A0F00))) { Text("Publish") }
             }
         }
     }
