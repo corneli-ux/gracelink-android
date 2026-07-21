@@ -49,9 +49,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.data.db.entity.ArticleCommentEntity
 
 @Composable
@@ -84,7 +81,7 @@ fun ArticleDetailScreen(
                     Spacer(Modifier.height(16.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            Icons.Rounded.FavoriteBorder, "Like", tint = Gold400,
+                            Icons.Rounded.FavoriteBorder, "Like", tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp).clickable { vm.toggleLike() },
                         )
                         Spacer(Modifier.width(6.dp))
@@ -108,19 +105,19 @@ fun ArticleDetailScreen(
         }
 
         Row(
-            Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp).clip(RoundedCornerShape(24.dp)).background(Slate800).padding(horizontal = 16.dp, vertical = 6.dp),
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp).clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 16.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TextField(
                 value = input, onValueChange = { input = it },
                 modifier = Modifier.weight(1f),
                 placeholder = { Text("Add a comment\u2026", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500),
+                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(onSend = { if (input.isNotBlank()) { vm.addComment(input.trim()); input = "" } }),
             )
             Box(
-                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(Gold500).clickable { if (input.isNotBlank()) { vm.addComment(input.trim()); input = "" } },
+                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.primary).clickable { if (input.isNotBlank()) { vm.addComment(input.trim()); input = "" } },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Rounded.Send, "Send", tint = Color(0xFF1A0F00), modifier = Modifier.size(18.dp))
@@ -132,8 +129,8 @@ fun ArticleDetailScreen(
 @Composable
 private fun CommentRow(comment: ArticleCommentEntity) {
     Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        Box(Modifier.size(32.dp).clip(RoundedCornerShape(16.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
-            Text(comment.displayName.firstOrNull()?.uppercase() ?: "?", style = MaterialTheme.typography.labelMedium, color = Gold400, fontWeight = FontWeight.Bold)
+        Box(Modifier.size(32.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
+            Text(comment.displayName.firstOrNull()?.uppercase() ?: "?", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.width(10.dp))
         Column {
