@@ -60,6 +60,7 @@ import com.gracelink.android.core.components.GoldButton
 @Composable
 fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltViewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
     var activeSeriesId by remember { mutableStateOf<String?>(null) }
 
     // Uploading an episode needs a series to belong to first. If you
@@ -177,6 +178,32 @@ fun PodcastCreateScreen(onBack: () -> Unit, vm: PodcastCreateViewModel = hiltVie
                             }
                         }
                     }
+                }
+
+                if (state.isRecording) {
+                    Row(
+                        Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.error).clickable {
+                            val title = epTitle.ifBlank { "Episode \u2014 ${java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault()).format(java.util.Date())}" }
+                            activeSeriesId?.let { id -> vm.stopRecordingAndUpload(id, title, epDuration.ifBlank { "\u2014" }) { epTitle = ""; epDuration = "" } }
+                        }.padding(vertical = 14.dp),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        Text("Recording\u2026 tap to stop & upload", color = Color.White, style = MaterialTheme.typography.labelLarge)
+                    }
+                    Spacer(Modifier.height(10.dp))
+                } else if (!state.isUploading) {
+                    val micPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                        if (granted) vm.startRecording()
+                    }
+                    GhostButton(
+                        "Record Now (noise suppression on)", icon = Icons.Rounded.Add,
+                        onClick = {
+                            val granted = androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                            if (granted) vm.startRecording() else micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.height(10.dp))
                 }
 
                 if (state.isUploading) {

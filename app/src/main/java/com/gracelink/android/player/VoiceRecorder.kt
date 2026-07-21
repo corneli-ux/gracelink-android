@@ -2,19 +2,33 @@ package com.gracelink.android.player
 
 import android.content.Context
 import android.media.MediaRecorder
+import android.media.audiofx.AcousticEchoCanceler
+import android.media.audiofx.AutomaticGainControl
+import android.media.audiofx.NoiseSuppressor
 import android.os.Build
 import java.io.File
 
 /**
- * Records a short voice note to a local file using MediaRecorder (AAC/M4A).
- * One recorder instance is meant for one recording at a time -- create a
- * fresh instance (or call stop() then start() again) rather than reusing
- * across unrelated recordings.
+ * Records a voice note/podcast take to a local file using MediaRecorder
+ * (AAC/M4A). One recorder instance is meant for one recording at a time --
+ * create a fresh instance (or call stop() then start() again) rather than
+ * reusing across unrelated recordings.
+ *
+ * Applies real Android platform audio effects (NoiseSuppressor,
+ * AcousticEchoCanceler, AutomaticGainControl) where the device actually
+ * supports them -- this is a genuine, if modest, noise-reduction step
+ * during recording, not a marketing claim. It is NOT the same thing as
+ * ML-based post-processing denoising (RNNoise-style), which would need
+ * either a bundled ML model or an FFmpeg-class DSP pipeline -- a much
+ * larger, separate undertaking that isn't pretended to be covered here.
  */
 class VoiceRecorder(private val context: Context) {
 
     private var recorder: MediaRecorder? = null
     private var outputFile: File? = null
+    private var noiseSuppressor: NoiseSuppressor? = null
+    private var echoCanceler: AcousticEchoCanceler? = null
+    private var gainControl: AutomaticGainControl? = null
 
     /** Starts recording to a new temp file in the app's cache dir. Returns that file's path. */
     fun start(): String {
@@ -32,10 +46,39 @@ class VoiceRecorder(private val context: Context) {
             setAudioSamplingRate(44_100)
             setOutputFile(file.absolutePath)
             prepare()
-            start()
         }
+        applyAudioEffects(mr.audioSessionId)
+        mr.start()
         recorder = mr
         return file.absolutePath
+    }
+
+    /** Enables whichever platform noise-reduction effects this specific
+     * device actually supports. Every one of these is optional and
+     * device-dependent -- absence of support is normal, not an error. */
+    private fun applyAudioEffects(audioSessionId: Int) {
+        try {
+            if (NoiseSuppressor.isAvailable()) {
+                noiseSuppressor = NoiseSuppressor.create(audioSessionId)?.apply { enabled = true }
+            }
+        } catch (_: Exception) { /* device doesn't support it -- fine, recording still works */ }
+        try {
+            if (AcousticEchoCanceler.isAvailable()) {
+                echoCanceler = AcousticEchoCanceler.create(audioSessionId)?.apply { enabled = true }
+            }
+        } catch (_: Exception) { }
+        try {
+            if (AutomaticGainControl.isAvailable()) {
+                gainControl = AutomaticGainControl.create(audioSessionId)?.apply { enabled = true }
+            }
+        } catch (_: Exception) { }
+    }
+
+    private fun releaseAudioEffects() {
+        try { noiseSuppressor?.release() } catch (_: Exception) { }
+        try { echoCanceler?.release() } catch (_: Exception) { }
+        try { gainControl?.release() } catch (_: Exception) { }
+        noiseSuppressor = null; echoCanceler = null; gainControl = null
     }
 
     /** Stops recording and releases the recorder. Returns the recorded file path, or null if nothing was recorded. */
@@ -52,6 +95,7 @@ class VoiceRecorder(private val context: Context) {
             return null
         } finally {
             recorder = null
+            releaseAudioEffects()
         }
         return path
     }
@@ -66,6 +110,7 @@ class VoiceRecorder(private val context: Context) {
         } catch (_: Exception) {
         } finally {
             recorder = null
+            releaseAudioEffects()
             outputFile?.delete()
             outputFile = null
         }
