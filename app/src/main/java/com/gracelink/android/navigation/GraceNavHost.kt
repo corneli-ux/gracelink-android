@@ -241,6 +241,8 @@ fun GraceNavHost() {
                         onOpenPrayer = { navController.navigate(GraceRoute.Prayer) },
                         onOpenEvent = { id -> navController.navigate(GraceRoute.EventRsvp(id)) },
                         onOpenQuestion = { id -> navController.navigate(GraceRoute.QuestionDetail(id)) },
+                        onOpenChurch = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
+                        onOpenPastor = { uid -> navController.navigate(GraceRoute.PastorProfile(uid)) },
                         onFindChurches = { navController.navigate(GraceRoute.Churches) },
                         onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
                     )

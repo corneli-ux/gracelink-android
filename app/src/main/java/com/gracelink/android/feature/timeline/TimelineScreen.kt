@@ -36,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.data.repository.BiblicalReaction
+import kotlinx.coroutines.launch
 import com.gracelink.android.data.repository.ReactionSummary
 import com.gracelink.android.data.repository.TimelineItem
 import java.text.SimpleDateFormat
@@ -61,11 +63,14 @@ fun TimelineScreen(
     onOpenPrayer: () -> Unit = {},
     onOpenEvent: (String) -> Unit = {},
     onOpenQuestion: (String) -> Unit = {},
+    onOpenChurch: (String) -> Unit = {},
+    onOpenPastor: (String) -> Unit = {},
     onFindChurches: () -> Unit = {},
     onRequireSignIn: () -> Unit = {},
     vm: TimelineViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
     Column(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
         Text(
@@ -95,6 +100,15 @@ fun TimelineScreen(
                                 is TimelineItem.Prayer -> onOpenPrayer()
                                 is TimelineItem.Event -> onOpenEvent(item.entity.id)
                                 is TimelineItem.Question -> onOpenQuestion(item.entity.id)
+                            }
+                        },
+                        onOpenAuthor = {
+                            scope.launch {
+                                when (val route = vm.resolveProfileRoute(item)) {
+                                    is com.gracelink.android.feature.timeline.ProfileRoute.Church -> onOpenChurch(route.churchId)
+                                    is com.gracelink.android.feature.timeline.ProfileRoute.Pastor -> onOpenPastor(route.pastorUid)
+                                    null -> {}
+                                }
                             }
                         },
                     )
@@ -130,7 +144,7 @@ private fun typeMeta(item: TimelineItem): Triple<ImageVector, String, String> = 
 }
 
 @Composable
-private fun TimelineCard(item: TimelineItem, vm: TimelineViewModel, onOpen: () -> Unit) {
+private fun TimelineCard(item: TimelineItem, vm: TimelineViewModel, onOpen: () -> Unit, onOpenAuthor: () -> Unit) {
     var showComments by remember { mutableStateOf(false) }
     val (icon, kind, title) = typeMeta(item)
     val reactions by vm.reactionsFor(item).collectAsState(initial = ReactionSummary())
@@ -143,7 +157,7 @@ private fun TimelineCard(item: TimelineItem, vm: TimelineViewModel, onOpen: () -
         }
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(item.authorName, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+            Text(item.authorName, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.clickable(onClick = onOpenAuthor))
             Spacer(Modifier.width(6.dp))
             Text("\u00b7 ${fmtTime(item.timestamp)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gracelink.android.data.db.dao.ChurchDao
 import com.gracelink.android.data.repository.BiblicalReaction
+import com.gracelink.android.data.repository.CloudProfileRegistry
 import com.gracelink.android.data.repository.FollowRepository
 import com.gracelink.android.data.repository.ReactionRepository
 import com.gracelink.android.data.repository.TimelineCommentRepository
@@ -37,6 +38,7 @@ class TimelineViewModel @Inject constructor(
     private val reactionRepo: ReactionRepository,
     private val commentRepo: TimelineCommentRepository,
     private val churchDao: ChurchDao,
+    private val registry: CloudProfileRegistry,
     private val userRepo: UserRepository,
 ) : ViewModel() {
 
@@ -87,4 +89,28 @@ class TimelineViewModel @Inject constructor(
         if (s.myUid.isBlank() || text.isBlank()) return@launch
         commentRepo.addComment(item.contentType, item.contentId, s.myUid, s.myName, text)
     }
+
+    /**
+     * Resolves what tapping a Timeline item's author name should open --
+     * previously there was no way to reach a church or pastor's profile
+     * from their own posted content at all, only through Find Churches.
+     * An Event's authorId IS the church id already; everything else is
+     * authored under the account owner's uid, so that has to be checked
+     * against both "is this a church's owner" and "is this a pastor"
+     * before deciding where to navigate.
+     */
+    suspend fun resolveProfileRoute(item: TimelineItem): ProfileRoute? {
+        if (item is TimelineItem.Event) return ProfileRoute.Church(item.entity.churchId)
+        val authorId = item.authorId
+        val church = churchDao.byOwnerOnce(authorId)
+        if (church != null) return ProfileRoute.Church(church.id)
+        val pastor = registry.getPastor(authorId)
+        if (pastor != null) return ProfileRoute.Pastor(pastor.uid)
+        return null
+    }
+}
+
+sealed class ProfileRoute {
+    data class Church(val churchId: String) : ProfileRoute()
+    data class Pastor(val pastorUid: String) : ProfileRoute()
 }
