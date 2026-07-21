@@ -35,13 +35,13 @@ class MediaUploadRepository @Inject constructor(
     suspend fun uploadContentUri(uri: Uri, storagePath: String): String {
         val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             ?: throw IllegalStateException("Couldn't read the selected file")
-        bucket.upload(storagePath, bytes) { upsert = true }
+        bucket.upload(storagePath, bytes)
         return bucket.publicUrl(storagePath)
     }
 
     /** Uploads a local file path (e.g. a MediaRecorder output file) and returns its public URL. */
     suspend fun uploadLocalFile(localPath: String, storagePath: String): String {
-        bucket.upload(storagePath, File(localPath)) { upsert = true }
+        bucket.upload(storagePath, File(localPath))
         return bucket.publicUrl(storagePath)
     }
 }
