@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Podcasts
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,10 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Obsidian
-import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.core.theme.TextMuted
 import com.gracelink.android.core.theme.TextPrimary
 import com.gracelink.android.core.theme.TextSecondary
@@ -60,29 +57,29 @@ fun PodcastDetailScreen(
     LaunchedEffect(podcastId) { vm.load(podcastId) }
     val series = state.series
 
-    Box(Modifier.fillMaxSize().statusBarsPadding().background(Obsidian)) {
+    Box(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(contentPadding = PaddingValues(bottom = 100.dp)) {
             item {
                 Box(Modifier.fillMaxWidth().height(320.dp)) {
                     if (series?.coverUrl != null) {
                         AsyncImage(model = series.coverUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                     }
-                    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.35f), Obsidian))))
+                    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.35f), MaterialTheme.colorScheme.background))))
                     Column(Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Row(Modifier.fillMaxWidth()) {
                             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = TextPrimary) }
                         }
                         Spacer(Modifier.weight(1f))
-                        Box(Modifier.size(140.dp).clip(RoundedCornerShape(20.dp)).background(Slate900), contentAlignment = Alignment.Center) {
+                        Box(Modifier.size(140.dp).clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
                             if (series?.coverUrl != null) {
                                 AsyncImage(model = series.coverUrl, contentDescription = series.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                             } else {
-                                Icon(Icons.Rounded.Podcasts, null, tint = Gold500.copy(alpha = 0.6f), modifier = Modifier.size(48.dp))
+                                Icon(Icons.Rounded.Podcasts, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), modifier = Modifier.size(48.dp))
                             }
                         }
                         Spacer(Modifier.height(14.dp))
                         Text(series?.title ?: "", style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
-                        Text(series?.authorName ?: "", style = MaterialTheme.typography.bodyMedium, color = Gold400)
+                        Text(series?.authorName ?: "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -93,14 +90,14 @@ fun PodcastDetailScreen(
                     Spacer(Modifier.height(14.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
-                            Modifier.clip(RoundedCornerShape(24.dp)).background(Gold500)
+                            Modifier.clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.primary)
                                 .clickable { state.episodes.firstOrNull()?.let { onPlayEpisode(it.id) } }
                                 .padding(horizontal = 20.dp, vertical = 12.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Rounded.PlayArrow, null, tint = Obsidian, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Rounded.PlayArrow, null, tint = MaterialTheme.colorScheme.background, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(6.dp))
-                                Text("Play Latest", color = Obsidian, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                                Text("Play Latest", color = MaterialTheme.colorScheme.background, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                             }
                         }
                         Spacer(Modifier.width(12.dp))
@@ -120,11 +117,11 @@ fun PodcastDetailScreen(
 
             items(state.episodes, key = { it.id }) { ep ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp).clip(RoundedCornerShape(14.dp)).background(Slate900).clickable { onPlayEpisode(ep.id) }.padding(14.dp),
+                    modifier = Modifier.fillMaxWidth().clickable { onPlayEpisode(ep.id) }.padding(horizontal = 24.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(Gold500.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.PlayArrow, null, tint = Gold400)
+                    Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.PlayArrow, null, tint = MaterialTheme.colorScheme.primary)
                     }
                     Spacer(modifier = Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -132,6 +129,7 @@ fun PodcastDetailScreen(
                         Text(ep.durationLabel, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
                     }
                 }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 24.dp))
             }
         }
     }
