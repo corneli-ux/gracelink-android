@@ -30,7 +30,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.data.db.entity.RsvpStatus
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -98,7 +97,7 @@ private fun RsvpOption(label: String, value: RsvpStatus, selected: RsvpStatus?, 
     Box(
         Modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(if (isSelected) Gold500 else MaterialTheme.colorScheme.surfaceVariant)
+            .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {

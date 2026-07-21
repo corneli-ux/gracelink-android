@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.data.db.entity.AdminNoteEntity
 import com.gracelink.android.data.db.entity.ChurchRole
 import java.text.SimpleDateFormat
@@ -90,7 +89,7 @@ fun MemberDetailScreen(memberId: String, onBack: () -> Unit, onMessage: (String,
             }
             Spacer(Modifier.height(14.dp))
             Row(
-                Modifier.clip(RoundedCornerShape(20.dp)).background(Gold500).clickable { onMessage(member.userId, member.displayName) }.padding(horizontal = 16.dp, vertical = 10.dp),
+                Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.primary).clickable { onMessage(member.userId, member.displayName) }.padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Rounded.Send, null, tint = Color(0xFF1A0F00), modifier = Modifier.size(16.dp))
@@ -125,12 +124,12 @@ fun MemberDetailScreen(memberId: String, onBack: () -> Unit, onMessage: (String,
                     value = noteText, onValueChange = { noteText = it },
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Add a note\u2026") },
-                    colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500),
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                     keyboardActions = KeyboardActions(onSend = { if (noteText.isNotBlank()) { vm.addNote(noteText.trim()); noteText = "" } }),
                 )
                 Icon(
-                    Icons.Rounded.Send, "Add note", tint = Gold500,
+                    Icons.Rounded.Send, "Add note", tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp).clickable { if (noteText.isNotBlank()) { vm.addNote(noteText.trim()); noteText = "" } },
                 )
             }
@@ -178,7 +177,7 @@ private fun RoleGrid(selected: ChurchRole, onSelect: (ChurchRole) -> Unit) {
                         Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(if (isSelected) Gold500 else MaterialTheme.colorScheme.surfaceVariant)
+                            .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { onSelect(role) }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center,

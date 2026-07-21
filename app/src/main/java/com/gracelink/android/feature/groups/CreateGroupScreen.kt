@@ -37,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.gracelink.android.core.components.GoldButton
-import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.data.db.entity.GroupType
 
 @Composable
@@ -69,7 +68,7 @@ fun CreateGroupScreen(onBack: () -> Unit, onCreated: (String) -> Unit, vm: Group
                         val selected = type == t
                         Box(
                             Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
-                                .background(if (selected) Gold500 else MaterialTheme.colorScheme.surfaceVariant)
+                                .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                 .clickable { type = t }.padding(vertical = 10.dp),
                             contentAlignment = Alignment.Center,
                         ) {

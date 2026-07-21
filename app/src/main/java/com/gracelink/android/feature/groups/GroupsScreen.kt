@@ -46,7 +46,7 @@ fun GroupsScreen(
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onCreate) {
-                Icon(Icons.Rounded.Add, "Create", tint = Gold500)
+                Icon(Icons.Rounded.Add, "Create", tint = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -85,7 +85,7 @@ private fun GroupRow(group: ChurchGroupEntity, onClick: () -> Unit) {
                 .background(Slate800, RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Rounded.Group, null, tint = Gold500, modifier = Modifier.size(22.dp))
+            Icon(Icons.Rounded.Group, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
         }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {

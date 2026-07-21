@@ -37,7 +37,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.data.db.entity.QuestionEntity
 
 /**
@@ -60,7 +59,7 @@ fun ForumScreen(
                 Text("Ask honestly. Answer with grace.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Box(
-                Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(Gold500).clickable {
+                Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.primary).clickable {
                     if (state.isGuest) onRequireSignIn() else onAskQuestion()
                 },
                 contentAlignment = Alignment.Center,
@@ -73,7 +72,7 @@ fun ForumScreen(
         if (state.questions.isEmpty()) {
             Column(Modifier.fillMaxWidth().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(Modifier.height(40.dp))
-                Icon(Icons.Rounded.Forum, null, tint = Gold500.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
+                Icon(Icons.Rounded.Forum, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
                 Spacer(Modifier.height(10.dp))
                 Text("No questions yet", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                 Text("Be the first to ask", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

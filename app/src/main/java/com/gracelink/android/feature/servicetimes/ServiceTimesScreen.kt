@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.components.GoldButton
-import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.data.db.entity.ServiceTimeEntity
 
 private val DAY_NAMES = listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
@@ -100,7 +99,7 @@ private fun AddServiceTimeForm(onAdd: (Int, String, String, String, Boolean) -> 
             DAY_NAMES.forEachIndexed { index, label ->
                 val selected = dayIndex == index
                 Box(
-                    Modifier.clip(RoundedCornerShape(8.dp)).background(if (selected) Gold500 else MaterialTheme.colorScheme.surfaceVariant)
+                    Modifier.clip(RoundedCornerShape(8.dp)).background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                         .clickable { dayIndex = index }.padding(horizontal = 10.dp, vertical = 8.dp),
                 ) {
                     Text(label, style = MaterialTheme.typography.labelSmall, color = if (selected) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface)

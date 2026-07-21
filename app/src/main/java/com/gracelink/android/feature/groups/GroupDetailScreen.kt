@@ -36,7 +36,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.components.GhostButton
 import com.gracelink.android.core.components.GoldButton
-import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.data.db.entity.GroupMemberEntity
 
 @Composable
@@ -106,7 +105,7 @@ fun GroupDetailScreen(
 private fun MemberChip(member: GroupMemberEntity) {
     Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(32.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
-            Text(member.displayName.take(1).uppercase(), color = Gold500, fontWeight = FontWeight.Bold)
+            Text(member.displayName.take(1).uppercase(), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.width(12.dp))
         Text(member.displayName, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))

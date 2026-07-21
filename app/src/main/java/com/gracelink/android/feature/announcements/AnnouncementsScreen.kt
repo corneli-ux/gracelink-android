@@ -49,7 +49,7 @@ fun AnnouncementsScreen(
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onCreate) {
-                Icon(Icons.Rounded.Add, "Create", tint = Gold500)
+                Icon(Icons.Rounded.Add, "Create", tint = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -74,7 +74,7 @@ fun AnnouncementsScreen(
 private fun AnnouncementCard(item: AnnouncementEntity) {
     val priorityColor = when (item.priority) {
         AnnouncementPriority.URGENT -> LiveRed
-        AnnouncementPriority.HIGH -> Gold500
+        AnnouncementPriority.HIGH -> MaterialTheme.colorScheme.primary
         else -> TextSecondary
     }
 
@@ -86,7 +86,7 @@ private fun AnnouncementCard(item: AnnouncementEntity) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (item.isPinned) {
-                Icon(Icons.Rounded.PushPin, null, tint = Gold500, modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.PushPin, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
             }
             Text(

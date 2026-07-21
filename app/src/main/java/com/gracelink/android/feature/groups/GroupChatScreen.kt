@@ -43,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.data.repository.GroupChatMessage
 
 @Composable
@@ -81,10 +80,10 @@ fun GroupChatScreen(groupId: String, onBack: () -> Unit, vm: GroupChatViewModel 
                 value = input, onValueChange = { input = it },
                 modifier = Modifier.weight(1f),
                 placeholder = { Text("Message\u2026", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500),
+                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary),
             )
             Box(
-                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(Gold500).clickable { if (input.isNotBlank()) { vm.send(input.trim()); input = "" } },
+                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.primary).clickable { if (input.isNotBlank()) { vm.send(input.trim()); input = "" } },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Rounded.Send, "Send", tint = Color(0xFF1A0F00), modifier = Modifier.size(18.dp))
@@ -100,11 +99,11 @@ private fun MessageBubble(msg: GroupChatMessage, isMine: Boolean) {
             Modifier
                 .widthIn(max = 280.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(if (isMine) Gold500 else MaterialTheme.colorScheme.surfaceVariant)
+                .background(if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                 .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
             if (!isMine) {
-                Text(msg.senderName, style = MaterialTheme.typography.labelSmall, color = Gold500, fontWeight = FontWeight.SemiBold)
+                Text(msg.senderName, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(2.dp))
             }
             Text(msg.text, style = MaterialTheme.typography.bodyMedium, color = if (isMine) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface)
