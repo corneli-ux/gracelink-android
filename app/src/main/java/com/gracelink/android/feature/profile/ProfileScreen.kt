@@ -37,11 +37,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gracelink.android.core.theme.Emerald500
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Slate800
-import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.ContentLanguage
 
@@ -75,7 +70,7 @@ fun ProfileScreen(
         item {
             Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    Modifier.size(72.dp).clip(CircleShape).background(Brush.horizontalGradient(listOf(Gold400, Emerald500)))
+                    Modifier.size(72.dp).clip(CircleShape).background(Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)))
                         .clickable(enabled = user != null) { photoPicker.launch("image/*") },
                     contentAlignment = Alignment.Center,
                 ) {
@@ -86,7 +81,7 @@ fun ProfileScreen(
                     }
                     if (user != null && !state.isUploadingPhoto) {
                         Box(Modifier.align(Alignment.BottomEnd).size(22.dp).clip(CircleShape).background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Rounded.CameraAlt, "Change photo", tint = Gold400, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Rounded.CameraAlt, "Change photo", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                         }
                     }
                 }
@@ -102,12 +97,12 @@ fun ProfileScreen(
                             AccountType.PERSONAL -> "MEMBER"
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.clip(RoundedCornerShape(6.dp)).background(if (user.accountType == AccountType.PERSONAL) Emerald500 else Gold400).padding(horizontal = 8.dp, vertical = 3.dp)) {
+                            Box(Modifier.clip(RoundedCornerShape(6.dp)).background(if (user.accountType == AccountType.PERSONAL) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary).padding(horizontal = 8.dp, vertical = 3.dp)) {
                                 Text(roleLabel, style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
                             }
                             if (user.isVerified) {
                                 Spacer(Modifier.width(6.dp))
-                                Text("Verified", style = MaterialTheme.typography.labelSmall, color = Emerald500)
+                                Text("Verified", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                             }
                         }
                     }
@@ -129,7 +124,7 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .background(Gold500)
+                        .background(MaterialTheme.colorScheme.primary)
                         .clickable(onClick = onSetupProfile)
                         .padding(18.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -146,25 +141,24 @@ fun ProfileScreen(
         // Stats
         item {
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Stat(Icons.Rounded.GraphicEq, "Minutes", "${user?.totalMinutes ?: 0}", Gold400, Modifier.weight(1f))
-                Stat(Icons.Rounded.TrendingUp, "Streak", "${user?.streakDays ?: 0}d", Emerald500, Modifier.weight(1f))
-                Stat(Icons.Rounded.Bookmark, "Saved", "${state.favoritesCount}", Gold400, Modifier.weight(1f))
-                Stat(Icons.Rounded.Download, "Downloads", "${state.downloadsCount}", Emerald500, Modifier.weight(1f))
+                Stat(Icons.Rounded.GraphicEq, "Minutes", "${user?.totalMinutes ?: 0}", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                Stat(Icons.Rounded.TrendingUp, "Streak", "${user?.streakDays ?: 0}d", MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
+                Stat(Icons.Rounded.Bookmark, "Saved", "${state.favoritesCount}", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                Stat(Icons.Rounded.Download, "Downloads", "${state.downloadsCount}", MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
             }
             Spacer(Modifier.height(20.dp))
         }
 
-        // Prayers offered banner
+        // Prayers offered
         item {
-            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(20.dp)).background(Brush.horizontalGradient(listOf(Emerald500.copy(alpha = 0.25f), Slate800))).padding(20.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Spa, null, tint = Emerald500, modifier = Modifier.size(28.dp))
-                    Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) { Text("Prayers Offered", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface); Text("Standing with brothers and sisters", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                    Text("${user?.prayersOffered ?: 0}", style = MaterialTheme.typography.displaySmall, color = Emerald500, fontWeight = FontWeight.Bold)
-                }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.Spa, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(24.dp))
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) { Text("Prayers Offered", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface); Text("Standing with brothers and sisters", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                Text("${user?.prayersOffered ?: 0}", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
             }
-            Spacer(Modifier.height(24.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 20.dp))
+            Spacer(Modifier.height(12.dp))
         }
 
         // Quick actions: Faith Journey + Articles + Churches + Church Portal
@@ -214,7 +208,7 @@ fun ProfileScreen(
         // Sign out
         item {
             Box(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(14.dp)).background(Slate800)
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { vm.signOut(); onSignedOut() }
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
@@ -228,10 +222,10 @@ fun ProfileScreen(
 
 @Composable
 private fun Stat(icon: ImageVector, label: String, value: String, tint: Color, modifier: Modifier) {
-    Column(modifier.clip(RoundedCornerShape(14.dp)).background(Slate800).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) { Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp)); Spacer(Modifier.height(6.dp)); Text(value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold); Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    Column(modifier.clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) { Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp)); Spacer(Modifier.height(6.dp)); Text(value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold); Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 }
-@Composable private fun SettingsCard(content: @Composable () -> Unit) { Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(14.dp)).background(Slate800).padding(vertical = 4.dp)) { content() } }
-@Composable private fun Toggle(icon: ImageVector, title: String, sub: String, checked: Boolean, onChange: (Boolean) -> Unit) { Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = Gold400, modifier = Modifier.size(18.dp)) }; Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text(title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface); Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }; Switch(checked = checked, onCheckedChange = onChange, colors = SwitchDefaults.colors(checkedThumbColor = Gold400, checkedTrackColor = Gold400.copy(alpha = 0.4f), uncheckedTrackColor = Slate900)) } }
-@Composable private fun Clickable(icon: ImageVector, title: String, sub: String, onClick: () -> Unit) { Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = Gold400, modifier = Modifier.size(18.dp)) }; Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text(title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface); Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } } }
-@Composable private fun LanguageRow(current: ContentLanguage, onPick: (ContentLanguage) -> Unit) { Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Gold400.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Language, null, tint = Gold400, modifier = Modifier.size(18.dp)) }; Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text("Preferred Language", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface); Text("Content will prioritize this language", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }; ContentLanguage.values().forEach { lang -> Box(Modifier.padding(start = 6.dp).clip(RoundedCornerShape(8.dp)).background(if (lang == current) Gold400 else Slate900).clickable { onPick(lang) }.padding(horizontal = 8.dp, vertical = 4.dp)) { Text(lang.name, style = MaterialTheme.typography.labelSmall, color = if (lang == current) Color(0xFF1A1408) else MaterialTheme.colorScheme.onSurfaceVariant) } } } }
-@Composable private fun Divider() { Box(Modifier.fillMaxWidth().height(1.dp).padding(horizontal = 16.dp).background(Slate900.copy(alpha = 0.5f))) }
+@Composable private fun SettingsCard(content: @Composable () -> Unit) { Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(vertical = 4.dp)) { content() } }
+@Composable private fun Toggle(icon: ImageVector, title: String, sub: String, checked: Boolean, onChange: (Boolean) -> Unit) { Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp)) }; Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text(title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface); Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }; Switch(checked = checked, onCheckedChange = onChange, colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colorScheme.primary, checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), uncheckedTrackColor = MaterialTheme.colorScheme.background)) } }
+@Composable private fun Clickable(icon: ImageVector, title: String, sub: String, onClick: () -> Unit) { Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp)) }; Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text(title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface); Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } } }
+@Composable private fun LanguageRow(current: ContentLanguage, onPick: (ContentLanguage) -> Unit) { Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) { Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Language, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp)) }; Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text("Preferred Language", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface); Text("Content will prioritize this language", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }; ContentLanguage.values().forEach { lang -> Box(Modifier.padding(start = 6.dp).clip(RoundedCornerShape(8.dp)).background(if (lang == current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background).clickable { onPick(lang) }.padding(horizontal = 8.dp, vertical = 4.dp)) { Text(lang.name, style = MaterialTheme.typography.labelSmall, color = if (lang == current) Color(0xFF1A1408) else MaterialTheme.colorScheme.onSurfaceVariant) } } } }
+@Composable private fun Divider() { Box(Modifier.fillMaxWidth().height(1.dp).padding(horizontal = 16.dp).background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))) }
