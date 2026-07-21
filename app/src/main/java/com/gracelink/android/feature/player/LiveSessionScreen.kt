@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -50,11 +50,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.gracelink.android.core.components.LiveBadge
-import com.gracelink.android.core.theme.Emerald500
-import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Slate800
-import com.gracelink.android.core.theme.Slate900
-import com.gracelink.android.core.theme.Violet400
 import com.gracelink.android.data.repository.LiveChatMessage
 import org.json.JSONArray
 
@@ -74,7 +69,7 @@ fun LiveSessionScreen(sessionId: String, onBack: () -> Unit, vm: LiveSessionView
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding().imePadding()) {
         // Top bar
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Slate800).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(onClick = onBack), contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(Modifier.width(12.dp))
@@ -85,28 +80,25 @@ fun LiveSessionScreen(sessionId: String, onBack: () -> Unit, vm: LiveSessionView
 
         // Session header
         session?.let { s ->
-            Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp).clip(RoundedCornerShape(20.dp)).background(Brush.verticalGradient(listOf(Slate800, Slate900))).padding(16.dp)) {
-                Row {
-                    AsyncImage(model = s.coverImageUrl, contentDescription = null, modifier = Modifier.size(72.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
-                    Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(s.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        Spacer(Modifier.height(4.dp))
-                        Text("Hosted by ${parseHosts(s.hostsJson).joinToString(", ")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(Modifier.height(4.dp))
-                        Text(s.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                AsyncImage(model = s.coverImageUrl, contentDescription = null, modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(s.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(4.dp))
+                    Text("Hosted by ${parseHosts(s.hostsJson).joinToString(", ")}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(4.dp))
+                    Text(s.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         }
-
-        Spacer(Modifier.height(16.dp))
 
         // Chat header
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("Live Chat", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.weight(1f))
-            Box(Modifier.clip(RoundedCornerShape(8.dp)).background(if (state.isQuestionMode) Gold500 else Slate800).clickable { vm.toggleQuestionMode() }.padding(horizontal = 10.dp, vertical = 6.dp)) {
+            Box(Modifier.clip(RoundedCornerShape(8.dp)).background(if (state.isQuestionMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant).clickable { vm.toggleQuestionMode() }.padding(horizontal = 10.dp, vertical = 6.dp)) {
                 Text(if (state.isQuestionMode) "Question Mode: ON" else "Ask a Question", style = MaterialTheme.typography.labelMedium, color = if (state.isQuestionMode) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface)
             }
         }
@@ -129,18 +121,18 @@ fun LiveSessionScreen(sessionId: String, onBack: () -> Unit, vm: LiveSessionView
 
         // Input
         Row(
-            Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp).clip(RoundedCornerShape(24.dp)).background(Slate800).padding(horizontal = 16.dp, vertical = 6.dp),
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp).clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 16.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
                 value = input, onValueChange = { input = it },
                 modifier = Modifier.weight(1f),
                 placeholder = { Text(if (state.isQuestionMode) "Ask your question…" else "Send a message…", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, disabledContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500),
+                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, disabledContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(onSend = { if (input.isNotBlank()) { vm.sendMessage(input.trim()); input = "" } })
             )
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(Gold500).clickable { if (input.isNotBlank()) { vm.sendMessage(input.trim()); input = "" } }, contentAlignment = Alignment.Center) {
+            Box(Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.primary).clickable { if (input.isNotBlank()) { vm.sendMessage(input.trim()); input = "" } }, contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Send, "Send", tint = Color(0xFF1A0F00), modifier = Modifier.size(18.dp))
             }
         }
@@ -151,16 +143,16 @@ fun LiveSessionScreen(sessionId: String, onBack: () -> Unit, vm: LiveSessionView
 private fun ChatBubble(msg: LiveChatMessage, isMine: Boolean) {
     val alignment = if (isMine) Alignment.End else Alignment.Start
     val bubbleColor = when {
-        msg.isHost -> Gold500.copy(alpha = 0.18f)
-        msg.isModerator -> Violet400.copy(alpha = 0.15f)
-        msg.isQuestion -> Emerald500.copy(alpha = 0.15f)
-        isMine -> Slate800
-        else -> Slate800.copy(alpha = 0.7f)
+        msg.isHost -> MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+        msg.isModerator -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+        msg.isQuestion -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
+        isMine -> MaterialTheme.colorScheme.surfaceVariant
+        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
     }
     val nameColor = when {
-        msg.isHost -> Gold500
-        msg.isModerator -> Violet400
-        msg.isQuestion -> Emerald500
+        msg.isHost -> MaterialTheme.colorScheme.primary
+        msg.isModerator -> MaterialTheme.colorScheme.tertiary
+        msg.isQuestion -> MaterialTheme.colorScheme.secondary
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
@@ -168,8 +160,8 @@ private fun ChatBubble(msg: LiveChatMessage, isMine: Boolean) {
         if (!isMine) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(msg.displayName, style = MaterialTheme.typography.labelSmall, color = nameColor, fontWeight = FontWeight.SemiBold)
-                if (msg.isHost) { Spacer(Modifier.width(4.dp)); Box(Modifier.clip(RoundedCornerShape(4.dp)).background(Gold500).padding(horizontal = 4.dp, vertical = 1.dp)) { Text("HOST", style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A0F00)) } }
-                if (msg.isModerator) { Spacer(Modifier.width(4.dp)); Box(Modifier.clip(RoundedCornerShape(4.dp)).background(Violet400).padding(horizontal = 4.dp, vertical = 1.dp)) { Text("MOD", style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A0F00)) } }
+                if (msg.isHost) { Spacer(Modifier.width(4.dp)); Box(Modifier.clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.primary).padding(horizontal = 4.dp, vertical = 1.dp)) { Text("HOST", style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A0F00)) } }
+                if (msg.isModerator) { Spacer(Modifier.width(4.dp)); Box(Modifier.clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.tertiary).padding(horizontal = 4.dp, vertical = 1.dp)) { Text("MOD", style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A0F00)) } }
             }
         }
         Box(Modifier.widthIn(max = 280.dp).clip(RoundedCornerShape(16.dp)).background(bubbleColor).padding(horizontal = 12.dp, vertical = 8.dp)) {
