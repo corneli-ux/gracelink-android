@@ -164,9 +164,9 @@ dependencies {
     // (profile photos, church photos, podcast covers/episodes). Firebase
     // Auth/Firestore stay as they are; only file storage moves, since
     // that's the piece Firebase now requires the paid Blaze plan for.
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.2"))
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.5.0"))
     implementation("io.github.jan-tennert.supabase:storage-kt")
-    implementation("io.ktor:ktor-client-android:3.2.1")
+    implementation("io.ktor:ktor-client-android:3.4.0")
 
     // Desugaring for java.time on older API levels
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
