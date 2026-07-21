@@ -124,6 +124,10 @@ dependencies {
     // instance has version 2.3.0, while maximum supported version is
     // 2.2.0." Forcing a version that matches the Kotlin version in use.
     implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.10")
+    // hiltJavaCompileDebug is a javac-based task with its own separate
+    // annotation processor classpath -- the implementation dependency
+    // above doesn't reach it. Forcing the same version there too.
+    annotationProcessor("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.10")
 
     // Media3 ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
