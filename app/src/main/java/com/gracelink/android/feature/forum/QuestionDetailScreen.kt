@@ -46,8 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Gold500
 import com.gracelink.android.data.db.entity.AnswerEntity
 
 @Composable
@@ -103,13 +101,13 @@ fun QuestionDetailScreen(
         // Reply-target chip -- makes it unmistakable who you're responding to
         replyTarget?.let { target ->
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp).clip(RoundedCornerShape(10.dp)).background(Gold500.copy(alpha = 0.12f)).padding(horizontal = 12.dp, vertical = 8.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)).padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.AutoMirrored.Rounded.Reply, null, tint = Gold500, modifier = Modifier.size(16.dp))
+                Icon(Icons.AutoMirrored.Rounded.Reply, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Replying to ${target.authorName}", style = MaterialTheme.typography.labelMedium, color = Gold500, modifier = Modifier.weight(1f))
-                Icon(Icons.Rounded.Close, "Cancel reply", tint = Gold500, modifier = Modifier.size(16.dp).clickable { replyTarget = null })
+                Text("Replying to ${target.authorName}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                Icon(Icons.Rounded.Close, "Cancel reply", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp).clickable { replyTarget = null })
             }
         }
 
@@ -121,10 +119,10 @@ fun QuestionDetailScreen(
                 value = input, onValueChange = { input = it },
                 modifier = Modifier.weight(1f),
                 placeholder = { Text(if (replyTarget != null) "Write your reply\u2026" else "Write an answer\u2026", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold500),
+                colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary),
             )
             Box(
-                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(Gold500).clickable {
+                Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.primary).clickable {
                     if (state.isGuest) {
                         onRequireSignIn()
                     } else if (input.isNotBlank()) {
@@ -149,8 +147,8 @@ private fun AnswerRow(answer: AnswerEntity, onReply: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(answer.authorName, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
             if (answer.replyToAuthorName != null) {
-                Icon(Icons.AutoMirrored.Rounded.Reply, null, tint = Gold400, modifier = Modifier.size(12.dp).padding(horizontal = 4.dp))
-                Text("replying to ${answer.replyToAuthorName}", style = MaterialTheme.typography.labelMedium, color = Gold400)
+                Icon(Icons.AutoMirrored.Rounded.Reply, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(12.dp).padding(horizontal = 4.dp))
+                Text("replying to ${answer.replyToAuthorName}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             }
         }
         Spacer(Modifier.height(4.dp))
