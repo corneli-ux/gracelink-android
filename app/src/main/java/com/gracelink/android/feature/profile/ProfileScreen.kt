@@ -55,6 +55,7 @@ fun ProfileScreen(
     onNavigateToPastors: () -> Unit = {},
     onNavigateToChurchPortal: () -> Unit = {},
     onNavigateToPastorPortal: () -> Unit = {},
+    onOpenMyChurchProfile: (String) -> Unit = {},
     onSetupProfile: () -> Unit = {},
     onSignedOut: () -> Unit = {},
     onOpenDownloads: () -> Unit = {},
@@ -99,7 +100,13 @@ fun ProfileScreen(
                             AccountType.PERSONAL -> "MEMBER"
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.clip(RoundedCornerShape(6.dp)).background(if (user.accountType == AccountType.PERSONAL) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary).padding(horizontal = 8.dp, vertical = 3.dp)) {
+                            Box(
+                                Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(if (user.accountType == AccountType.PERSONAL) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary)
+                                    .let { m -> if (user.accountType == AccountType.CHURCH && state.myChurchId != null) m.clickable { onOpenMyChurchProfile(state.myChurchId!!) } else m }
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                            ) {
                                 Text(roleLabel, style = MaterialTheme.typography.labelSmall, color = Color(0xFF1A1408), fontWeight = FontWeight.Bold)
                             }
                             if (user.isVerified) {

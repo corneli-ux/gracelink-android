@@ -283,6 +283,7 @@ fun GraceNavHost() {
                         onNavigateToPastors = { navController.navigate(GraceRoute.Pastors) },
                         onNavigateToChurchPortal = { navController.navigate(GraceRoute.ChurchPortal) },
                         onNavigateToPastorPortal = { navController.navigate(GraceRoute.PastorPortal) },
+                        onOpenMyChurchProfile = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
                         onSetupProfile = { navController.navigate(GraceRoute.Registration) },
                         onSignedOut = {
                             navController.navigate(GraceRoute.Auth) {
