@@ -182,9 +182,9 @@ private fun PrayerCard(
     ) {
         if (p.isAnswered) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp)) {
-                Icon(Icons.Rounded.CheckCircle, null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(14.dp))
+                Icon(Icons.Rounded.CheckCircle, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(14.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("ANSWERED", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.Bold)
+                Text("ANSWERED", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
             }
         }
         Column {
@@ -205,7 +205,7 @@ private fun PrayerCard(
                             AudioEncouragementRow(e.authorName, e.audioUrl)
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(Modifier.size(4.dp).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.6f)))
+                                Box(Modifier.size(4.dp).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f)))
                                 Spacer(Modifier.width(8.dp))
                                 Text("${e.authorName}: ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
                                 Text(e.text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
@@ -220,14 +220,14 @@ private fun PrayerCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier.clip(RoundedCornerShape(20.dp))
-                        .background(if (hasPrayed) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f) else MaterialTheme.colorScheme.background.copy(alpha = 0.7f))
+                        .background(if (hasPrayed) MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f) else MaterialTheme.colorScheme.background.copy(alpha = 0.7f))
                         .clickable(onClick = onPray).padding(horizontal = 12.dp, vertical = 8.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(if (hasPrayed) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, null, tint = if (hasPrayed) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                        Icon(if (hasPrayed) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, null, tint = if (hasPrayed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("I Prayed \u2022 ${p.prayedByUids.size}", style = MaterialTheme.typography.labelMedium, color = if (hasPrayed) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("I Prayed \u2022 ${p.prayedByUids.size}", style = MaterialTheme.typography.labelMedium, color = if (hasPrayed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 Spacer(Modifier.weight(1f))
@@ -277,7 +277,7 @@ private fun PrayerCard(
                             Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.background).clickable(onClick = onStartRecording).padding(horizontal = 14.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Rounded.Mic, null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Rounded.Mic, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(6.dp))
                             Text("Or pray out loud", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -341,7 +341,7 @@ private fun AudioEncouragementRow(authorName: String, audioUrl: String) {
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f))
+            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f))
             .clickable {
                 val current = player
                 if (current == null) {
@@ -375,7 +375,7 @@ private fun AudioEncouragementRow(authorName: String, audioUrl: String) {
     ) {
         Icon(
             if (isPlaying) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
-            null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(18.dp),
+            null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(8.dp))
         Text("$authorName's voice reply", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)

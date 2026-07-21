@@ -79,7 +79,7 @@ fun FaithScreen(onRequireSignIn: () -> Unit = {}, vm: FaithViewModel = hiltViewM
             // Quick log buttons
             Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(onClick = { vm.logBibleReading() }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = Color(0xFF1A1408))) { Text("Log Bible Reading") }
-                Button(onClick = { vm.logPrayer() }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary, contentColor = Color(0xFF002218))) { Text("Log Prayer") }
+                Button(onClick = { vm.logPrayer() }, modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = Color(0xFF002218))) { Text("Log Prayer") }
             }
             Spacer(Modifier.height(20.dp))
         } else {

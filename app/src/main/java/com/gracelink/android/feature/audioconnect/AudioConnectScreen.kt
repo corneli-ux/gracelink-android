@@ -285,7 +285,7 @@ private fun ActiveSpaceView(
                     Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(if (isHandRaised) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant)
+                        .background(if (isHandRaised) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant)
                         .clickable(onClick = onHandRaise),
                     contentAlignment = Alignment.Center
                 ) {

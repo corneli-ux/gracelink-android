@@ -185,8 +185,8 @@ private fun ChurchRow(church: ChurchEntity, isMember: Boolean, isChurchOrPastorV
                     }
                 }
                 isMember -> {
-                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)).padding(horizontal = 14.dp, vertical = 8.dp)) {
-                        Text("Member", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.SemiBold)
+                    Box(Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)).padding(horizontal = 14.dp, vertical = 8.dp)) {
+                        Text("Member", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.SemiBold)
                     }
                 }
                 else -> {
