@@ -138,6 +138,25 @@ fun HomeScreen(
             }
         }
 
+        // -- Your Church activity -- what makes checking the app worth it
+        // for a member: everything their own church has posted, in one
+        // place, instead of three separate screens to notice anything new.
+        if (state.churchActivity.isNotEmpty()) {
+            item {
+                Text(
+                    state.churchName?.let { "$it \u2014 recent activity" } ?: "Your Church",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = TextPrimary,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+                )
+            }
+            items(state.churchActivity.size) { index ->
+                ChurchActivityRow(state.churchActivity[index])
+                HorizontalDivider(color = Slate700, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 24.dp))
+            }
+            item { Spacer(Modifier.height(16.dp)) }
+        }
+
         // -- Feature highlight: the new public Forum -------------------------
         item {
             Row(
@@ -215,6 +234,29 @@ private fun ContinueItem(item: ContentEntity, onClick: () -> Unit) {
         Text(item.speaker ?: "Faith Link", style = MaterialTheme.typography.labelSmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
+
+@Composable
+private fun ChurchActivityRow(item: com.gracelink.android.data.repository.ChurchActivityItem) {
+    val (icon, label, title, snippet) = when (item) {
+        is com.gracelink.android.data.repository.ChurchActivityItem.Announcement ->
+            ActivityRowContent(Icons.Rounded.Forum, "Announcement", item.entity.title, item.entity.body)
+        is com.gracelink.android.data.repository.ChurchActivityItem.Event ->
+            ActivityRowContent(Icons.Outlined.Groups, "Event", item.entity.title, item.entity.description)
+        is com.gracelink.android.data.repository.ChurchActivityItem.Article ->
+            ActivityRowContent(Icons.Outlined.Podcasts, "Article", item.entity.title, item.entity.content)
+    }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp), verticalAlignment = Alignment.Top) {
+        Icon(icon, null, tint = Gold500, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = Gold500)
+            Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(snippet, style = MaterialTheme.typography.bodySmall, color = TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+private data class ActivityRowContent(val icon: ImageVector, val label: String, val title: String, val snippet: String)
 
 @Composable
 private fun RecommendedRow(item: ContentEntity, onClick: () -> Unit) {

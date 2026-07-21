@@ -2,21 +2,26 @@ package com.gracelink.android.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gracelink.android.data.db.dao.ChurchDao
+import com.gracelink.android.data.db.dao.ChurchMemberDao
 import com.gracelink.android.data.db.entity.ContentEntity
-import com.gracelink.android.data.db.entity.ContentLanguage
 import com.gracelink.android.data.db.entity.LiveSessionEntity
 import com.gracelink.android.data.db.entity.LiveSessionStatus
-import com.gracelink.android.data.db.entity.UserEntity
+import com.gracelink.android.data.db.entity.MemberStatus
+import com.gracelink.android.data.repository.ChurchActivityItem
+import com.gracelink.android.data.repository.ChurchActivityRepository
 import com.gracelink.android.data.repository.ContentRepository
 import com.gracelink.android.data.repository.LiveSessionRepository
 import com.gracelink.android.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class HomeState(
@@ -26,28 +31,64 @@ data class HomeState(
     val liveSession: LiveSessionEntity? = null,
     val continueListening: List<ContentEntity> = emptyList(),
     val recommended: List<ContentEntity> = emptyList(),
+    val churchName: String? = null,
+    val churchActivity: List<ChurchActivityItem> = emptyList(),
+)
+
+private data class HomeBase(
+    val liveRadio: List<ContentEntity>,
+    val library: List<ContentEntity>,
+    val liveSession: LiveSessionEntity?,
+    val userName: String,
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val contentRepo: ContentRepository,
     private val liveRepo: LiveSessionRepository,
+    private val memberDao: ChurchMemberDao,
+    private val churchDao: ChurchDao,
+    private val activityRepo: ChurchActivityRepository,
     userRepo: UserRepository,
 ) : ViewModel() {
 
-    val state: StateFlow<HomeState> = combine(
+    private val baseFlow = combine(
         contentRepo.liveRadio(),
         contentRepo.library(),
         liveRepo.byStatus(LiveSessionStatus.LIVE),
         userRepo.current(),
     ) { liveRadio, library, liveSessions, user ->
+        HomeBase(liveRadio, library, liveSessions.firstOrNull(), user?.displayName ?: "")
+    }
+
+    /** A member's home should surface what their own church has posted --
+     * this is what makes the app feel alive/worth checking daily, rather
+     * than just a static content library. Only shown once membership is
+     * actually approved, not just requested. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val churchActivityFlow = userRepo.current().flatMapLatest { user ->
+        val uid = user?.uid
+        if (uid == null) flowOf(Triple<String?, String?, List<ChurchActivityItem>>(null, null, emptyList()))
+        else memberDao.forUser(uid).flatMapLatest { memberships ->
+            val approved = memberships.firstOrNull { it.status == MemberStatus.APPROVED }
+            if (approved == null) flowOf(Triple<String?, String?, List<ChurchActivityItem>>(null, null, emptyList()))
+            else {
+                val churchName = churchDao.getById(approved.churchId)?.name
+                activityRepo.feedFor(approved.churchId).map { items -> Triple(approved.churchId, churchName, items) }
+            }
+        }
+    }
+
+    val state: StateFlow<HomeState> = combine(baseFlow, churchActivityFlow) { base, churchInfo ->
         HomeState(
             greeting = greetingFor(),
-            userName = user?.displayName ?: "",
-            liveRadio = liveRadio,
-            liveSession = liveSessions.firstOrNull(),
-            continueListening = library.take(3),
-            recommended = library.shuffled().take(6),
+            userName = base.userName,
+            liveRadio = base.liveRadio,
+            liveSession = base.liveSession,
+            continueListening = base.library.take(3),
+            recommended = base.library.shuffled().take(6),
+            churchName = churchInfo.second,
+            churchActivity = churchInfo.third.take(8),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeState())
 
