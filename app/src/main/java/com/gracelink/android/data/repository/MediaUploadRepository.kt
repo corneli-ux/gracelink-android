@@ -5,6 +5,7 @@ import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.storage
+import io.github.jan.supabase.storage.upload
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,13 +36,13 @@ class MediaUploadRepository @Inject constructor(
     suspend fun uploadContentUri(uri: Uri, storagePath: String): String {
         val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             ?: throw IllegalStateException("Couldn't read the selected file")
-        bucket.upload(storagePath, bytes)
+        bucket.upload(storagePath, bytes) { upsert = true }
         return bucket.publicUrl(storagePath)
     }
 
     /** Uploads a local file path (e.g. a MediaRecorder output file) and returns its public URL. */
     suspend fun uploadLocalFile(localPath: String, storagePath: String): String {
-        bucket.upload(storagePath, File(localPath))
+        bucket.upload(storagePath, File(localPath)) { upsert = true }
         return bucket.publicUrl(storagePath)
     }
 }
