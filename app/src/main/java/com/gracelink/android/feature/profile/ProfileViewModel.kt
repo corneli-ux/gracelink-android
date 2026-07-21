@@ -7,6 +7,7 @@ import com.gracelink.android.data.db.dao.ChurchDao
 import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.ContentLanguage
 import com.gracelink.android.data.db.entity.UserEntity
+import com.gracelink.android.data.repository.CloudProfileRegistry
 import com.gracelink.android.data.repository.ContentRepository
 import com.gracelink.android.data.repository.DownloadRepository
 import com.gracelink.android.data.repository.MediaUploadRepository
@@ -40,6 +41,7 @@ class ProfileViewModel @Inject constructor(
     private val downloadRepo: DownloadRepository,
     private val mediaUpload: MediaUploadRepository,
     private val churchDao: ChurchDao,
+    private val cloudRegistry: CloudProfileRegistry,
 ) : ViewModel() {
 
     private val isUploadingPhoto = MutableStateFlow(false)
@@ -83,6 +85,7 @@ class ProfileViewModel @Inject constructor(
             try {
                 val url = mediaUpload.uploadContentUri(uri, "profile_photos/$uid")
                 userRepo.setPhotoUrl(uid, url)
+                cloudRegistry.updatePhotoUrl(uid, url)
             } catch (e: Exception) {
                 photoUploadError.value = "Couldn't upload photo: ${e.message}"
             } finally {

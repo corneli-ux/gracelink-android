@@ -15,6 +15,7 @@ data class CloudProfileEntry(
     val displayName: String,
     val beliefSystem: BeliefSystem,
     val bio: String?,
+    val photoUrl: String?,
     // Church-only fields (null for Personal/Pastor)
     val churchDescription: String?,
     val churchPastorName: String?,
@@ -28,6 +29,7 @@ data class PastorProfile(
     val displayName: String,
     val beliefSystem: BeliefSystem,
     val bio: String?,
+    val photoUrl: String?,
 )
 
 /**
@@ -115,6 +117,20 @@ class CloudProfileRegistry @Inject constructor(
         }
     }
 
+    /** Partial update -- doesn't disturb name/bio/church fields already
+     * written by writePersonal/writePastor/writeChurch. Requires the
+     * profile document to already exist (it does, by the time someone
+     * uploads a photo, since registration writes it first). */
+    suspend fun updatePhotoUrl(uid: String, photoUrl: String) {
+        try {
+            docFor(uid).update("photoUrl", photoUrl).await()
+        } catch (_: Exception) {
+            // Best-effort, same reasoning as writeSafely -- a failed cloud
+            // sync of the photo URL shouldn't block the local upload from
+            // completing and showing on the user's own device.
+        }
+    }
+
     suspend fun read(uid: String): CloudProfileEntry? {
         return try {
             val s = docFor(uid).get().await()
@@ -125,6 +141,7 @@ class CloudProfileRegistry @Inject constructor(
                 displayName = name,
                 beliefSystem = s.getString("beliefSystem")?.let { runCatching { BeliefSystem.valueOf(it) }.getOrNull() } ?: BeliefSystem.NONDENOMINATIONAL,
                 bio = s.getString("bio"),
+                photoUrl = s.getString("photoUrl"),
                 churchDescription = s.getString("churchDescription"),
                 churchPastorName = s.getString("churchPastorName"),
                 churchLocation = s.getString("churchLocation"),
@@ -149,7 +166,7 @@ class CloudProfileRegistry @Inject constructor(
                 val pastors = snapshot?.documents?.mapNotNull { doc ->
                     val name = doc.getString("displayName") ?: return@mapNotNull null
                     val belief = doc.getString("beliefSystem")?.let { runCatching { BeliefSystem.valueOf(it) }.getOrNull() } ?: BeliefSystem.NONDENOMINATIONAL
-                    PastorProfile(uid = doc.id, displayName = name, beliefSystem = belief, bio = doc.getString("bio")?.ifBlank { null })
+                    PastorProfile(uid = doc.id, displayName = name, beliefSystem = belief, bio = doc.getString("bio")?.ifBlank { null }, photoUrl = doc.getString("photoUrl"))
                 } ?: emptyList()
                 trySend(pastors)
             }
@@ -159,6 +176,6 @@ class CloudProfileRegistry @Inject constructor(
     suspend fun getPastor(uid: String): PastorProfile? {
         val entry = read(uid) ?: return null
         if (entry.accountType != AccountType.PASTOR) return null
-        return PastorProfile(uid = uid, displayName = entry.displayName, beliefSystem = entry.beliefSystem, bio = entry.bio?.ifBlank { null })
+        return PastorProfile(uid = uid, displayName = entry.displayName, beliefSystem = entry.beliefSystem, bio = entry.bio?.ifBlank { null }, photoUrl = entry.photoUrl)
     }
 }

@@ -91,6 +91,7 @@ class ChurchEditProfileViewModel @Inject constructor(
             try {
                 val url = mediaUpload.uploadContentUri(uri, "church_photos/${current.id}")
                 churchDao.update(current.copy(photoUrl = url))
+                current.ownerUserId?.let { uid -> cloudRegistry.updatePhotoUrl(uid, url) }
             } catch (e: Exception) {
                 photoUploadError.value = "Couldn't upload photo: ${e.message}"
             } finally {

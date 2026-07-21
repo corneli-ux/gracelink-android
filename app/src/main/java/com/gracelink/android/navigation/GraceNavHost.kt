@@ -10,6 +10,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -166,6 +167,16 @@ fun GraceNavHost() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                // Scaffold's own docs: when a bottomBar is present (ours is),
+                // Scaffold expects the bottom bar to handle bottom insets and
+                // excludes them from contentWindowInsets regardless of what
+                // that's explicitly set to -- which is very likely why
+                // per-screen imePadding() calls were unreliable across the
+                // app: every screen renders through this one Scaffold with
+                // this one bottomBar. Applying it here, once, at the single
+                // point all screens pass through, fixes it systemically
+                // rather than depending on each screen remembering to.
+                .imePadding()
                 .background(Obsidian)
         ) {
             NavHost(

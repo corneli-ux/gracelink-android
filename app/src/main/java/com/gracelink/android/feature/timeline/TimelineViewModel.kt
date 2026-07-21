@@ -102,6 +102,25 @@ class TimelineViewModel @Inject constructor(
      * against both "is this a church's owner" and "is this a pastor"
      * before deciding where to navigate.
      */
+    /**
+     * Timeline previously showed no author avatar at all, only the name.
+     * Resolves and caches a photo URL per authorId -- multiple visible
+     * items commonly share the same author, so this avoids a redundant
+     * Firestore/Room read per item. Churches store their photo on the
+     * local church record (synced across devices via ChurchDao's own
+     * Firestore backing); individuals and pastors store it in
+     * CloudProfileRegistry via the photoUrl sync added alongside this.
+     */
+    private val photoUrlCache = mutableMapOf<String, String?>()
+    suspend fun photoUrlFor(authorId: String): String? {
+        photoUrlCache[authorId]?.let { return it }
+        if (photoUrlCache.containsKey(authorId)) return null
+        val church = churchDao.byOwnerOnce(authorId)
+        val url = church?.photoUrl ?: registry.read(authorId)?.photoUrl
+        photoUrlCache[authorId] = url
+        return url
+    }
+
     suspend fun resolveProfileRoute(item: TimelineItem): ProfileRoute? {
         if (item is TimelineItem.Event) return ProfileRoute.Church(item.entity.churchId)
         val authorId = item.authorId
