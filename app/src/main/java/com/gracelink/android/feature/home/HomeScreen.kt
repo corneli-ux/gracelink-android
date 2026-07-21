@@ -25,7 +25,6 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Podcasts
-import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -66,7 +65,6 @@ import com.gracelink.android.data.db.entity.ContentEntity
 fun HomeScreen(
     onPlayContent: (String) -> Unit,
     onOpenLiveSession: (String) -> Unit,
-    onOpenRadio: () -> Unit,
     onOpenForum: () -> Unit,
     vm: HomeViewModel = hiltViewModel(),
 ) {
@@ -82,18 +80,12 @@ fun HomeScreen(
     ) {
         // -- Header --------------------------------------------------------
         item {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 20.dp)) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp)) {
                 Text(
                     "FAITH LINK",
                     style = MaterialTheme.typography.labelMedium,
                     color = TextMuted,
                     letterSpacing = 2.sp,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    state.greeting.ifBlank { "Welcome" } + (state.userName.takeIf { it.isNotBlank() }?.let { ", $it" } ?: ""),
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = TextPrimary,
                 )
             }
         }
@@ -122,7 +114,7 @@ fun HomeScreen(
                     Modifier
                         .fillMaxWidth()
                         .clickable { onPlayContent(live.id) }
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.size(8.dp).clip(CircleShape).background(LiveRed))
@@ -146,29 +138,13 @@ fun HomeScreen(
             }
         }
 
-        // -- Radio row -- the only entry point to Radio when nothing is
-        // currently live (Podcasts and Community already have their own
-        // bottom-nav tabs, so repeating them here was just duplication) ----
-        item {
-            Row(
-                Modifier.fillMaxWidth().clickable(onClick = onOpenRadio).padding(horizontal = 24.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Outlined.Radio, null, tint = TextPrimary, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(10.dp))
-                Text("Radio Schedule", style = MaterialTheme.typography.bodyLarge, color = TextPrimary, modifier = Modifier.weight(1f))
-                Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = TextMuted, modifier = Modifier.size(14.dp))
-            }
-            HorizontalDivider(color = Slate700, thickness = 0.75.dp)
-        }
-
         // -- Feature highlight: the new public Forum -------------------------
         item {
             Row(
                 Modifier
                     .fillMaxWidth()
                     .clickable(onClick = onOpenForum)
-                    .padding(horizontal = 24.dp, vertical = 18.dp),
+                    .padding(horizontal = 24.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Rounded.Forum, null, tint = Gold500, modifier = Modifier.size(22.dp))
@@ -219,24 +195,24 @@ private fun SectionHeader(title: String) {
         title,
         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
         color = TextPrimary,
-        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
     )
 }
 
 @Composable
 private fun ContinueItem(item: ContentEntity, onClick: () -> Unit) {
     Column(
-        Modifier.width(140.dp).clickable(onClick = onClick)
+        Modifier.width(108.dp).clickable(onClick = onClick)
     ) {
         AsyncImage(
             model = item.thumbnailUrl, contentDescription = null,
-            modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(10.dp)),
+            modifier = Modifier.fillMaxWidth().height(108.dp).clip(RoundedCornerShape(10.dp)),
             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
         )
-        Spacer(Modifier.height(10.dp))
-        Text(item.title, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium), color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.height(8.dp))
+        Text(item.title, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium), color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(2.dp))
-        Text(item.speaker ?: "Faith Link", style = MaterialTheme.typography.bodySmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(item.speaker ?: "Faith Link", style = MaterialTheme.typography.labelSmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -246,7 +222,7 @@ private fun RecommendedRow(item: ContentEntity, onClick: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 14.dp),
+            .padding(horizontal = 24.dp, vertical = 11.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(

@@ -226,7 +226,6 @@ fun GraceNavHost() {
                     HomeScreen(
                         onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) },
                         onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) },
-                        onOpenRadio = { navController.navigate(GraceRoute.Radio) },
                         onOpenForum = { navController.navigate(GraceRoute.Forum) },
                     )
                 }
