@@ -48,8 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gracelink.android.core.components.GoldButton
-import com.gracelink.android.core.theme.Gold400
-import com.gracelink.android.core.theme.Slate800
 import com.gracelink.android.data.db.entity.BeliefSystem
 
 @Composable
@@ -95,21 +93,21 @@ fun ChurchEditProfileScreen(onBack: () -> Unit, vm: ChurchEditProfileViewModel =
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
                 Box(
-                    Modifier.size(64.dp).clip(CircleShape).background(Slate800).clickable(enabled = church != null) { photoPicker.launch("image/*") },
+                    Modifier.size(64.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant).clickable(enabled = church != null) { photoPicker.launch("image/*") },
                     contentAlignment = Alignment.Center,
                 ) {
                     when {
-                        screenState.isUploadingPhoto -> CircularProgressIndicator(modifier = Modifier.size(22.dp), color = Gold400, strokeWidth = 2.dp)
+                        screenState.isUploadingPhoto -> CircularProgressIndicator(modifier = Modifier.size(22.dp), color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
                         church?.photoUrl != null -> coil.compose.AsyncImage(model = church.photoUrl, contentDescription = "Church photo", modifier = Modifier.fillMaxSize().clip(CircleShape), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
-                        else -> Icon(Icons.Rounded.Church, null, tint = Gold400, modifier = Modifier.size(28.dp))
+                        else -> Icon(Icons.Rounded.Church, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
                     }
                 }
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.CameraAlt, null, tint = Gold400, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Rounded.CameraAlt, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Change church photo", style = MaterialTheme.typography.labelMedium, color = Gold400)
+                        Text("Change church photo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                     }
                     if (screenState.photoUploadError != null) {
                         Text(screenState.photoUploadError ?: "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
