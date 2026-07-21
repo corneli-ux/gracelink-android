@@ -37,8 +37,12 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+          # No restore-keys fallback on purpose: a partial-prefix match would
+          # happily restore a cache from before a Kotlin/KSP version bump,
+          # mixing old and new plugin jars in the same ~/.gradle/caches and
+          # producing exactly the kind of "class exists but can't be loaded"
+          # error this was chasing. Losing some cache-hit speed on version
+          # bumps is a fair trade for not silently reusing a stale toolchain.
 
       - name: Build debug APK
         env:
