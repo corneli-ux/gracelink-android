@@ -117,6 +117,13 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+    // Hilt's own annotation processor transitively pulls in an older
+    // kotlin-metadata-jvm that only understands metadata format up to
+    // 2.2.0. This project's Kotlin compiler (2.3.10) produces 2.3.0
+    // metadata, which the older version can't read: "Provided Metadata
+    // instance has version 2.3.0, while maximum supported version is
+    // 2.2.0." Forcing a version that matches the Kotlin version in use.
+    implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.10")
 
     // Media3 ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
