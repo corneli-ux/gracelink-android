@@ -49,12 +49,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gracelink.android.data.db.entity.AccountType
 import com.gracelink.android.data.db.entity.ArticleCommentEntity
 
 @Composable
 fun ArticleDetailScreen(
     articleId: String,
     onBack: () -> Unit,
+    onOpenChurch: (String) -> Unit = {},
+    onOpenPastor: (String) -> Unit = {},
     vm: ArticleDetailViewModel = hiltViewModel(),
 ) {
     val article by vm.article.collectAsStateWithLifecycle()
@@ -75,7 +78,16 @@ fun ArticleDetailScreen(
                 article?.let { a ->
                     Text(a.title, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.height(4.dp))
-                    Text("By ${a.authorName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "By ${a.authorName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.clickable(enabled = a.authorType != AccountType.PERSONAL) {
+                            when (a.authorType) {
+                                AccountType.CHURCH -> a.churchId?.let(onOpenChurch)
+                                AccountType.PASTOR -> onOpenPastor(a.authorId)
+                                AccountType.PERSONAL -> {}
+                            }
+                        },
+                    )
                     Spacer(Modifier.height(16.dp))
                     Text(a.content, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.height(16.dp))

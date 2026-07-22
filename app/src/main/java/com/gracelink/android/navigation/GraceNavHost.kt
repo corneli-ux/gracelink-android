@@ -543,6 +543,8 @@ fun GraceNavHost() {
                     com.gracelink.android.feature.articles.ArticleDetailScreen(
                         articleId = route.articleId,
                         onBack = { navController.popBackStack() },
+                        onOpenChurch = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
+                        onOpenPastor = { uid -> navController.navigate(GraceRoute.PastorProfile(uid)) },
                     )
                 }
 
