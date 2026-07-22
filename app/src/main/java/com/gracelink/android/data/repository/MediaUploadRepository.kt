@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.storage
 import io.github.jan.supabase.storage.upload
+import io.ktor.http.ContentType
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,6 +25,15 @@ import javax.inject.Singleton
  * Public method signatures (uploadContentUri/uploadLocalFile) are
  * unchanged on purpose, so every existing caller -- profile photos,
  * church photos, podcast covers/episodes -- needed zero changes.
+ *
+ * IMPORTANT: contentType is explicitly set on every upload. Storage
+ * paths here have no file extension (e.g. "profile_photos/$uid"), and
+ * supabase-kt's own doc comment on UploadOptionBuilder.contentType says
+ * plainly: "If null, the content type will be inferred from the file
+ * extension" -- with no extension to infer from, uploads were very
+ * likely landing with a generic/wrong content type, which is why
+ * uploaded photos rendered as a blank/black avatar instead of the
+ * actual image: the image loader had no correct type to decode against.
  */
 @Singleton
 class MediaUploadRepository @Inject constructor(
@@ -36,13 +46,24 @@ class MediaUploadRepository @Inject constructor(
     suspend fun uploadContentUri(uri: Uri, storagePath: String): String {
         val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             ?: throw IllegalStateException("Couldn't read the selected file")
-        bucket.upload(storagePath, bytes) { upsert = true }
+        // Real MIME type from the content resolver (e.g. "image/jpeg",
+        // "audio/mpeg") -- falls back to a generic binary type only if
+        // the resolver genuinely doesn't know, which is rare for
+        // anything coming out of a system picker.
+        val mimeType = context.contentResolver.getType(uri) ?: "application/octet-stream"
+        bucket.upload(storagePath, bytes) {
+            upsert = true
+            contentType = ContentType.parse(mimeType)
+        }
         return bucket.publicUrl(storagePath)
     }
 
     /** Uploads a local file path (e.g. a MediaRecorder output file) and returns its public URL. */
-    suspend fun uploadLocalFile(localPath: String, storagePath: String): String {
-        bucket.upload(storagePath, File(localPath)) { upsert = true }
+    suspend fun uploadLocalFile(localPath: String, storagePath: String, mimeType: String = "audio/mp4"): String {
+        bucket.upload(storagePath, File(localPath)) {
+            upsert = true
+            contentType = ContentType.parse(mimeType)
+        }
         return bucket.publicUrl(storagePath)
     }
 }
