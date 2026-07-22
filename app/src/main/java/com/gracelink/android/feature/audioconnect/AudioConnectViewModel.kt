@@ -97,8 +97,13 @@ class AudioConnectViewModel @Inject constructor(
     }
 
     fun joinSpace(space: AudioSpace) = viewModelScope.launch {
-        repo.joinSpace(space.id)
-        activeSpaceId.value = space.id
+        createError.value = null
+        try {
+            repo.joinSpace(space.id)
+            activeSpaceId.value = space.id
+        } catch (e: Exception) {
+            createError.value = "Couldn't join: ${e.message ?: "please check your connection and try again"}"
+        }
     }
 
     fun leaveSpace() = viewModelScope.launch {

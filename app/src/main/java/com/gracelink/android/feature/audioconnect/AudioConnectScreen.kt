@@ -125,6 +125,13 @@ private fun SpacesListView(
             }
         }
 
+        if (state.createError != null) {
+            Text(
+                state.createError, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp),
+            )
+        }
+
         if (state.spaces.isEmpty()) {
             Column(
                 Modifier.fillMaxWidth().padding(40.dp),
