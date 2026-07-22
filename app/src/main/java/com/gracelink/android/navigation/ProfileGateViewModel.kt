@@ -13,6 +13,7 @@ import com.gracelink.android.data.db.entity.VerificationStatus
 import com.gracelink.android.data.repository.CloudProfileRegistry
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlin.coroutines.resume
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -45,8 +46,36 @@ class ProfileGateViewModel @Inject constructor(
     /** Null if no profile has been set up yet. */
     suspend fun currentAccountType(): AccountType? = userDao.currentOnce()?.accountType
 
+    /**
+     * FirebaseAuth.getInstance().currentUser can legitimately return null
+     * immediately after app start, before the auth object has finished
+     * initializing and restoring the persisted session from disk --
+     * this is documented directly in Firebase's own currentUser docs.
+     * restoreOrCheckProfile() used to read currentUser synchronously the
+     * moment the splash screen completed, which is exactly the small
+     * window where that race is most likely to lose -- reading null
+     * before Firebase had actually restored the real, valid session,
+     * which would incorrectly route a genuinely signed-in user to the
+     * Auth screen ("logged out on every close"). Waiting for the first
+     * AuthStateListener callback guarantees Firebase has actually
+     * settled on the real auth state before this check runs at all.
+     */
+    private suspend fun currentFirebaseUser(): com.google.firebase.auth.FirebaseUser? {
+        val auth = FirebaseAuth.getInstance()
+        return kotlinx.coroutines.suspendCancellableCoroutine { cont ->
+            val listener = object : FirebaseAuth.AuthStateListener {
+                override fun onAuthStateChanged(firebaseAuth: FirebaseAuth) {
+                    firebaseAuth.removeAuthStateListener(this)
+                    if (cont.isActive) cont.resume(firebaseAuth.currentUser)
+                }
+            }
+            auth.addAuthStateListener(listener)
+            cont.invokeOnCancellation { auth.removeAuthStateListener(listener) }
+        }
+    }
+
     suspend fun restoreOrCheckProfile(): AccountType? {
-        val fbUser = FirebaseAuth.getInstance().currentUser
+        val fbUser = currentFirebaseUser()
         val existing = userDao.currentOnce()
 
         // Tier 1: local profile belongs to the currently signed-in account.
