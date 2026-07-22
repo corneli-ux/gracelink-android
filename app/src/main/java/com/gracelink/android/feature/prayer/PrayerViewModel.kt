@@ -29,6 +29,7 @@ data class PrayerState(
     val isGuest: Boolean = true,
     val recordingPrayerId: String? = null,
     val uploadingPrayerId: String? = null,
+    val uploadError: String? = null,
 ) {
     /** Filtered by the currently selected tab -- "mine" and "answered" are
      * computed here against the real signed-in uid, not a stored per-row
@@ -60,12 +61,13 @@ class PrayerViewModel @Inject constructor(
     private val showSheet = MutableStateFlow(false)
     private val recordingPrayerId = MutableStateFlow<String?>(null)
     private val uploadingPrayerId = MutableStateFlow<String?>(null)
+    private val uploadError = MutableStateFlow<String?>(null)
     private var activeRecorder: VoiceRecorder? = null
 
     val state: StateFlow<PrayerState> = combine(tab, repo.allPrayers(), showSheet, userRepo.current()) { t, prayers, sheet, user ->
         PrayerBaseCombined(t, prayers, sheet, user)
     }.let { baseFlow ->
-        combine(baseFlow, recordingPrayerId, uploadingPrayerId) { base, recording, uploading ->
+        combine(baseFlow, recordingPrayerId, uploadingPrayerId, uploadError) { base, recording, uploading, error ->
             PrayerState(
                 tab = base.tab,
                 allPrayers = base.allPrayers,
@@ -75,6 +77,7 @@ class PrayerViewModel @Inject constructor(
                 isGuest = base.user == null,
                 recordingPrayerId = recording,
                 uploadingPrayerId = uploading,
+                uploadError = error,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PrayerState())
@@ -106,6 +109,7 @@ class PrayerViewModel @Inject constructor(
     /** Starts recording a voice reply for the given prayer. Caller must have RECORD_AUDIO granted. */
     fun startRecording(prayerId: String) {
         if (recordingPrayerId.value != null) return
+        uploadError.value = null
         try {
             val recorder = VoiceRecorder(context)
             recorder.start()
@@ -129,13 +133,18 @@ class PrayerViewModel @Inject constructor(
         if (s.myUid.isBlank()) return
 
         uploadingPrayerId.value = prayerId
+        uploadError.value = null
         viewModelScope.launch {
             try {
                 val url = mediaUpload.uploadLocalFile(path, "prayer_replies/$prayerId/${System.currentTimeMillis()}.m4a")
                 repo.addEncouragement(prayerId, s.myUid, s.myName, "\uD83C\uDFA4 Voice reply", audioUrl = url)
-            } catch (_: Exception) {
-                // Upload failed silently for now -- the recording is still on device
-                // at `path` if we want to add a retry affordance later.
+            } catch (e: Exception) {
+                // Previously swallowed entirely -- the recording succeeding
+                // but the upload failing (network, storage config, etc.)
+                // looked identical to nothing happening at all, from the
+                // user's side. The clip is still on device at `path` if a
+                // retry affordance gets added later.
+                uploadError.value = "Couldn't send voice reply: ${e.message}"
             } finally {
                 uploadingPrayerId.value = null
             }

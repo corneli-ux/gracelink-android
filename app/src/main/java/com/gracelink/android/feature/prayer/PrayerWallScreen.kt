@@ -120,6 +120,13 @@ fun PrayerWallScreen(onRequireSignIn: () -> Unit = {}, vm: PrayerViewModel = hil
                 }
             }
 
+            if (state.uploadError != null) {
+                Text(
+                    state.uploadError ?: "", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 6.dp),
+                )
+            }
+
             Spacer(Modifier.height(8.dp))
 
             if (state.prayers.isEmpty()) {
