@@ -67,6 +67,7 @@ fun HomeScreen(
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val recommended = remember(state.library) { state.library.shuffled().take(6) }
     val live = state.liveRadio.firstOrNull { it.isLive }
 
     LazyColumn(
@@ -223,10 +224,10 @@ fun HomeScreen(
 
         // -- Recommended: plain rows, divider-separated ----------------------
         item { SectionHeader("Recommended") }
-        items(state.recommended.size) { index ->
-            val item = state.recommended[index]
+        items(recommended.size) { index ->
+            val item = recommended[index]
             RecommendedRow(item) { onPlayContent(item.id) }
-            if (index != state.recommended.lastIndex) {
+            if (index != recommended.lastIndex) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 24.dp))
             }
         }

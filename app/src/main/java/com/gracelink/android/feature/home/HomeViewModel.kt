@@ -33,7 +33,11 @@ data class HomeState(
     val liveSession: LiveSessionEntity? = null,
     val liveSpace: AudioSpace? = null,
     val continueListening: List<ContentEntity> = emptyList(),
-    val recommended: List<ContentEntity> = emptyList(),
+    // Raw library, not pre-shuffled -- shuffling belongs at the UI layer
+    // (gated by remember(library)) so it only re-runs when the library
+    // itself actually changes, not on every unrelated state emission
+    // (e.g. a live space starting) the way a shuffle computed here would.
+    val library: List<ContentEntity> = emptyList(),
     val churchName: String? = null,
     val churchActivity: List<ChurchActivityItem> = emptyList(),
 )
@@ -93,7 +97,7 @@ class HomeViewModel @Inject constructor(
             liveSession = base.liveSession,
             liveSpace = base.liveSpace,
             continueListening = base.library.take(3),
-            recommended = base.library.shuffled().take(6),
+            library = base.library,
             churchName = churchInfo.second,
             churchActivity = churchInfo.third.take(8),
         )
