@@ -47,14 +47,22 @@ class MinistriesViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MinistriesState())
 
-    fun createMinistry(name: String, description: String, meetingInfo: String, onDone: () -> Unit) {
-        val churchId = currentChurchId.value ?: return
-        viewModelScope.launch {
-            repo.createMinistry(
-                churchId = churchId, name = name, description = description,
-                meetingInfo = meetingInfo.ifBlank { null },
-            )
-            onDone()
-        }
+    /**
+     * Resolves the church via a direct one-shot suspend query rather than
+     * trusting currentChurchId.value, which is only populated as a side
+     * effect of state's flatMapLatest chain resolving -- if createMinistry
+     * is tapped before that async user->church lookup completes, the
+     * cached value is still null and this would previously return early
+     * with zero feedback (same bug class already found and fixed in
+     * Announcements/Groups/Forum's create flows).
+     */
+    fun createMinistry(name: String, description: String, meetingInfo: String, onDone: () -> Unit) = viewModelScope.launch {
+        val uid = userDao.currentOnce()?.uid ?: return@launch
+        val churchId = churchDao.byOwnerOnce(uid)?.id ?: return@launch
+        repo.createMinistry(
+            churchId = churchId, name = name, description = description,
+            meetingInfo = meetingInfo.ifBlank { null },
+        )
+        onDone()
     }
 }

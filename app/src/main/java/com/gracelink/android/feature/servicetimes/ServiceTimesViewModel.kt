@@ -47,14 +47,18 @@ class ServiceTimesViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ServiceTimesState())
 
-    fun addServiceTime(dayOfWeek: Int, time: String, name: String, location: String, isOnline: Boolean, onDone: () -> Unit) {
-        val churchId = currentChurchId.value ?: return
-        viewModelScope.launch {
-            repo.addServiceTime(
-                churchId = churchId, dayOfWeek = dayOfWeek, time = time, name = name,
-                location = location.ifBlank { null }, isOnline = isOnline,
-            )
-            onDone()
-        }
+    /**
+     * Resolves the church via a direct one-shot suspend query rather than
+     * trusting currentChurchId.value -- see MinistriesViewModel for the
+     * full explanation, same bug class, same fix.
+     */
+    fun addServiceTime(dayOfWeek: Int, time: String, name: String, location: String, isOnline: Boolean, onDone: () -> Unit) = viewModelScope.launch {
+        val uid = userDao.currentOnce()?.uid ?: return@launch
+        val churchId = churchDao.byOwnerOnce(uid)?.id ?: return@launch
+        repo.addServiceTime(
+            churchId = churchId, dayOfWeek = dayOfWeek, time = time, name = name,
+            location = location.ifBlank { null }, isOnline = isOnline,
+        )
+        onDone()
     }
 }

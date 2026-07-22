@@ -47,17 +47,21 @@ class LeadershipViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LeadershipState())
 
-    fun addLeader(displayName: String, title: String, bio: String, onDone: () -> Unit) {
-        val churchId = currentChurchId.value ?: return
-        viewModelScope.launch {
-            repo.addLeader(
-                churchId = churchId,
-                userId = "leader_${System.currentTimeMillis()}",
-                displayName = displayName,
-                title = title,
-                bio = bio.ifBlank { null },
-            )
-            onDone()
-        }
+    /**
+     * Resolves the church via a direct one-shot suspend query rather than
+     * trusting currentChurchId.value -- see MinistriesViewModel for the
+     * full explanation, same bug class, same fix.
+     */
+    fun addLeader(displayName: String, title: String, bio: String, onDone: () -> Unit) = viewModelScope.launch {
+        val uid = userDao.currentOnce()?.uid ?: return@launch
+        val churchId = churchDao.byOwnerOnce(uid)?.id ?: return@launch
+        repo.addLeader(
+            churchId = churchId,
+            userId = "leader_${System.currentTimeMillis()}",
+            displayName = displayName,
+            title = title,
+            bio = bio.ifBlank { null },
+        )
+        onDone()
     }
 }
