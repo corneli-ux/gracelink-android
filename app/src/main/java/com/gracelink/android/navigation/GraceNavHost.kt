@@ -7,49 +7,54 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Headphones
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Timeline
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Podcasts
-import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Timeline
+import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Podcasts
 import androidx.compose.material3.Icon
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,9 +64,12 @@ import androidx.navigation.toRoute
 import com.gracelink.android.core.AppPrefs
 import com.gracelink.android.core.theme.Gold400
 import com.gracelink.android.core.theme.Gold500
-import com.gracelink.android.core.theme.Obsidian
+import com.gracelink.android.core.theme.Slate800
+import com.gracelink.android.core.theme.Slate850
 import com.gracelink.android.core.theme.Slate900
 import com.gracelink.android.core.theme.TextSecondary
+import com.gracelink.android.core.theme.TextPrimary
+import com.gracelink.android.core.theme.Obsidian
 import com.gracelink.android.feature.audioconnect.AudioConnectScreen
 import com.gracelink.android.feature.articles.ArticlesScreen
 import com.gracelink.android.feature.churches.ChurchDetailScreen
@@ -82,24 +90,9 @@ import com.gracelink.android.feature.prayer.PrayerWallScreen
 import com.gracelink.android.feature.profile.ProfileScreen
 import com.gracelink.android.feature.registration.RegistrationScreen
 import com.gracelink.android.feature.splash.SplashScreen
+import com.gracelink.android.feature.timeline.TimelineScreen
 import kotlinx.coroutines.launch
 
-/**
- * Single source of truth for Faith Link navigation.
- *
- * Flow:
- *   Splash -> (first launch) Onboarding -> Set Up Profile (mandatory) -> Home/Portal
- *   Splash -> (returning, no profile yet) Set Up Profile (mandatory) -> Home/Portal
- *   Splash -> (returning, profile exists) straight into Home, or the
- *             matching Church/Pastor portal if that's the account's role
- *
- * "Set Up Profile" is NOT a credential login (no password) -- it's a
- * mandatory one-time step that asks for a name and a role (Member /
- * Individual Pastor / Church), so every identity-dependent feature
- * (prayers, articles, portals) has something real to attach to. Once
- * set up, the person lands directly in the surface that matches their
- * role instead of always seeing the generic member Home.
- */
 @Composable
 fun GraceNavHost() {
     val navController = rememberNavController()
@@ -113,24 +106,6 @@ fun GraceNavHost() {
         currentRoute?.contains(route::class.simpleName ?: "") == true
     }
 
-    /**
-     * Checks whether a profile already exists (or can be restored -- see
-     * ProfileGateViewModel) and routes accordingly, popping back to
-     * [popRoute]. Home is always established as the base of the stack
-     * first -- previously a Church/Pastor account landed directly in
-     * their portal with NOTHING underneath it, so swiping back closed
-     * the whole app instead of going anywhere. Now swiping back from a
-     * portal always lands on Home.
-     */
-    /**
-     * Checks whether a profile already exists (or can be restored -- see
-     * ProfileGateViewModel) and routes accordingly, popping back to
-     * [popRoute]. Always lands on Home -- previously this auto-navigated
-     * Church/Pastor accounts straight into their portal on top of Home,
-     * which looked like "the app opens directly into Church Portal"
-     * instead of showing Home first. The portal is one tap away from
-     * Home/Profile for whoever wants it, not the forced landing screen.
-     */
     fun routeByProfile(popRoute: GraceRoute, ifNoProfile: GraceRoute) {
         scope.launch {
             val type = profileGateVm.restoreOrCheckProfile()
@@ -148,7 +123,7 @@ fun GraceNavHost() {
                 enter = slideInVertically { it } + fadeIn(),
                 exit = slideOutVertically { it } + fadeOut()
             ) {
-                GraceFloatingBottomBar(
+                GraceBottomBar(
                     currentRoute = currentRoute,
                     onNavigate = { route ->
                         navController.navigate(route) {
@@ -167,15 +142,6 @@ fun GraceNavHost() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                // Scaffold's own docs: when a bottomBar is present (ours is),
-                // Scaffold expects the bottom bar to handle bottom insets and
-                // excludes them from contentWindowInsets regardless of what
-                // that's explicitly set to -- which is very likely why
-                // per-screen imePadding() calls were unreliable across the
-                // app: every screen renders through this one Scaffold with
-                // this one bottomBar. Applying it here, once, at the single
-                // point all screens pass through, fixes it systemically
-                // rather than depending on each screen remembering to.
                 .imePadding()
                 .background(Obsidian)
         ) {
@@ -184,7 +150,7 @@ fun GraceNavHost() {
                 startDestination = GraceRoute.Splash,
                 modifier = Modifier.fillMaxSize()
             ) {
-                // -- Pre-auth / first-run -----------------------------------
+                // ── Pre-auth / first-run ──────────────────────────────────────
                 composable<GraceRoute.Splash> {
                     SplashScreen(
                         onComplete = {
@@ -211,9 +177,6 @@ fun GraceNavHost() {
                 composable<GraceRoute.Auth> {
                     com.gracelink.android.feature.auth.AuthScreen(
                         onSignInComplete = {
-                            // Existing Firebase account signed back in -- if a local
-                            // profile already exists (they've done this before), skip
-                            // straight to their portal instead of Registration again.
                             routeByProfile(GraceRoute.Auth, GraceRoute.Registration)
                         },
                         onNewUserNeedsRegistration = { _, _ ->
@@ -236,43 +199,25 @@ fun GraceNavHost() {
                     )
                 }
 
-                // -- Home (single unified hub, requires sign-in to reach) ----
+                // ── Primary 4-tab destinations ────────────────────────────────────
                 composable<GraceRoute.Home> {
                     HomeScreen(
                         onPlayContent = { id -> navController.navigate(GraceRoute.Player(id)) },
                         onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) },
                         onOpenForum = { navController.navigate(GraceRoute.Forum) },
                         onJoinLiveSpace = { navController.navigate(GraceRoute.LiveSpaces) },
+                        onOpenTimeline = { navController.navigate(GraceRoute.Timeline) },
                     )
                 }
 
-                composable<GraceRoute.Timeline> {
-                    com.gracelink.android.feature.timeline.TimelineScreen(
-                        onOpenArticle = { id -> navController.navigate(GraceRoute.ArticleDetail(id)) },
+                // Listen tab — merged podcasts + radio + live spaces
+                composable<GraceRoute.Listen> {
+                    ListenTabScreen(
                         onOpenPodcast = { id -> navController.navigate(GraceRoute.PodcastDetail(id)) },
-                        onOpenPrayer = { navController.navigate(GraceRoute.Prayer) },
-                        onOpenEvent = { id -> navController.navigate(GraceRoute.EventRsvp(id)) },
-                        onOpenQuestion = { id -> navController.navigate(GraceRoute.QuestionDetail(id)) },
-                        onOpenChurch = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
-                        onOpenPastor = { uid -> navController.navigate(GraceRoute.PastorProfile(uid)) },
-                        onFindChurches = { navController.navigate(GraceRoute.Churches) },
-                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
+                        onPlayEpisode = { id -> navController.navigate(GraceRoute.EpisodePlayer(id)) },
+                        onOpenRadio = { navController.navigate(GraceRoute.Radio) },
+                        onOpenLiveSpaces = { navController.navigate(GraceRoute.LiveSpaces) },
                     )
-                }
-
-                composable<GraceRoute.Radio> {
-                    FmScreen()
-                }
-
-                composable<GraceRoute.Podcasts> {
-                    PodcastsScreen(
-                        onOpenPodcast = { id -> navController.navigate(GraceRoute.PodcastDetail(id)) },
-                        onPlayEpisode = { id -> navController.navigate(GraceRoute.EpisodePlayer(id)) }
-                    )
-                }
-
-                composable<GraceRoute.LiveSpaces> {
-                    AudioConnectScreen()
                 }
 
                 composable<GraceRoute.Community> {
@@ -283,6 +228,7 @@ fun GraceNavHost() {
                         onOpenArticles = { navController.navigate(GraceRoute.Articles) },
                         onOpenFaith = { navController.navigate(GraceRoute.Faith) },
                         onOpenForum = { navController.navigate(GraceRoute.Forum) },
+                        onOpenTimeline = { navController.navigate(GraceRoute.Timeline) },
                     )
                 }
 
@@ -305,13 +251,75 @@ fun GraceNavHost() {
                     )
                 }
 
+                // ── Timeline (accessible from Home + Community) ──────────────────
+                composable<GraceRoute.Timeline> {
+                    com.gracelink.android.feature.timeline.TimelineScreen(
+                        onOpenArticle = { id -> navController.navigate(GraceRoute.ArticleDetail(id)) },
+                        onOpenPodcast = { id -> navController.navigate(GraceRoute.PodcastDetail(id)) },
+                        onOpenPrayer = { navController.navigate(GraceRoute.Prayer) },
+                        onOpenEvent = { id -> navController.navigate(GraceRoute.EventRsvp(id)) },
+                        onOpenQuestion = { id -> navController.navigate(GraceRoute.QuestionDetail(id)) },
+                        onOpenChurch = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
+                        onOpenPastor = { uid -> navController.navigate(GraceRoute.PastorProfile(uid)) },
+                        onFindChurches = { navController.navigate(GraceRoute.Churches) },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
+                    )
+                }
+
                 composable<GraceRoute.DownloadsManager> {
                     com.gracelink.android.feature.downloads.DownloadsManagerScreen(
                         onBack = { navController.popBackStack() },
                     )
                 }
 
-                // -- Church & detail routes ----------------------------------
+                // ── Listening routes ────────────────────────────────────────────
+                composable<GraceRoute.Radio> { FmScreen() }
+
+                composable<GraceRoute.Podcasts> {
+                    PodcastsScreen(
+                        onOpenPodcast = { id -> navController.navigate(GraceRoute.PodcastDetail(id)) },
+                        onPlayEpisode = { id -> navController.navigate(GraceRoute.EpisodePlayer(id)) }
+                    )
+                }
+
+                composable<GraceRoute.LiveSpaces> { AudioConnectScreen() }
+
+                composable<GraceRoute.Player> { entry ->
+                    val route = entry.toRoute<GraceRoute.Player>()
+                    PlayerScreen(
+                        contentId = route.contentId,
+                        onBack = { navController.popBackStack() },
+                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) }
+                    )
+                }
+
+                composable<GraceRoute.LiveSession> { entry ->
+                    val route = entry.toRoute<GraceRoute.LiveSession>()
+                    LiveSessionScreen(
+                        sessionId = route.sessionId,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable<GraceRoute.PodcastDetail> { entry ->
+                    val route = entry.toRoute<GraceRoute.PodcastDetail>()
+                    PodcastDetailScreen(
+                        podcastId = route.podcastId,
+                        onBack = { navController.popBackStack() },
+                        onPlayEpisode = { id -> navController.navigate(GraceRoute.EpisodePlayer(id)) }
+                    )
+                }
+
+                composable<GraceRoute.EpisodePlayer> { entry ->
+                    val route = entry.toRoute<GraceRoute.EpisodePlayer>()
+                    PlayerScreen(
+                        contentId = route.episodeId,
+                        onBack = { navController.popBackStack() },
+                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) }
+                    )
+                }
+
+                // ── Community routes ────────────────────────────────────────────
                 composable<GraceRoute.Churches> {
                     ChurchesScreen(
                         onChurchClick = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
@@ -344,6 +352,70 @@ fun GraceNavHost() {
                     )
                 }
 
+                composable<GraceRoute.Prayer> {
+                    PrayerWallScreen(
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
+                    )
+                }
+
+                composable<GraceRoute.Events> {
+                    EventsScreen(
+                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) }
+                    )
+                }
+
+                composable<GraceRoute.Articles> {
+                    ArticlesScreen(
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
+                        onOpenArticle = { id -> navController.navigate(GraceRoute.ArticleDetail(id)) },
+                    )
+                }
+
+                composable<GraceRoute.ArticleDetail> { entry ->
+                    val route = entry.toRoute<GraceRoute.ArticleDetail>()
+                    com.gracelink.android.feature.articles.ArticleDetailScreen(
+                        articleId = route.articleId,
+                        onBack = { navController.popBackStack() },
+                        onOpenChurch = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
+                        onOpenPastor = { uid -> navController.navigate(GraceRoute.PastorProfile(uid)) },
+                    )
+                }
+
+                composable<GraceRoute.Faith> {
+                    FaithScreen(
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
+                    )
+                }
+
+                composable<GraceRoute.Forum> {
+                    com.gracelink.android.feature.forum.ForumScreen(
+                        onOpenQuestion = { id -> navController.navigate(GraceRoute.QuestionDetail(id)) },
+                        onAskQuestion = { navController.navigate(GraceRoute.AskQuestion) },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
+                    )
+                }
+
+                composable<GraceRoute.AskQuestion> {
+                    com.gracelink.android.feature.forum.AskQuestionScreen(
+                        onBack = { navController.popBackStack() },
+                        onAsked = { id ->
+                            navController.navigate(GraceRoute.QuestionDetail(id)) {
+                                popUpTo(GraceRoute.AskQuestion) { inclusive = true }
+                            }
+                        },
+                    )
+                }
+
+                composable<GraceRoute.QuestionDetail> { entry ->
+                    val route = entry.toRoute<GraceRoute.QuestionDetail>()
+                    com.gracelink.android.feature.forum.QuestionDetailScreen(
+                        questionId = route.questionId,
+                        onBack = { navController.popBackStack() },
+                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
+                    )
+                }
+
+                // ── Church/Pastor portals ────────────────────────────────────────
                 composable<GraceRoute.ChurchPortal> {
                     ChurchPortalScreen(
                         onBack = { navController.popBackStack() },
@@ -518,188 +590,85 @@ fun GraceNavHost() {
                         onCreated = { navController.popBackStack() },
                     )
                 }
-
-                composable<GraceRoute.Prayer> {
-                    PrayerWallScreen(
-                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
-                    )
-                }
-
-                composable<GraceRoute.Events> {
-                    EventsScreen(
-                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) }
-                    )
-                }
-
-                composable<GraceRoute.Articles> {
-                    ArticlesScreen(
-                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
-                        onOpenArticle = { id -> navController.navigate(GraceRoute.ArticleDetail(id)) },
-                    )
-                }
-
-                composable<GraceRoute.ArticleDetail> { entry ->
-                    val route = entry.toRoute<GraceRoute.ArticleDetail>()
-                    com.gracelink.android.feature.articles.ArticleDetailScreen(
-                        articleId = route.articleId,
-                        onBack = { navController.popBackStack() },
-                        onOpenChurch = { id -> navController.navigate(GraceRoute.ChurchDetail(id)) },
-                        onOpenPastor = { uid -> navController.navigate(GraceRoute.PastorProfile(uid)) },
-                    )
-                }
-
-                composable<GraceRoute.Faith> {
-                    FaithScreen(
-                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) }
-                    )
-                }
-
-                composable<GraceRoute.Forum> {
-                    com.gracelink.android.feature.forum.ForumScreen(
-                        onOpenQuestion = { id -> navController.navigate(GraceRoute.QuestionDetail(id)) },
-                        onAskQuestion = { navController.navigate(GraceRoute.AskQuestion) },
-                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
-                    )
-                }
-
-                composable<GraceRoute.AskQuestion> {
-                    com.gracelink.android.feature.forum.AskQuestionScreen(
-                        onBack = { navController.popBackStack() },
-                        onAsked = { id ->
-                            navController.navigate(GraceRoute.QuestionDetail(id)) {
-                                popUpTo(GraceRoute.AskQuestion) { inclusive = true }
-                            }
-                        },
-                    )
-                }
-
-                composable<GraceRoute.QuestionDetail> { entry ->
-                    val route = entry.toRoute<GraceRoute.QuestionDetail>()
-                    com.gracelink.android.feature.forum.QuestionDetailScreen(
-                        questionId = route.questionId,
-                        onBack = { navController.popBackStack() },
-                        onRequireSignIn = { navController.navigate(GraceRoute.Registration) },
-                    )
-                }
-
-                // -- Player routes --------------------------------------------
-                composable<GraceRoute.Player> { entry ->
-                    val route = entry.toRoute<GraceRoute.Player>()
-                    PlayerScreen(
-                        contentId = route.contentId,
-                        onBack = { navController.popBackStack() },
-                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) }
-                    )
-                }
-
-                composable<GraceRoute.LiveSession> { entry ->
-                    val route = entry.toRoute<GraceRoute.LiveSession>()
-                    LiveSessionScreen(
-                        sessionId = route.sessionId,
-                        onBack = { navController.popBackStack() }
-                    )
-                }
-
-                composable<GraceRoute.PodcastDetail> { entry ->
-                    val route = entry.toRoute<GraceRoute.PodcastDetail>()
-                    PodcastDetailScreen(
-                        podcastId = route.podcastId,
-                        onBack = { navController.popBackStack() },
-                        onPlayEpisode = { id -> navController.navigate(GraceRoute.EpisodePlayer(id)) }
-                    )
-                }
-
-                composable<GraceRoute.EpisodePlayer> { entry ->
-                    val route = entry.toRoute<GraceRoute.EpisodePlayer>()
-                    // Reuse PlayerScreen for episodes; a dedicated episode player can follow later.
-                    PlayerScreen(
-                        contentId = route.episodeId,
-                        onBack = { navController.popBackStack() },
-                        onOpenLiveSession = { id -> navController.navigate(GraceRoute.LiveSession(id)) }
-                    )
-                }
             }
         }
     }
 }
 
-/**
- * Unique floating pill bottom navigation -- deliberately different from the
- * standard Material NavigationBar. Glass-like surface, gold accent, rounded
- * capsule.
- */
+// ── Modern 4-tab bottom bar ────────────────────────────────────────────────
 @Composable
-private fun GraceFloatingBottomBar(
+private fun GraceBottomBar(
     currentRoute: String?,
-    onNavigate: (GraceRoute) -> Unit
+    onNavigate: (GraceRoute) -> Unit,
 ) {
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(28.dp),
+        color = Slate850.copy(alpha = 0.95f),
+        tonalElevation = 0.dp,
+        shadowElevation = 16.dp,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            Brush.horizontalGradient(listOf(Gold400.copy(alpha = 0.2f), Color.White.copy(alpha = 0.04f), Gold400.copy(alpha = 0.2f)))
+        ),
     ) {
-        Surface(
-            modifier = Modifier
+        Row(
+            Modifier
                 .fillMaxWidth()
                 .height(64.dp)
-                .clip(RoundedCornerShape(32.dp))
-                .border(
-                    width = 1.dp,
-                    brush = Brush.horizontalGradient(
-                        listOf(
-                            Gold400.copy(alpha = 0.35f),
-                            Color.White.copy(alpha = 0.08f),
-                            Gold400.copy(alpha = 0.35f)
-                        )
-                    ),
-                    shape = RoundedCornerShape(32.dp)
-                ),
-            color = Slate900.copy(alpha = 0.92f),
-            tonalElevation = 0.dp,
-            shadowElevation = 12.dp
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            androidx.compose.foundation.layout.Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceEvenly
-            ) {
-                bottomNavRoutes.forEach { route ->
-                    val (selectedIcon, unselectedIcon, label) = route.icons()
-                    val selected = currentRoute?.contains(route::class.simpleName ?: "") == true
+            bottomNavRoutes.forEach { route ->
+                val (icon, label) = route.tabIcon()
+                val selected = currentRoute?.contains(route::class.simpleName ?: "") == true
 
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = { onNavigate(route) },
-                        icon = {
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = { onNavigate(route) }
+                        )
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    if (selected) {
+                        Box(
+                            Modifier
+                                .size(42.dp)
+                                .shadow(6.dp, CircleShape, ambientColor = Gold400.copy(alpha = 0.3f))
+                                .clip(CircleShape)
+                                .background(Brush.radialGradient(listOf(Gold400.copy(alpha = 0.25f), Gold400.copy(alpha = 0.08f)))),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Icon(
-                                imageVector = if (selected) selectedIcon else unselectedIcon,
+                                imageVector = icon,
                                 contentDescription = label,
-                                tint = if (selected) Gold500 else TextSecondary,
-                                modifier = Modifier.size(22.dp),
+                                tint = Gold400,
+                                modifier = Modifier.size(24.dp),
                             )
-                        },
-                        label = {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                color = if (selected) Gold500 else TextSecondary,
-                                maxLines = 1,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Clip,
-                                softWrap = false,
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Gold500,
-                            selectedTextColor = Gold500,
-                            unselectedIconColor = TextSecondary,
-                            unselectedTextColor = TextSecondary,
-                            indicatorColor = Gold500.copy(alpha = 0.12f)
-                        ),
-                        alwaysShowLabel = true
+                        }
+                    } else {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = label,
+                            tint = TextSecondary,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal),
+                        color = if (selected) Gold400 else TextSecondary,
+                        fontSize = 10.sp,
                     )
                 }
             }
@@ -707,12 +676,10 @@ private fun GraceFloatingBottomBar(
     }
 }
 
-private fun GraceRoute.icons(): Triple<ImageVector, ImageVector, String> = when (this) {
-    GraceRoute.Home -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "Home")
-    GraceRoute.Timeline -> Triple(Icons.Rounded.Timeline, Icons.Outlined.Timeline, "Timeline")
-    GraceRoute.Podcasts -> Triple(Icons.Rounded.Podcasts, Icons.Outlined.Podcasts, "Podcasts")
-    GraceRoute.LiveSpaces -> Triple(Icons.Rounded.Headphones, Icons.Outlined.Headphones, "Live")
-    GraceRoute.Community -> Triple(Icons.Rounded.Groups, Icons.Outlined.Groups, "Church")
-    GraceRoute.Profile -> Triple(Icons.Rounded.Person, Icons.Outlined.Person, "Me")
-    else -> Triple(Icons.Rounded.Home, Icons.Outlined.Home, "")
+private fun GraceRoute.tabIcon(): Pair<ImageVector, String> = when (this) {
+    GraceRoute.Home -> Pair(Icons.Rounded.Home, "Home")
+    GraceRoute.Listen -> Pair(Icons.Rounded.Headphones, "Listen")
+    GraceRoute.Community -> Pair(Icons.Rounded.Groups, "Community")
+    GraceRoute.Profile -> Pair(Icons.Rounded.Person, "Me")
+    else -> Pair(Icons.Rounded.Home, "")
 }

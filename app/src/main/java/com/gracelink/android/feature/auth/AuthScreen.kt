@@ -32,10 +32,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gracelink.android.R
+import com.gracelink.android.core.theme.Gold400
+import com.gracelink.android.core.theme.GoldGradient
+import com.gracelink.android.core.theme.Slate850
 import com.gracelink.android.core.theme.TextMuted
 import com.gracelink.android.core.theme.TextPrimary
 import com.gracelink.android.core.theme.TextSecondary
@@ -46,10 +51,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 
 /**
- * Minimalist, Google-only entry point. Deliberately no email/password
- * form -- one clear action. Picking a Google account is the only way in;
- * a brand-new account always continues to Registration (pick account
- * type + enter details) before anything else.
+ * Google-only sign-in — one clear action, no email/password form.
+ * Brand name is now consistently "GraceLink".
  */
 @Composable
 fun AuthScreen(
@@ -61,14 +64,8 @@ fun AuthScreen(
     var errorMsg by remember { mutableStateOf<String?>(null) }
     val mainHandler = Handler(Looper.getMainLooper())
 
-    fun runOnMain(action: () -> Unit) {
-        mainHandler.post { action() }
-    }
+    fun runOnMain(action: () -> Unit) { mainHandler.post { action() } }
 
-    // Safety net: if Firebase's callback never fires at all (e.g. the device
-    // is on a network that can reach the Google picker but not Firebase's
-    // servers), isLoading would otherwise spin forever with zero feedback --
-    // indistinguishable from "the app is just stuck." Time it out instead.
     LaunchedEffect(isLoading) {
         if (isLoading) {
             kotlinx.coroutines.delay(15_000)
@@ -113,32 +110,25 @@ fun AuthScreen(
                             }
                         } else {
                             val err = task2.exception?.message ?: "Sign-in failed"
-                            Log.e("FaithLinkAuth", "Firebase auth failed: $err", task2.exception)
+                            Log.e("GraceLinkAuth", "Firebase auth failed: $err", task2.exception)
                             runOnMain { errorMsg = err }
                         }
                     }
             } catch (e: ApiException) {
-                Log.e("FaithLinkAuth", "Google API exception: ${e.statusCode}", e)
+                Log.e("GraceLinkAuth", "Google API exception: ${e.statusCode}", e)
                 isLoading = false
                 runOnMain {
                     errorMsg = when (e.statusCode) {
-                        // DEVELOPER_ERROR -- almost always means this build's signing
-                        // certificate SHA-1 isn't registered against the OAuth client
-                        // in the Firebase/Google Cloud console. A different debug
-                        // keystore used by CI vs. a local machine is the classic cause.
                         10 -> "Sign-in is not configured for this build (error 10). This app's signing certificate needs to be registered in the Firebase console under Google Sign-In settings."
                         7 -> "No internet connection. Check your network and try again."
-                        12501 -> null // user closed the account picker -- not an error, just stay on screen quietly
+                        12501 -> null
                         else -> "Google sign-in failed (code ${e.statusCode})"
                     }
                 }
             }
         } else {
-            // Non-OK result that ISN'T a simple cancel (e.g. the picker closed due
-            // to an underlying error) -- previously this left the screen doing
-            // nothing with no feedback at all, which looked like being stuck.
             isLoading = false
-            Log.d("FaithLinkAuth", "Google sign-in did not complete, resultCode=${result.resultCode}")
+            Log.d("GraceLinkAuth", "Google sign-in did not complete, resultCode=${result.resultCode}")
         }
     }
 
@@ -150,50 +140,65 @@ fun AuthScreen(
             .requestProfile()
             .build()
         val client = GoogleSignIn.getClient(context, gso)
-        // Sign out of the Google client first so the account picker always shows,
-        // even if the device only has one Google account cached.
         client.signOut().addOnCompleteListener {
             googleSignInLauncher.launch(client.signInIntent)
         }
     }
 
-    Box(Modifier.fillMaxSize().statusBarsPadding().background(MaterialTheme.colorScheme.background)) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background, Slate850)))
+    ) {
         Column(
             Modifier.fillMaxSize().padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.faith_link_logo),
-                contentDescription = "Faith Link",
-                modifier = Modifier.size(64.dp),
-            )
-            Spacer(Modifier.height(20.dp))
-            Text("Faith Link", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary)
-            Spacer(Modifier.height(6.dp))
-            Text("Continue with Google to get started", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            // Logo with glow
+            Box(
+                Modifier
+                    .size(80.dp)
+                    .shadow(16.dp, androidx.compose.foundation.shape.CircleShape, ambientColor = Gold400.copy(alpha = 0.2f))
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(Brush.radialGradient(listOf(Gold400.copy(alpha = 0.15f), androidx.compose.ui.graphics.Color.Transparent))),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.faith_link_logo),
+                    contentDescription = "GraceLink",
+                    modifier = Modifier.size(60.dp),
+                )
+            }
             Spacer(Modifier.height(24.dp))
+            Text("GraceLink", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
+            Spacer(Modifier.height(8.dp))
+            Text("Continue with Google to get started", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            Spacer(Modifier.height(20.dp))
             Text(
                 "\u201cThe just shall live by faith.\u201d",
                 style = MaterialTheme.typography.bodyMedium.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic),
                 color = TextSecondary,
             )
             Text("\u2014 Romans 1:17", style = MaterialTheme.typography.labelSmall, color = TextMuted)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
 
             if (isLoading) {
-                CircularProgressIndicator(color = TextPrimary, modifier = Modifier.size(22.dp))
+                CircularProgressIndicator(color = Gold400, modifier = Modifier.size(24.dp), strokeWidth = 3.dp)
             } else {
+                // Gold gradient sign-in button
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(TextPrimary)
+                        .shadow(8.dp, RoundedCornerShape(18.dp), ambientColor = Gold400.copy(alpha = 0.25f))
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Brush.horizontalGradient(GoldGradient))
                         .clickable { signInWithGoogle() }
-                        .padding(vertical = 16.dp),
+                        .padding(vertical = 18.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("Continue with Google", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.background)
+                    Text("Continue with Google", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = androidx.compose.ui.graphics.Color(0xFF1A0F00))
                 }
             }
 
@@ -202,17 +207,17 @@ fun AuthScreen(
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.15f))
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f))
                         .padding(16.dp),
                 ) {
                     Text(it, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium), color = MaterialTheme.colorScheme.error)
                 }
             }
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(32.dp))
             Text(
-                "By continuing you agree to be part of the Faith Link community.",
+                "By continuing you agree to be part of the GraceLink community.",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextMuted,
             )

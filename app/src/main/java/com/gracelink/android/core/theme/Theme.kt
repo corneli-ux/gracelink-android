@@ -5,11 +5,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-/**
- * GraceLink theme -- matches the logo colors.
- * Logo: warm gold/cream (#D1BE9B) on pure black (#000000).
- * App: pure black bg, warm gold accents, cream text.
- */
 private val DarkColors = darkColorScheme(
     primary            = Gold400,
     onPrimary          = Color(0xFF1A1408),
@@ -21,15 +16,15 @@ private val DarkColors = darkColorScheme(
     onSecondaryContainer = Emerald300,
     tertiary           = Violet400,
     onTertiary         = Color(0xFF1E0F3A),
-    background         = Obsidian,
+    background         = Slate900,
     onBackground       = TextPrimary,
-    surface            = Slate950,
+    surface            = Slate850,
     onSurface          = TextPrimary,
     surfaceVariant     = Slate800,
     onSurfaceVariant   = TextSecondary,
     surfaceTint        = Gold400,
     outline            = Slate700,
-    outlineVariant     = Color(0xFF2A2A2A),
+    outlineVariant     = Slate750,
     error              = Rose500,
     onError            = Color(0xFFFFFFFF),
     errorContainer     = Color(0xFF93000A),

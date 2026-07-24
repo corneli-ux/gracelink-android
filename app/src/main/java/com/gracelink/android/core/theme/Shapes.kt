@@ -4,10 +4,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
+// ── Rounded, warm shapes — premium feel ─────────────────────────────────────
 val GraceShapes = Shapes(
-    extraSmall  = RoundedCornerShape(6.dp),
-    small       = RoundedCornerShape(10.dp),
-    medium      = RoundedCornerShape(16.dp),
-    large       = RoundedCornerShape(22.dp),
-    extraLarge  = RoundedCornerShape(32.dp),
+    extraSmall  = RoundedCornerShape(8.dp),
+    small       = RoundedCornerShape(12.dp),
+    medium      = RoundedCornerShape(18.dp),
+    large       = RoundedCornerShape(26.dp),
+    extraLarge  = RoundedCornerShape(36.dp),
 )

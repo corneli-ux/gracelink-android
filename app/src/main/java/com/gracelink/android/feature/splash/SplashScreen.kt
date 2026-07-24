@@ -26,79 +26,78 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gracelink.android.R
+import com.gracelink.android.core.theme.Gold400
+import com.gracelink.android.core.theme.Slate850
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(onComplete: () -> Unit) {
     LaunchedEffect(Unit) {
-        delay(1500)
+        delay(1800)
         onComplete()
     }
 
     val transition = rememberInfiniteTransition(label = "splash")
     val scale by transition.animateFloat(
-        initialValue = 0.97f, targetValue = 1.03f,
-        animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing), RepeatMode.Reverse),
+        initialValue = 0.97f, targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(tween(2200, easing = LinearEasing), RepeatMode.Reverse),
         label = "scale"
     )
     val glowAlpha by transition.animateFloat(
-        initialValue = 0.15f, targetValue = 0.4f,
-        animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing), RepeatMode.Reverse),
+        initialValue = 0.2f, targetValue = 0.55f,
+        animationSpec = infiniteRepeatable(tween(2200, easing = LinearEasing), RepeatMode.Reverse),
         label = "glow"
     )
 
     Box(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background, Slate850, MaterialTheme.colorScheme.background))),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Faith Link logo
             Box(
                 Modifier
-                    .size(120.dp)
+                    .size(130.dp)
                     .scale(scale)
+                    .shadow(20.dp, androidx.compose.foundation.shape.CircleShape, ambientColor = Gold400.copy(alpha = 0.3f))
             ) {
-                // Subtle glow behind logo -- previewing the new platinum
-                // verification color here rather than the usual gold, per
-                // request, to see how a platinum-toned accent reads
                 Box(
                     Modifier
                         .fillMaxSize()
                         .background(
                             Brush.radialGradient(
-                                listOf(com.gracelink.android.core.theme.PlatinumBlue.copy(alpha = glowAlpha), com.gracelink.android.core.theme.PlatinumBlue.copy(alpha = 0f))
+                                listOf(Gold400.copy(alpha = glowAlpha), Gold400.copy(alpha = 0f))
                             )
                         )
                 )
-                // The actual logo image
                 Image(
                     painter = painterResource(id = R.drawable.faith_link_logo),
-                    contentDescription = "Faith Link Logo",
+                    contentDescription = "GraceLink Logo",
                     modifier = Modifier.fillMaxSize()
                 )
             }
-            Spacer(Modifier.height(20.dp))
-            AnimatedVisibility(visible = true, enter = fadeIn(tween(800))) {
+            Spacer(Modifier.height(24.dp))
+            AnimatedVisibility(visible = true, enter = fadeIn(tween(600))) {
                 Text(
-                    "Faith Link",
+                    "GraceLink",
                     style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onBackground,
                 )
             }
-            Spacer(Modifier.height(4.dp))
-            AnimatedVisibility(visible = true, enter = fadeIn(tween(1200))) {
+            Spacer(Modifier.height(6.dp))
+            AnimatedVisibility(visible = true, enter = fadeIn(tween(1000))) {
                 Text(
-                    "Listen • Participate • Belong",
+                    "Listen · Participate · Belong",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.alpha(0.7f),

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,9 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.gracelink.android.core.theme.LiveRed
+import com.gracelink.android.core.theme.Slate800
 
 @Composable
 fun LiveBadge(
@@ -34,15 +37,16 @@ fun LiveBadge(
 ) {
     val transition = rememberInfiniteTransition(label = "live-pulse")
     val pulseAlpha by transition.animateFloat(
-        initialValue = 1f, targetValue = 0.25f,
-        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse),
+        initialValue = 1f, targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
         label = "pulse"
     )
 
     Row(
         modifier = modifier
-            .clip(CircleShape)
-            .background(color.copy(alpha = 0.22f))
+            .shadow(4.dp, RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(color.copy(alpha = 0.2f))
             .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
@@ -55,6 +59,8 @@ fun LiveBadge(
                 .background(color)
         )
         Spacer(Modifier.width(6.dp))
-        Text(text, style = MaterialTheme.typography.labelSmall, color = color)
+        Text(text, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = color)
     }
 }
+
+private val FontWeight = androidx.compose.ui.text.font.FontWeight

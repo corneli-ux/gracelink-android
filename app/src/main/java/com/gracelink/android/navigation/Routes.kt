@@ -3,11 +3,16 @@ package com.gracelink.android.navigation
 import kotlinx.serialization.Serializable
 
 /**
- * Type-safe navigation routes for Faith Link.
+ * Type-safe navigation routes for GraceLink.
  *
- * Flow: Splash -> Onboarding (first launch only) -> Auth (create/sign in
- * with Google) -> Registration (pick account type + enter details) ->
- * Home / Church Portal / Pastor Studio, matching the chosen type.
+ * Flow: Splash -> Onboarding (first launch) -> Auth (Google Sign-In) ->
+ * Registration (pick role + details) -> Home.
+ *
+ * Simplified 4-tab bottom nav for "one click" UX:
+ *   Home   — listen live + content overview + church activity
+ *   Listen — podcasts + radio + live spaces (merged)
+ *   Community — churches, prayer, forum, events (merged)
+ *   Me     — profile, settings, portals
  */
 @Serializable
 sealed interface GraceRoute {
@@ -18,32 +23,26 @@ sealed interface GraceRoute {
     @Serializable data object Auth : GraceRoute
     @Serializable data object Registration : GraceRoute
 
-    // Single unified hub -- replaces the old forced PortalHub step
+    // Primary hub destinations (4-tab bottom nav)
     @Serializable data object Home : GraceRoute
-    @Serializable data object Timeline : GraceRoute
-
-    // Core destinations (bottom nav)
-    @Serializable data object Podcasts : GraceRoute
-    @Serializable data object LiveSpaces : GraceRoute
+    @Serializable data object Listen : GraceRoute
     @Serializable data object Community : GraceRoute
     @Serializable data object Profile : GraceRoute
 
-    // Listening
+    // Listening sub-routes
     @Serializable data object Radio : GraceRoute
+    @Serializable data object Podcasts : GraceRoute
+    @Serializable data object LiveSpaces : GraceRoute
     @Serializable data class Player(val contentId: String) : GraceRoute
     @Serializable data class LiveSession(val sessionId: String) : GraceRoute
     @Serializable data class PodcastDetail(val podcastId: String) : GraceRoute
     @Serializable data class EpisodePlayer(val episodeId: String) : GraceRoute
 
-    // Community / church
+    // Community sub-routes
     @Serializable data object Churches : GraceRoute
     @Serializable data class ChurchDetail(val churchId: String) : GraceRoute
     @Serializable data object Pastors : GraceRoute
     @Serializable data class PastorProfile(val pastorUid: String) : GraceRoute
-    @Serializable data object ChurchPortal : GraceRoute
-    @Serializable data object ChurchEditProfile : GraceRoute
-    @Serializable data object ChurchMembers : GraceRoute
-    @Serializable data object PastorPortal : GraceRoute
     @Serializable data object Prayer : GraceRoute
     @Serializable data object Events : GraceRoute
     @Serializable data object Articles : GraceRoute
@@ -52,14 +51,19 @@ sealed interface GraceRoute {
     @Serializable data object Forum : GraceRoute
     @Serializable data object AskQuestion : GraceRoute
     @Serializable data class QuestionDetail(val questionId: String) : GraceRoute
+    @Serializable data object Timeline : GraceRoute
 
-    // Church/Pastor content creation & booking
+    // Church / Pastor portals
+    @Serializable data object ChurchPortal : GraceRoute
+    @Serializable data object ChurchEditProfile : GraceRoute
+    @Serializable data object ChurchMembers : GraceRoute
+    @Serializable data object PastorPortal : GraceRoute
     @Serializable data object RadioBooking : GraceRoute
     @Serializable data object PodcastCreate : GraceRoute
     @Serializable data object EventCreate : GraceRoute
     @Serializable data object WritePost : GraceRoute
 
-    // Church administration (roles, announcements, groups, RSVP, leadership, ministries)
+    // Church administration
     @Serializable data object ChurchAnnouncements : GraceRoute
     @Serializable data object CreateAnnouncement : GraceRoute
     @Serializable data object ChurchGroups : GraceRoute
@@ -79,16 +83,9 @@ sealed interface GraceRoute {
     @Serializable data object DownloadsManager : GraceRoute
 }
 
-/**
- * The five primary destinations shown in the floating bottom navigation.
- * Home carries the "listen live" + overview surface, so Radio doesn't need
- * its own tab; Podcasts keeps a dedicated one since it's a distinct habit.
- */
 val bottomNavRoutes = listOf(
     GraceRoute.Home,
-    GraceRoute.Timeline,
-    GraceRoute.Podcasts,
-    GraceRoute.LiveSpaces,
+    GraceRoute.Listen,
     GraceRoute.Community,
     GraceRoute.Profile,
 )

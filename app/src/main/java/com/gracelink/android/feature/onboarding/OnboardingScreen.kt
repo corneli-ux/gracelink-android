@@ -20,7 +20,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.RecordVoiceOver
 import androidx.compose.material.icons.rounded.Spa
@@ -31,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -39,6 +39,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gracelink.android.core.components.GoldButton
 import com.gracelink.android.core.components.GhostButton
+import com.gracelink.android.core.theme.Gold400
+import com.gracelink.android.core.theme.Slate800
+import com.gracelink.android.core.theme.Slate850
+import com.gracelink.android.core.theme.TextPrimary
+import com.gracelink.android.core.theme.TextSecondary
 
 private data class Page(val icon: ImageVector, val title: String, val body: String)
 
@@ -55,7 +60,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)))
+            .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background, Slate850, MaterialTheme.colorScheme.surfaceVariant)))
     ) {
         Column(
             Modifier
@@ -64,15 +69,15 @@ fun OnboardingScreen(onDone: () -> Unit) {
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(40.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = androidx.compose.ui.res.painterResource(id = com.gracelink.android.R.drawable.faith_link_logo),
-                    contentDescription = "Faith Link",
-                    modifier = Modifier.size(32.dp)
+                    contentDescription = "GraceLink",
+                    modifier = Modifier.size(36.dp)
                 )
                 Spacer(Modifier.width(10.dp))
-                Text("Faith Link", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold))
+                Text("GraceLink", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
             }
             Spacer(Modifier.height(40.dp))
 
@@ -87,53 +92,44 @@ fun OnboardingScreen(onDone: () -> Unit) {
                 ) {
                     Box(
                         Modifier
-                            .size(112.dp)
+                            .size(120.dp)
+                            .shadow(16.dp, CircleShape, ambientColor = Gold400.copy(alpha = 0.2f))
                             .clip(CircleShape)
-                            .background(Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), Color.Transparent))),
+                            .background(Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.35f), Color.Transparent))),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(page.icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
+                        Icon(page.icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(52.dp))
                     }
                     Spacer(Modifier.height(32.dp))
                     Text(
                         page.title,
                         style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = TextPrimary,
                         textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
                         page.body,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = TextSecondary,
                         textAlign = TextAlign.Center,
                     )
                 }
             }
 
+            // Page indicators — gold dot for current
             Row(Modifier.padding(vertical = 20.dp), horizontalArrangement = Arrangement.Center) {
                 repeat(pages.size) { i ->
-                    val color = if (i == pager.currentPage) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                    val isSelected = i == pager.currentPage
                     Box(
                         Modifier
                             .padding(horizontal = 4.dp)
-                            .size(if (i == pager.currentPage) 10.dp else 8.dp)
+                            .size(if (isSelected) 10.dp else 7.dp)
                             .clip(CircleShape)
-                            .background(color)
+                            .shadow(if (isSelected) 4.dp else 0.dp, CircleShape)
+                            .background(if (isSelected) Gold400 else Slate800)
                     )
                 }
-            }
-
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                LangChip("English", "EN", Modifier.weight(1f), true) {}
-                LangChip("తెలుగు", "TE", Modifier.weight(1f), false) {}
             }
 
             Spacer(Modifier.height(14.dp))
@@ -141,23 +137,6 @@ fun OnboardingScreen(onDone: () -> Unit) {
             Spacer(Modifier.height(10.dp))
             GhostButton("Sign in with Google", onClick = onDone, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(20.dp))
-        }
-    }
-}
-
-@Composable
-private fun LangChip(label: String, code: String, modifier: Modifier, selected: Boolean, onClick: () -> Unit) {
-    Box(
-        modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) Brush.horizontalGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)) else Brush.verticalGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface)))
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(code, style = MaterialTheme.typography.labelSmall, color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.width(6.dp))
-            Text(label, style = MaterialTheme.typography.labelLarge, color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface)
         }
     }
 }

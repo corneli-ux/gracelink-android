@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.PlayCircleOutline
 import androidx.compose.material.icons.outlined.Podcasts
 import androidx.compose.material.icons.rounded.Forum
+import androidx.compose.material.icons.rounded.Timeline
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,26 +46,21 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.gracelink.android.core.components.GlassCard
 import com.gracelink.android.core.theme.LiveRed
 import com.gracelink.android.core.theme.TextMuted
 import com.gracelink.android.core.theme.TextPrimary
 import com.gracelink.android.core.theme.TextSecondary
+import com.gracelink.android.core.theme.Gold400
 import com.gracelink.android.data.db.entity.ContentEntity
 
-/**
- * Faith Link's home dashboard.
- *
- * Deliberately flat: no gradient hero boxes, no colored card soup. Typography
- * carries the hierarchy, hairline dividers separate sections, and the single
- * accent color (gold) is reserved for the live indicator and the play glyph
- * so it still reads as "premium" rather than plain.
- */
 @Composable
 fun HomeScreen(
     onPlayContent: (String) -> Unit,
     onOpenLiveSession: (String) -> Unit,
     onOpenForum: () -> Unit,
     onJoinLiveSpace: () -> Unit,
+    onOpenTimeline: () -> Unit = {},
     vm: HomeViewModel = hiltViewModel(),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -77,63 +74,89 @@ fun HomeScreen(
             .statusBarsPadding(),
         contentPadding = PaddingValues(bottom = 40.dp),
     ) {
-        // -- Header --------------------------------------------------------
+        // ── Header ─────────────────────────────────────────────────────────────
         item {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp)) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
-                    "FAITH LINK",
+                    "GRACELINK",
                     style = MaterialTheme.typography.labelMedium,
-                    color = TextMuted,
+                    color = Gold400,
                     letterSpacing = 2.sp,
+                    fontWeight = FontWeight.Bold,
                 )
+                Spacer(Modifier.weight(1f))
+                // Quick access to Timeline
+                Box(
+                    Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable(onClick = onOpenTimeline),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Rounded.Timeline, null, tint = TextSecondary, modifier = Modifier.size(18.dp))
+                }
             }
         }
 
-        // -- Verse of the Day -------------------------------------------------
+        // ── Verse of the Day — glass card ──────────────────────────────────────
         item {
             val context = androidx.compose.ui.platform.LocalContext.current
             val verse = remember { com.gracelink.android.core.BibleVerseProvider.verseOfTheDay(context) }
             if (verse != null) {
-                Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 4.dp)) {
-                    Text("VERSE OF THE DAY", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp)
-                    Spacer(Modifier.height(6.dp))
-                    Text("\u201c${verse.text}\u201d", style = MaterialTheme.typography.bodyLarge.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic), color = TextPrimary)
-                    Spacer(Modifier.height(4.dp))
-                    Text("\u2014 ${verse.reference}", style = MaterialTheme.typography.labelMedium, color = TextMuted)
+                GlassCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 4.dp)
+                ) {
+                    Column(Modifier.padding(18.dp)) {
+                        Text("VERSE OF THE DAY", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = Gold400, letterSpacing = 1.sp)
+                        Spacer(Modifier.height(8.dp))
+                        Text("\u201c${verse.text}\u201d", style = MaterialTheme.typography.bodyLarge.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic), color = TextPrimary)
+                        Spacer(Modifier.height(4.dp))
+                        Text("\u2014 ${verse.reference}", style = MaterialTheme.typography.labelMedium, color = TextMuted)
+                    }
                 }
                 Spacer(Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
             }
         }
 
-        // -- Live Audio Space -- X-Spaces-style banner: if anyone is
-        // hosting a live space right now, surface it prominently so
-        // people actually discover and join it, independent of whether
-        // radio happens to be live too.
+        // ── Live Audio Space banner ──────────────────────────────────────────
         val liveSpace = state.liveSpace
         if (liveSpace != null) {
             item {
-                Row(
-                    Modifier
+                GlassCard(
+                    modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 4.dp)
                         .clickable { onJoinLiveSpace() }
-                        .padding(horizontal = 24.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(Modifier.size(8.dp).clip(CircleShape).background(LiveRed))
-                    Spacer(Modifier.width(10.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text("LIVE AUDIO SPACE", style = MaterialTheme.typography.labelSmall, color = LiveRed, fontWeight = FontWeight.Bold)
-                        Text(liveSpace.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("Hosted by ${liveSpace.hostName} \u00b7 ${liveSpace.participantCount} listening", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                    Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(8.dp).clip(CircleShape).background(LiveRed))
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("LIVE AUDIO SPACE", style = MaterialTheme.typography.labelSmall, color = LiveRed, fontWeight = FontWeight.Bold)
+                            Text(liveSpace.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Hosted by ${liveSpace.hostName} \u00b7 ${liveSpace.participantCount} listening", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        }
+                        Box(
+                            Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.primary)
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text("Join", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold), color = androidx.compose.ui.graphics.Color(0xFF1A0F00))
+                        }
                     }
-                    Text("Join", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
+                Spacer(Modifier.height(16.dp))
             }
         }
 
-        // -- Live strip (flat, no box) --------------------------------------
+        // ── Live radio strip ──────────────────────────────────────────────────
         if (live != null) {
             item {
                 Row(
@@ -150,28 +173,21 @@ fun HomeScreen(
                         Text(live.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (state.liveSession != null) {
-                        Text(
-                            "Join",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable { state.liveSession?.let { onOpenLiveSession(it.id) } }
-                        )
+                        Text("Join", style = MaterialTheme.typography.labelLarge, color = Gold400, modifier = Modifier.clickable { state.liveSession?.let { onOpenLiveSession(it.id) } })
                     } else {
-                        Icon(Icons.Outlined.PlayCircleOutline, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                        Icon(Icons.Outlined.PlayCircleOutline, null, tint = Gold400, modifier = Modifier.size(28.dp))
                     }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
             }
         }
 
-        // -- Your Church activity -- what makes checking the app worth it
-        // for a member: everything their own church has posted, in one
-        // place, instead of three separate screens to notice anything new.
+        // ── Your Church activity ──────────────────────────────────────────────
         if (state.churchActivity.isNotEmpty()) {
             item {
                 Text(
                     state.churchName?.let { "$it \u2014 recent activity" } ?: "Your Church",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = TextPrimary,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
                 )
@@ -183,27 +199,28 @@ fun HomeScreen(
             item { Spacer(Modifier.height(16.dp)) }
         }
 
-        // -- Feature highlight: the new public Forum -------------------------
+        // ── Forum highlight ───────────────────────────────────────────────────
         item {
-            Row(
-                Modifier
+            GlassCard(
+                modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 4.dp)
                     .clickable(onClick = onOpenForum)
-                    .padding(horizontal = 24.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Rounded.Forum, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("New: Ask the community", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary)
-                    Text("Raise a question of faith \u2014 anyone can answer", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Forum, null, tint = Gold400, modifier = Modifier.size(24.dp))
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Ask the community", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
+                        Text("Raise a question of faith \u2014 anyone can answer", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    }
+                    Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = TextMuted, modifier = Modifier.size(14.dp))
                 }
-                Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = TextMuted, modifier = Modifier.size(14.dp))
             }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.75.dp)
+            Spacer(Modifier.height(16.dp))
         }
 
-        // -- Continue Listening ---------------------------------------------
+        // ── Continue Listening ──────────────────────────────────────────────────
         if (state.continueListening.isNotEmpty()) {
             item {
                 SectionHeader("Continue Listening")
@@ -211,7 +228,7 @@ fun HomeScreen(
             item {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(state.continueListening) { item ->
                         ContinueItem(item) { onPlayContent(item.id) }
@@ -222,7 +239,7 @@ fun HomeScreen(
             }
         }
 
-        // -- Recommended: plain rows, divider-separated ----------------------
+        // ── Recommended ──────────────────────────────────────────────────────────
         item { SectionHeader("Recommended") }
         items(recommended.size) { index ->
             val item = recommended[index]
@@ -238,7 +255,7 @@ fun HomeScreen(
 private fun SectionHeader(title: String) {
     Text(
         title,
-        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
         color = TextPrimary,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
     )
@@ -247,17 +264,17 @@ private fun SectionHeader(title: String) {
 @Composable
 private fun ContinueItem(item: ContentEntity, onClick: () -> Unit) {
     Column(
-        Modifier.width(108.dp).clickable(onClick = onClick)
+        Modifier.width(120.dp).clickable(onClick = onClick)
     ) {
         AsyncImage(
             model = item.thumbnailUrl, contentDescription = null,
-            modifier = Modifier.fillMaxWidth().height(108.dp).clip(RoundedCornerShape(10.dp)),
+            modifier = Modifier.fillMaxWidth().height(120.dp).clip(RoundedCornerShape(18.dp)),
             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
         )
         Spacer(Modifier.height(8.dp))
         Text(item.title, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium), color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(2.dp))
-        Text(item.speaker ?: "Faith Link", style = MaterialTheme.typography.labelSmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(item.speaker ?: "GraceLink", style = MaterialTheme.typography.labelSmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -272,10 +289,10 @@ private fun ChurchActivityRow(item: com.gracelink.android.data.repository.Church
             ActivityRowContent(Icons.Outlined.Podcasts, "Article", item.entity.title, item.entity.content)
     }
     Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp), verticalAlignment = Alignment.Top) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+        Icon(icon, null, tint = Gold400, modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = Gold400)
             Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(snippet, style = MaterialTheme.typography.bodySmall, color = TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
@@ -295,14 +312,14 @@ private fun RecommendedRow(item: ContentEntity, onClick: () -> Unit) {
     ) {
         AsyncImage(
             model = item.thumbnailUrl, contentDescription = null,
-            modifier = Modifier.size(52.dp).clip(RoundedCornerShape(8.dp)),
+            modifier = Modifier.size(56.dp).clip(RoundedCornerShape(14.dp)),
             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
         )
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Text(item.title, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(2.dp))
-            Text(item.speaker ?: "Faith Link", style = MaterialTheme.typography.bodySmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(item.speaker ?: "GraceLink", style = MaterialTheme.typography.bodySmall, color = TextMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.width(8.dp))
         Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = TextMuted, modifier = Modifier.size(14.dp))
