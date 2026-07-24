@@ -36,7 +36,6 @@ import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MicOff
 import androidx.compose.material.icons.rounded.People
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -50,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -58,8 +58,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gracelink.android.core.components.GlassCard
 import com.gracelink.android.core.components.GoldButton
 import com.gracelink.android.core.components.LiveBadge
+import com.gracelink.android.core.theme.Gold400
+import com.gracelink.android.core.theme.GoldGradient
 
 @Composable
 fun AudioConnectScreen(vm: AudioConnectViewModel = hiltViewModel()) {
@@ -110,18 +113,20 @@ private fun SpacesListView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
-                Text("Live Spaces", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
-                Text("Live audio rooms \u2014 join the conversation", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("GraceLink Live Spaces", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
+                Text("Live audio rooms \u2014 join the GraceLink conversation", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            // Create-space FAB with shadow and gold gradient
             Box(
                 Modifier
                     .size(48.dp)
+                    .shadow(8.dp, RoundedCornerShape(14.dp), ambientColor = Gold400.copy(alpha = 0.25f))
                     .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(Brush.horizontalGradient(GoldGradient))
                     .clickable(onClick = onCreate),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Rounded.Add, "Create space", tint = Color(0xFF1A0F00), modifier = Modifier.size(24.dp))
+                Icon(Icons.Rounded.Add, "Create GraceLink space", tint = Color(0xFF1A0F00), modifier = Modifier.size(24.dp))
             }
         }
 
@@ -138,18 +143,18 @@ private fun SpacesListView(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(40.dp))
-                Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
+                Icon(Icons.Rounded.People, null, tint = Gold400.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
                 Spacer(Modifier.height(10.dp))
                 Text("No live spaces right now", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                Text("Start one to begin a live conversation", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Start one to begin a GraceLink conversation", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(state.spaces, key = { it.id }) { space ->
                     SpaceCard(space) { onJoin(space) }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
         }
@@ -158,36 +163,41 @@ private fun SpacesListView(
 
 @Composable
 private fun SpaceCard(space: AudioSpace, onJoin: () -> Unit) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onJoin)
-            .padding(vertical = 16.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            LiveBadge()
-            Spacer(Modifier.width(8.dp))
-            Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
-            Spacer(Modifier.width(4.dp))
-            Text("${space.participantCount} listening", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.weight(1f))
-            Text(formatDuration(System.currentTimeMillis() - space.startedAt), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Spacer(Modifier.height(10.dp))
-        Text(space.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(4.dp))
-        Text("Hosted by ${space.hostName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(4.dp))
-        Text(space.topic, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        Spacer(Modifier.height(12.dp))
-        Box(
+    // Glass card replaces flat divider separator pattern
+    GlassCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
             Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(MaterialTheme.colorScheme.primary)
+                .fillMaxWidth()
                 .clickable(onClick = onJoin)
-                .padding(horizontal = 20.dp, vertical = 10.dp)
+                .padding(16.dp)
         ) {
-            Text("Join Space", color = Color(0xFF1A0F00), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                LiveBadge()
+                Spacer(Modifier.width(8.dp))
+                Icon(Icons.Rounded.People, null, tint = Gold400, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("${space.participantCount} listening", style = MaterialTheme.typography.labelMedium, color = Gold400)
+                Spacer(Modifier.weight(1f))
+                Text(formatDuration(System.currentTimeMillis() - space.startedAt), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(space.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(4.dp))
+            Text("Hosted by ${space.hostName}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(4.dp))
+            Text(space.topic, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(12.dp))
+            // Join button with gold gradient and shadow
+            Box(
+                Modifier
+                    .shadow(6.dp, RoundedCornerShape(20.dp), ambientColor = Gold400.copy(alpha = 0.2f))
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Brush.horizontalGradient(GoldGradient))
+                    .clickable(onClick = onJoin)
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
+            ) {
+                Text("Join Space", color = Color(0xFF1A0F00), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }
@@ -215,9 +225,9 @@ private fun ActiveSpaceView(
             Spacer(Modifier.width(12.dp))
             LiveBadge()
             Spacer(Modifier.weight(1f))
-            Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+            Icon(Icons.Rounded.People, null, tint = Gold400, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(4.dp))
-            Text("${space.participantCount}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text("${space.participantCount}", style = MaterialTheme.typography.labelLarge, color = Gold400)
         }
 
         // Space info
@@ -231,7 +241,7 @@ private fun ActiveSpaceView(
 
         Spacer(Modifier.weight(1f))
 
-        // Participant circle (visual, with a subtle live pulse)
+        // Participant circle (visual, with pulsing ring + shadow)
         Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
             val transition = rememberInfiniteTransition(label = "space-pulse")
             val ringScale by transition.animateFloat(
@@ -242,82 +252,87 @@ private fun ActiveSpaceView(
                 initialValue = 0.5f, targetValue = 0f,
                 animationSpec = infiniteRepeatable(tween(1400), RepeatMode.Restart), label = "ringAlpha"
             )
+            // Pulsing ring with gold shadow glow
             Box(
                 Modifier
                     .size(120.dp * ringScale)
+                    .shadow(12.dp, CircleShape, ambientColor = Gold400.copy(alpha = ringAlpha * 0.4f))
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = ringAlpha))
+                    .background(Gold400.copy(alpha = ringAlpha))
             )
             Box(
                 Modifier
                     .size(120.dp)
                     .clip(CircleShape)
-                    .background(Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), Color.Transparent))),
+                    .background(Brush.radialGradient(listOf(Gold400.copy(alpha = 0.3f), Color.Transparent))),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Rounded.People, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
+                Icon(Icons.Rounded.People, null, tint = Gold400, modifier = Modifier.size(48.dp))
             }
         }
 
         Spacer(Modifier.weight(1f))
 
-        // Controls
-        Row(
-            Modifier
+        // Controls wrapped in GlassCard
+        GlassCard(
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.background)
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Mic toggle
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(if (isMicOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable(onClick = onMicToggle),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(if (isMicOn) Icons.Rounded.Mic else Icons.Rounded.MicOff, "Mic", tint = if (isMicOn) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Mic toggle
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(if (isMicOn) Gold400 else MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable(onClick = onMicToggle),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(if (isMicOn) Icons.Rounded.Mic else Icons.Rounded.MicOff, "Mic", tint = if (isMicOn) Color(0xFF1A0F00) else MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text(if (isMicOn) "Mic On" else "Mic Off", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Spacer(Modifier.height(6.dp))
-                Text(if (isMicOn) "Mic On" else "Mic Off", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
 
-            // Hand raise
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(if (isHandRaised) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable(onClick = onHandRaise),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Rounded.PanTool, "Raise hand", tint = if (isHandRaised) Color(0xFF00211A) else MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+                // Hand raise
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(if (isHandRaised) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable(onClick = onHandRaise),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Rounded.PanTool, "Raise hand", tint = if (isHandRaised) Color(0xFF00211A) else MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text(if (isHandRaised) "Hand Raised" else "Raise Hand", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Spacer(Modifier.height(6.dp))
-                Text(if (isHandRaised) "Hand Raised" else "Raise Hand", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
 
-            // Leave
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.error)
-                        .clickable(onClick = onLeave),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Rounded.Close, "Leave", tint = Color.White, modifier = Modifier.size(24.dp))
+                // Leave
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.error)
+                            .clickable(onClick = onLeave),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Rounded.Close, "Leave", tint = Color.White, modifier = Modifier.size(24.dp))
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Text("Leave", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                 }
-                Spacer(Modifier.height(6.dp))
-                Text("Leave", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -339,17 +354,17 @@ private fun CreateSpaceDialog(errorMessage: String?, onCreate: (String, String) 
                 .clickable(enabled = false) {}
         ) {
             Column {
-                Text("Start Audio Space", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+                Text("Start a GraceLink Space", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(4.dp))
-                Text("Create a live audio room for discussion", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Create a live audio room on GraceLink", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(16.dp))
 
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 12.dp, vertical = 4.dp)) {
-                    TextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Space title (e.g. Bible Study)", color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
+                    TextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Space title (e.g. Bible Study)", color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next))
                 }
                 Spacer(Modifier.height(12.dp))
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 12.dp, vertical = 4.dp)) {
-                    TextField(value = topic, onValueChange = { topic = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Topic (e.g. Romans 8)", color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = MaterialTheme.colorScheme.primary), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { if (title.isNotBlank()) onCreate(title, topic) }))
+                    TextField(value = topic, onValueChange = { topic = it }, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Topic (e.g. Romans 8)", color = MaterialTheme.colorScheme.onSurfaceVariant) }, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, cursorColor = Gold400), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { if (title.isNotBlank()) onCreate(title, topic) }))
                 }
                 Spacer(Modifier.height(20.dp))
                 if (errorMessage != null) {

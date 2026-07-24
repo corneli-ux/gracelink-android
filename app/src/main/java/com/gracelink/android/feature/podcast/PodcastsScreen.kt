@@ -40,6 +40,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +51,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.gracelink.android.core.theme.Gold400
+import com.gracelink.android.core.theme.GoldGradient
 import com.gracelink.android.core.theme.TextMuted
 import com.gracelink.android.core.theme.TextPrimary
 import com.gracelink.android.core.theme.TextSecondary
@@ -88,13 +92,13 @@ fun PodcastsScreen(
                 value = query, onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Search podcasts & episodes\u2026", color = TextMuted) },
-                leadingIcon = { Icon(Icons.Rounded.Search, null, tint = TextMuted) },
+                leadingIcon = { Icon(Icons.Rounded.Search, null, tint = Gold400) },
                 singleLine = true,
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(18.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), unfocusedBorderColor = Color.White.copy(alpha = 0.08f),
+                    focusedBorderColor = Gold400.copy(alpha = 0.5f), unfocusedBorderColor = Color.White.copy(alpha = 0.08f),
                     focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background,
-                    cursorColor = MaterialTheme.colorScheme.primary, focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary,
+                    cursorColor = Gold400, focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary,
                 )
             )
             if (categories.size > 1) {
@@ -102,8 +106,14 @@ fun PodcastsScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     categories.forEach { c ->
                         val selected = c == category
-                        Box(Modifier.clip(RoundedCornerShape(20.dp)).background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background).clickable { category = c }.padding(horizontal = 14.dp, vertical = 8.dp)) {
-                            Text(c, style = MaterialTheme.typography.labelMedium, color = if (selected) MaterialTheme.colorScheme.background else TextSecondary)
+                        Box(
+                            Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(if (selected) Brush.horizontalGradient(GoldGradient) else MaterialTheme.colorScheme.background)
+                                .clickable { category = c }
+                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                        ) {
+                            Text(c, style = MaterialTheme.typography.labelMedium, color = if (selected) Color(0xFF1A0F00) else TextSecondary)
                         }
                     }
                 }
@@ -112,10 +122,10 @@ fun PodcastsScreen(
 
         if (state.series.isEmpty()) {
             Column(Modifier.fillMaxSize().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Rounded.Podcasts, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
+                Icon(Icons.Rounded.Podcasts, null, tint = Gold400.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
                 Spacer(Modifier.height(10.dp))
                 Text("No podcasts published yet", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-                Text("Pastors and churches can publish from their portal", style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                Text("Pastors and churches can publish from their GraceLink portal", style = MaterialTheme.typography.bodySmall, color = TextMuted)
             }
             return@Column
         }
@@ -123,7 +133,7 @@ fun PodcastsScreen(
         LazyColumn(contentPadding = PaddingValues(bottom = 100.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (filteredSeries.isNotEmpty()) {
                 item {
-                    Text("SERIES", style = MaterialTheme.typography.labelMedium, color = TextMuted, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), letterSpacing = 1.2.sp)
+                    Text("SERIES", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), color = Gold400, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), letterSpacing = 1.2.sp)
                 }
                 item {
                     LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -134,13 +144,13 @@ fun PodcastsScreen(
 
             item {
                 Spacer(modifier = Modifier.height(20.dp))
-                Text("LATEST EPISODES", style = MaterialTheme.typography.labelMedium, color = TextMuted, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), letterSpacing = 1.2.sp)
+                Text("LATEST EPISODES", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), color = Gold400, modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), letterSpacing = 1.2.sp)
             }
             if (filteredEpisodes.isEmpty()) {
                 item { Text("No episodes match", style = MaterialTheme.typography.bodyMedium, color = TextSecondary, modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) }
             }
             items(filteredEpisodes, key = { it.id }) { ep ->
-                EpisodeRow(ep, seriesTitleById[ep.podcastId] ?: "Faith Link") { onPlayEpisode(ep.id) }
+                EpisodeRow(ep, seriesTitleById[ep.podcastId] ?: "GraceLink") { onPlayEpisode(ep.id) }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 20.dp))
             }
         }
@@ -150,21 +160,32 @@ fun PodcastsScreen(
 @Composable
 private fun SeriesCard(series: PodcastSeriesEntity, onClick: () -> Unit) {
     Column(
-        modifier = Modifier.width(160.dp).clip(RoundedCornerShape(18.dp)).background(MaterialTheme.colorScheme.surfaceVariant)
-            .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(18.dp)).clickable(onClick = onClick)
+        modifier = Modifier
+            .width(160.dp)
+            .shadow(8.dp, RoundedCornerShape(18.dp), ambientColor = Gold400.copy(alpha = 0.25f))
+            .clip(RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
     ) {
         Box(modifier = Modifier.fillMaxWidth().height(140.dp).background(MaterialTheme.colorScheme.surfaceVariant)) {
             if (series.coverUrl != null) {
                 AsyncImage(model = series.coverUrl, contentDescription = series.title, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Podcasts, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(32.dp))
+                    Icon(Icons.Rounded.Podcasts, null, tint = Gold400.copy(alpha = 0.5f), modifier = Modifier.size(32.dp))
                 }
             }
             Box(
-                modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp).size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(10.dp)
+                    .size(36.dp)
+                    .shadow(4.dp, CircleShape, ambientColor = Gold400.copy(alpha = 0.2f))
+                    .clip(CircleShape)
+                    .background(Brush.horizontalGradient(GoldGradient)),
                 contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Rounded.PlayArrow, null, tint = MaterialTheme.colorScheme.background, modifier = Modifier.size(22.dp)) }
+            ) { Icon(Icons.Rounded.PlayArrow, null, tint = Color(0xFF1A0F00), modifier = Modifier.size(22.dp)) }
         }
         Column(modifier = Modifier.padding(12.dp)) {
             Text(series.title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -181,9 +202,13 @@ private fun EpisodeRow(episode: PodcastEpisodeEntity, seriesTitle: String, onPla
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+            modifier = Modifier
+                .size(44.dp)
+                .shadow(4.dp, RoundedCornerShape(12.dp), ambientColor = Gold400.copy(alpha = 0.15f))
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.PlayArrow, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp)) }
+        ) { Icon(Icons.Rounded.PlayArrow, null, tint = Gold400, modifier = Modifier.size(24.dp)) }
         Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(episode.title, style = MaterialTheme.typography.titleSmall, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)

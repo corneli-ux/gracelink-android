@@ -22,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ChatBubbleOutline
 import androidx.compose.material.icons.rounded.Forum
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,17 +30,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gracelink.android.core.components.GlassCard
+import com.gracelink.android.core.theme.Gold400
+import com.gracelink.android.core.theme.GoldGradient
 import com.gracelink.android.data.db.entity.QuestionEntity
 
 /**
- * Public forum: anyone can ask a question, anyone can answer. Minimalist --
- * flat list, hairline dividers, no card soup.
+ * GraceLink public forum: anyone can ask a question, anyone can answer.
+ * Glass-card design — translucent containers, gold accents, no flat dividers.
  */
 @Composable
 fun ForumScreen(
@@ -55,33 +59,40 @@ fun ForumScreen(
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
         Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Forum", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
+                Text("Forum", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = Gold400)
                 Text("Ask honestly. Answer with grace.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Box(
-                Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.primary).clickable {
-                    if (state.isGuest) onRequireSignIn() else onAskQuestion()
-                },
+                Modifier
+                    .shadow(8.dp, RoundedCornerShape(14.dp), ambientColor = Gold400.copy(alpha = 0.25f))
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Brush.horizontalGradient(GoldGradient))
+                    .clickable {
+                        if (state.isGuest) onRequireSignIn() else onAskQuestion()
+                    }
+                    .padding(12.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Rounded.Add, "Ask a question", tint = Color(0xFF1A0F00), modifier = Modifier.size(24.dp))
             }
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         if (state.questions.isEmpty()) {
             Column(Modifier.fillMaxWidth().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(Modifier.height(40.dp))
-                Icon(Icons.Rounded.Forum, null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
+                Icon(Icons.Rounded.Forum, null, tint = Gold400.copy(alpha = 0.5f), modifier = Modifier.size(40.dp))
                 Spacer(Modifier.height(10.dp))
-                Text("No questions yet", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                Text("Be the first to ask", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("No questions yet", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = Gold400)
+                Text("Be the first to ask on GraceLink", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
-            LazyColumn(contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp)) {
+            LazyColumn(contentPadding = PaddingValues(horizontal = 24.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(state.questions, key = { it.id }) { q ->
-                    QuestionRow(q) { onOpenQuestion(q.id) }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    GlassCard(
+                        modifier = Modifier.fillMaxWidth().clickable { onOpenQuestion(q.id) }
+                    ) {
+                        QuestionRow(q)
+                    }
                 }
             }
         }
@@ -89,17 +100,17 @@ fun ForumScreen(
 }
 
 @Composable
-private fun QuestionRow(q: QuestionEntity, onClick: () -> Unit) {
-    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 16.dp)) {
+private fun QuestionRow(q: QuestionEntity) {
+    Column(Modifier.fillMaxWidth().padding(16.dp)) {
         Text(q.title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(4.dp))
         Text(q.body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Asked by ${q.authorName}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-            Icon(Icons.Rounded.ChatBubbleOutline, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+            Icon(Icons.Rounded.ChatBubbleOutline, null, tint = Gold400.copy(alpha = 0.7f), modifier = Modifier.size(14.dp))
             Spacer(Modifier.width(4.dp))
-            Text("${q.answerCount}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("${q.answerCount}", style = MaterialTheme.typography.labelSmall, color = Gold400)
         }
     }
 }

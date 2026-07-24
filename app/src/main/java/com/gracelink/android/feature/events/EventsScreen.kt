@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +40,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.gracelink.android.core.components.LiveBadge
+import com.gracelink.android.core.theme.Gold400
+import com.gracelink.android.core.theme.GoldGradient
 import com.gracelink.android.data.db.entity.LiveSessionEntity
 import com.gracelink.android.data.db.entity.LiveSessionStatus
 import java.text.SimpleDateFormat
@@ -55,8 +58,18 @@ fun EventsScreen(onOpenLiveSession: (String) -> Unit, vm: EventsViewModel = hilt
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
-        Text("Live Events", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp))
-        Text("Debates • Q&A • Worship nights", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 20.dp, bottom = 8.dp))
+        Text(
+            "GraceLink Live Events",
+            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+            color = Gold400,
+            modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp)
+        )
+        Text(
+            "Debates • Q&A • Worship nights",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 20.dp, bottom = 8.dp)
+        )
 
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
@@ -79,7 +92,12 @@ fun EventsScreen(onOpenLiveSession: (String) -> Unit, vm: EventsViewModel = hilt
 
 @Composable
 private fun SectionLabel(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(vertical = 4.dp))
+    Text(
+        text,
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+        color = Gold400,
+        modifier = Modifier.padding(vertical = 4.dp)
+    )
 }
 
 @Composable
@@ -88,6 +106,7 @@ private fun EventCard(s: LiveSessionEntity, onJoin: () -> Unit, onRemind: () -> 
     Box(
         Modifier
             .fillMaxWidth()
+            .shadow(8.dp, RoundedCornerShape(22.dp))
             .clip(RoundedCornerShape(22.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onJoin)
@@ -108,9 +127,9 @@ private fun EventCard(s: LiveSessionEntity, onJoin: () -> Unit, onRemind: () -> 
                 Spacer(Modifier.height(8.dp))
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.CalendarMonth, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Rounded.CalendarMonth, null, tint = Gold400, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text(fmtDate(s.startTime), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                    Text(fmtDate(s.startTime), style = MaterialTheme.typography.labelMedium, color = Gold400)
                 }
                 Spacer(Modifier.height(8.dp))
             }
@@ -121,7 +140,11 @@ private fun EventCard(s: LiveSessionEntity, onJoin: () -> Unit, onRemind: () -> 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (isLive) {
                     Box(
-                        Modifier.clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.primary).clickable(onClick = onJoin).padding(horizontal = 16.dp, vertical = 8.dp)
+                        Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Brush.horizontalGradient(GoldGradient))
+                            .clickable(onClick = onJoin)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.Login, null, tint = Color(0xFF1A0F00), modifier = Modifier.size(14.dp))
@@ -131,13 +154,13 @@ private fun EventCard(s: LiveSessionEntity, onJoin: () -> Unit, onRemind: () -> 
                     }
                 } else {
                     Box(
-                        Modifier.clip(RoundedCornerShape(20.dp)).background(if (s.remindMe) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)).clickable(onClick = onRemind).padding(horizontal = 14.dp, vertical = 8.dp),
+                        Modifier.clip(RoundedCornerShape(20.dp)).background(if (s.remindMe) Gold400.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)).clickable(onClick = onRemind).padding(horizontal = 14.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Notifications, null, tint = if (s.remindMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Rounded.Notifications, null, tint = if (s.remindMe) Gold400 else MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text(if (s.remindMe) "Notifying" else "Notify Me", style = MaterialTheme.typography.labelMedium, color = if (s.remindMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(if (s.remindMe) "Notifying" else "Notify Me", style = MaterialTheme.typography.labelMedium, color = if (s.remindMe) Gold400 else MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Spacer(Modifier.width(8.dp))
